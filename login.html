@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – Dzire</title>
+
+    <!-- Font Awesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Shared variables first, then page styles -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+
+    <!-- ================================
+         BACKGROUND DECORATIONS
+    ================================ -->
+    <div class="bg-grid"></div>
+    <div class="glow-1"></div>
+    <div class="glow-2"></div>
+
+    <!-- ================================
+         FLOATING GAMIFICATION WIDGETS
+         (hidden on mobile via CSS)
+    ================================ -->
+
+    <!-- Top left: XP counter -->
+    <div class="xp-counter">
+        <div class="xp-icon">⚡</div>
+        <div style="position: relative;">
+            <div class="xp-label">Total XP</div>
+            <div class="xp-value" id="xpValue">0</div>
+            <div class="xp-bar-track">
+                <div class="xp-bar-fill" id="xpBarFill" style="width: 0%"></div>
+            </div>
+            <span class="xp-pop" id="xpPop"></span>
+        </div>
+    </div>
+
+    <!-- Top right: Level ring -->
+    <div class="level-widget">
+        <div class="level-ring">
+            <svg viewBox="0 0 40 40" width="40" height="40">
+                <!-- Background ring -->
+                <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(59,130,246,0.15)" stroke-width="3"/>
+                <!-- Progress ring (82% filled) -->
+                <circle cx="20" cy="20" r="16" fill="none" stroke="#3B82F6" stroke-width="3"
+                    stroke-dasharray="100.5" stroke-dashoffset="18" stroke-linecap="round"
+                    transform="rotate(-90 20 20)"/>
+            </svg>
+            <div class="level-num">8</div>
+        </div>
+        <div>
+            <div class="level-name">Code Warrior 🗡️</div>
+            <div class="level-sub">160 XP to Level 9</div>
+        </div>
+    </div>
+
+    <!-- Bottom left: Streak -->
+    <div class="streak-widget">
+        <div class="fire-emoji">🔥</div>
+        <div>
+            <div class="streak-val">28</div>
+            <div class="streak-lbl">Day Streak</div>
+            <div class="streak-dots">
+                <div class="s-dot on">M</div>
+                <div class="s-dot on">T</div>
+                <div class="s-dot on">W</div>
+                <div class="s-dot on">T</div>
+                <div class="s-dot on">F</div>
+                <div class="s-dot">S</div>
+                <div class="s-dot">S</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom right: Next quest -->
+    <div class="quest-widget">
+        <div class="quest-emoji">⚔️</div>
+        <div>
+            <div class="quest-name">Node.js Boss</div>
+            <div class="quest-sub">Next challenge awaits</div>
+        </div>
+    </div>
+
+    <!-- Floating badge chips (positioned & animated by login.js) -->
+    <div class="badge-chip" id="chip1" style="color:#F59E0B; border-color:rgba(245,158,11,0.3)">🏅 First Quest</div>
+    <div class="badge-chip" id="chip2" style="color:#60A5FA; border-color:rgba(96,165,250,0.3)">💎 Diamond Rank</div>
+    <div class="badge-chip" id="chip3" style="color:#10B981; border-color:rgba(16,185,129,0.3)">⚡ Fast Learner</div>
+    <div class="badge-chip" id="chip4" style="color:#A78BFA; border-color:rgba(167,139,250,0.3)">👑 Quest Master</div>
+
+    <!-- ================================
+         LOGIN CARD
+    ================================ -->
+    <div class="login-card">
+
+        <!-- Logo -->
+        <a href="index.html" class="logo">
+            <div class="logo-icon">D</div>
+            <div class="logo-text">D<span>zire</span></div>
+        </a>
+
+        <!-- Title -->
+        <div class="card-header">
+            <h1>Welcome Back 👾</h1>
+            <p>Continue where you left off and achieve more.</p>
+        </div>
+
+        <!-- Error message (hidden by default, shown by JS) -->
+        <div class="msg" id="msg"></div>
+
+        <!-- Login form -->
+        <form id="login-form">
+
+            <!-- Email -->
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    class="form-input"
+                    placeholder="user@example.com"
+                    required
+                >
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <div class="label-row">
+                    <label class="form-label">Password</label>
+                    <a href="#" class="forgot-link">Forgot Password?</a>
+                </div>
+                <div class="input-wrap">
+                    <input
+                        type="password"
+                        id="password"
+                        class="form-input"
+                        placeholder="Enter your password"
+                    >
+                    <!-- Eye icon to toggle password visibility -->
+                    <i class="fa-solid fa-eye toggle-pass" id="togglePassword"></i>
+                </div>
+            </div>
+
+            <!-- Remember me -->
+            <!-- <div class="remember-row">
+                <input type="checkbox" id="remember">
+                <label for="remember">Remember me for 30 days</label>
+            </div> -->
+
+            <!-- Submit -->
+            <button type="submit" class="submit-btn" id="submit-btn">
+                Login Now <i class="fa-solid fa-right-to-bracket"></i>
+            </button>
+
+        </form>
+
+        <!-- Divider -->
+        <!-- <div class="divider"><span>or continue with</span></div> -->
+
+        <!-- Google login (placeholder) -->
+        <!-- <button class="google-btn">
+            <i class="fa-brands fa-google"></i>
+            Login with Google
+        </button> -->
+        
+        <!-- Link to signup -->
+        <div class="signup-link">
+            Don't have an account? <a href="signup.html">Create Account</a>
+        </div>
+
+    </div>
+
+    <!-- Axios for API requests -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Our JS loaded last so all HTML elements exist first -->
+    <script src="js/login.js"></script>
+
+</body>
+</html>

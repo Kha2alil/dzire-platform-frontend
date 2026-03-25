@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dzire – Courses</title>
+
+    <!-- Font Awesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Shared variables first, then page styles -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/courses.css">
+</head>
+<body>
+
+    <!-- ================================
+         NAVBAR
+    ================================ -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">D</div>
+                <div class="logo-text">D<span>zire</span></div>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="index.html#how">How It Works</a></li>
+                <li><a href="index.html#features">Features</a></li>
+                <li><a href="login.html" class="btn-login">Login</a></li>
+                <li><a href="signup.html" class="btn-signup">Sign Up</a></li>
+            </ul>
+
+            <button class="menu-btn" id="menuBtn" title="Open Menu">
+                <i class="fa-solid fa-bars" id="menuIcon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile dropdown -->
+    <div class="mobile-nav" id="mobileNav">
+        <ul>
+            <li><a href="index.html" onclick="closeMobile()">Home</a></li>
+            <li><a href="login.html">Login</a></li>
+            <li><a href="signup.html">Sign Up</a></li>
+        </ul>
+    </div>
+
+    <main>
+
+        <!-- ================================
+             PAGE HERO + FILTER PILLS
+        ================================ -->
+        <div class="page-hero">
+            <div class="page-hero-glow"></div>
+            <div class="container">
+                <div class="page-tag">Marketplace</div>
+                <h1>Explore Our <span>Courses</span></h1>
+                <p>From beginner to advanced — master new skills with AI-powered adaptive learning paths designed for your success.</p>
+
+                <!-- Filter pills — clicking one shows only matching cards -->
+                <div class="filter-row">
+                    <div class="filter-pill active" data-filter="all">All Courses</div>
+                    <div class="filter-pill" data-filter="beginner">Beginner</div>
+                    <div class="filter-pill" data-filter="intermediate">Intermediate</div>
+                    <div class="filter-pill" data-filter="advanced">Advanced</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================
+             COURSES GRID
+        ================================ -->
+        <section class="courses-section">
+            <div class="container">
+                <div class="courses-grid" id="coursesGrid">
+
+                    <!-- HTML Card -->
+                    <!-- data-course links to courseData in courses.js -->
+                    <!-- data-level is used by the filter pills -->
+                    <div class="course-card reveal delay-1" data-course="html" data-level="beginner">
+                        <div class="course-img-wrap">
+                            <img src="assets/images/HTML.png" alt="HTML5">
+                            <div class="level-badge beginner">Beginner</div>
+                            <div class="course-img-overlay">
+                                <div class="see-details-btn">
+                                    <i class="fa-solid fa-magnifying-glass"></i> See Details
+                                </div>
+                            </div>
+                        </div>
+                        <div class="course-body">
+                            <div class="course-meta">
+                                <span class="course-tag">Web Dev</span>
+                                <div class="course-dot"></div>
+                                <span style="font-size:12px; color:var(--text-3)">4 modules</span>
+                            </div>
+                            <h3>HTML5 Foundations</h3>
+                            <p>Master the skeleton of the web. Build perfectly structured websites for accessibility and SEO.</p>
+                            <div class="course-footer">
+                                <div class="course-stats">
+                                    <span class="course-stat"><i class="fa-solid fa-clock"></i> 8h</span>
+                                    <span class="course-stat"><i class="fa-solid fa-users"></i> 2.4k</span>
+                                </div>
+                                <span class="enroll-btn">Details <i class="fa-solid fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CSS Card -->
+                    <div class="course-card reveal delay-2" data-course="css" data-level="beginner">
+                        <div class="course-img-wrap">
+                            <img src="assets/images/CSS.png" alt="CSS3">
+                            <div class="level-badge beginner">Beginner</div>
+                            <div class="course-img-overlay">
+                                <div class="see-details-btn">
+                                    <i class="fa-solid fa-magnifying-glass"></i> See Details
+                                </div>
+                            </div>
+                        </div>
+                        <div class="course-body">
+                            <div class="course-meta">
+                                <span class="course-tag">Web Dev</span>
+                                <div class="course-dot"></div>
+                                <span style="font-size:12px; color:var(--text-3)">4 modules</span>
+                            </div>
+                            <h3>CSS3 Styling Mastery</h3>
+                            <p>Bring your websites to life with colors, typography, Flexbox, Grid, and animations.</p>
+                            <div class="course-footer">
+                                <div class="course-stats">
+                                    <span class="course-stat"><i class="fa-solid fa-clock"></i> 10h</span>
+                                    <span class="course-stat"><i class="fa-solid fa-users"></i> 1.9k</span>
+                                </div>
+                                <span class="enroll-btn">Details <i class="fa-solid fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- JavaScript Card -->
+                    <div class="course-card reveal delay-3" data-course="js" data-level="intermediate">
+                        <div class="course-img-wrap">
+                            <img src="assets/images/JS.png" alt="JavaScript">
+                            <div class="level-badge intermediate">Intermediate</div>
+                            <div class="course-img-overlay">
+                                <div class="see-details-btn">
+                                    <i class="fa-solid fa-magnifying-glass"></i> See Details
+                                </div>
+                            </div>
+                        </div>
+                        <div class="course-body">
+                            <div class="course-meta">
+                                <span class="course-tag">Frontend</span>
+                                <div class="course-dot"></div>
+                                <span style="font-size:12px; color:var(--text-3)">4 modules</span>
+                            </div>
+                            <h3>JavaScript Dynamics</h3>
+                            <p>The logic of the web. Build interactive, data-driven web apps with modern JavaScript.</p>
+                            <div class="course-footer">
+                                <div class="course-stats">
+                                    <span class="course-stat"><i class="fa-solid fa-clock"></i> 16h</span>
+                                    <span class="course-stat"><i class="fa-solid fa-users"></i> 3.1k</span>
+                                </div>
+                                <span class="enroll-btn">Details <i class="fa-solid fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tailwind Card -->
+                    <div class="course-card reveal delay-4" data-course="tailwind" data-level="intermediate">
+                        <div class="course-img-wrap">
+                            <img src="assets/images/Tailwind.png" alt="Tailwind CSS">
+                            <div class="level-badge intermediate">Intermediate</div>
+                            <div class="course-img-overlay">
+                                <div class="see-details-btn">
+                                    <i class="fa-solid fa-magnifying-glass"></i> See Details
+                                </div>
+                            </div>
+                        </div>
+                        <div class="course-body">
+                            <div class="course-meta">
+                                <span class="course-tag">UI Design</span>
+                                <div class="course-dot"></div>
+                                <span style="font-size:12px; color:var(--text-3)">4 modules</span>
+                            </div>
+                            <h3>Tailwind CSS Rapid UI</h3>
+                            <p>Build modern designs at lightning speed using utility-first CSS without leaving HTML.</p>
+                            <div class="course-footer">
+                                <div class="course-stats">
+                                    <span class="course-stat"><i class="fa-solid fa-clock"></i> 12h</span>
+                                    <span class="course-stat"><i class="fa-solid fa-users"></i> 1.5k</span>
+                                </div>
+                                <span class="enroll-btn">Details <i class="fa-solid fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- React Card -->
+                    <div class="course-card reveal delay-5" data-course="react" data-level="advanced">
+                        <div class="course-img-wrap">
+                            <img src="assets/images/React.png" alt="React">
+                            <div class="level-badge advanced">Advanced</div>
+                            <div class="course-img-overlay">
+                                <div class="see-details-btn">
+                                    <i class="fa-solid fa-magnifying-glass"></i> See Details
+                                </div>
+                            </div>
+                        </div>
+                        <div class="course-body">
+                            <div class="course-meta">
+                                <span class="course-tag">Frontend</span>
+                                <div class="course-dot"></div>
+                                <span style="font-size:12px; color:var(--text-3)">4 modules</span>
+                            </div>
+                            <h3>React Modern Frontend</h3>
+                            <p>Build powerful, scalable SPAs using the most popular JavaScript library in the world.</p>
+                            <div class="course-footer">
+                                <div class="course-stats">
+                                    <span class="course-stat"><i class="fa-solid fa-clock"></i> 20h</span>
+                                    <span class="course-stat"><i class="fa-solid fa-users"></i> 4.2k</span>
+                                </div>
+                                <span class="enroll-btn">Details <i class="fa-solid fa-arrow-right"></i></span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================================
+         MODAL (hidden by default)
+         Filled dynamically by courses.js
+    ================================ -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal">
+
+            <!-- Close button -->
+            <button class="modal-close" id="modalClose" title="Close Modal">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <!-- Course image (top of modal) -->
+            <img id="modalImg" class="modal-img" src="" alt="">
+
+            <div class="modal-body">
+                <div class="modal-grid">
+
+                    <!-- Left: title, description, syllabus -->
+                    <div>
+                        <h2 class="modal-title" id="modalTitle">Course Title</h2>
+                        <p class="modal-desc"  id="modalDesc">Description</p>
+
+                        <div class="modal-section-title">📚 Course Content</div>
+                        <ul class="modal-syllabus" id="modalSyllabus"></ul>
+                    </div>
+
+                    <!-- Right: difficulty badge, outcomes, CTA -->
+                    <div class="modal-sidebar">
+                        <div class="modal-level-label">Difficulty</div>
+                        <div class="modal-level-badge" id="modalLevel">Beginner</div>
+
+                        <div class="modal-section-title" style="margin-bottom:12px">What You'll Learn</div>
+                        <ul class="modal-outcomes" id="modalOutcomes"></ul>
+
+                        <button class="modal-start-btn">
+                            <i class="fa-solid fa-rocket"></i> Start Learning
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript loaded at the end so all HTML elements exist first -->
+    <script src="js/courses.js"></script>
+
+</body>
+</html>

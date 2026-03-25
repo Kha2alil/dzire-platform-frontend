@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dzire – Teacher Dashboard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/teacher-style.css"/>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══════════════════════════════
+     SIDEBAR
+═══════════════════════════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">D</div>
+    <div class="logo-text">D<span>zire</span></div>
+  </div>
+
+  <div class="sidebar-toggle" id="sidebarToggle">◀</div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+
+    <div class="nav-item active" data-page="dashboard">
+      <span class="nav-icon">⊞</span>
+      <span class="nav-label">Dashboard</span>
+    </div>
+
+    <div class="nav-item" data-page="courses">
+      <span class="nav-icon">📚</span>
+      <span class="nav-label">My Courses</span>
+      <span class="nav-badge blue">12</span>
+    </div>
+
+    <div class="nav-item" data-page="assessments">
+      <span class="nav-icon">📝</span>
+      <span class="nav-label">Assessments</span>
+    </div>
+
+    <div class="nav-item" data-page="students">
+      <span class="nav-icon">👥</span>
+      <span class="nav-label">Students</span>
+      <span class="nav-badge blue">348</span>
+    </div>
+
+    <div class="nav-section-label">Analytics</div>
+
+    <div class="nav-item" data-page="analytics">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Analytics</span>
+    </div>
+
+    <div class="nav-item" data-page="failure">
+      <span class="nav-icon">⚠️</span>
+      <span class="nav-label">Failure Points</span>
+      <span class="nav-badge">5</span>
+    </div>
+
+    <div class="nav-section-label">Account</div>
+
+    <div class="nav-item" data-page="profile">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">My Profile</span>
+    </div>
+
+    <div class="nav-item" data-page="settings">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Settings</span>
+    </div>
+  </nav>
+
+  <div class="sidebar-profile" data-page="profile">
+    <div class="profile-avatar">KK</div>
+    <div class="profile-info">
+      <div class="profile-name">Khalil Khalfi</div>
+      <div class="profile-role">Teacher · Full-Stack</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ═══════════════════════════════
+     MAIN
+═══════════════════════════════ -->
+<div class="main" id="main">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="page-breadcrumb">
+        <span>Dzire</span>
+        <span>›</span>
+        <span class="current" id="pageTitle">Dashboard</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="search-box">
+        <span style="color:var(--text-3);font-size:14px">🔍</span>
+        <input type="text" id="globalSearch" placeholder="Search students, courses..."/>
+      </div>
+      <div class="icon-btn" style="position:relative" id="notifBtn">
+        🔔
+        <div class="notif-badge" id="notifBadge"></div>
+        <!-- Notification panel -->
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-head">
+            Notifications
+            <span class="notif-clear" id="clearNotif">Clear all</span>
+          </div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="topbarAction" type="button" onclick="openModal('newCourse')">＋ New Course</button>
+    </div>
+  </header>
+
+  <!-- ══ PAGE: DASHBOARD ══ -->
+  <div class="page active" id="page-dashboard">
+    <div style="margin-bottom:22px">
+      <div class="section-title">Good morning, Khalil 👋</div>
+      <div class="section-subtitle">Here's what's happening with your courses today.</div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon" style="background:rgba(59,130,246,0.12)">📚</div>
+          <div class="stat-trend trend-up">↑ +2</div>
+        </div>
+        <div class="stat-value">12</div>
+        <div class="stat-label">Active Courses</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon" style="background:var(--green-dim)">👥</div>
+          <div class="stat-trend trend-up">↑ +24</div>
+        </div>
+        <div class="stat-value">348</div>
+        <div class="stat-label">Total Students</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon" style="background:var(--purple-dim)">⭐</div>
+          <div class="stat-trend trend-up">↑ +0.2</div>
+        </div>
+        <div class="stat-value">4.8</div>
+        <div class="stat-label">Average Rating</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon" style="background:var(--amber-dim)">⚠️</div>
+          <div class="stat-trend trend-down">↑ +12</div>
+        </div>
+        <div class="stat-value">67</div>
+        <div class="stat-label">Failure Points</div>
+      </div>
+    </div>
+
+    <div class="grid-3" style="margin-bottom:16px">
+      <!-- Courses overview -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">My Courses</div>
+          <div class="card-link" onclick="navigate('courses')">View all →</div>
+        </div>
+        <div id="dashCourseList"></div>
+      </div>
+
+      <!-- Right column -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <!-- Failure points -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Top Failure Points</div>
+            <div class="card-link" onclick="navigate('failure')">Details →</div>
+          </div>
+          <div class="fp-list" id="dashFpList"></div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">Quick Actions</div></div>
+          <div class="qa-grid">
+            <div class="qa-btn" onclick="openModal('newCourse')">
+              <div class="qa-icon">➕</div>
+              <div><div class="qa-title">New Course</div><div class="qa-sub">Create & publish</div></div>
+            </div>
+            <div class="qa-btn" onclick="openModal('newQuiz')">
+              <div class="qa-icon">📝</div>
+              <div><div class="qa-title">New Quiz</div><div class="qa-sub">Add assessment</div></div>
+            </div>
+            <div class="qa-btn" onclick="navigate('students')">
+              <div class="qa-icon">👁️</div>
+              <div><div class="qa-title">View Students</div><div class="qa-sub">Check progress</div></div>
+            </div>
+            <div class="qa-btn" onclick="showToast('Report exported!','success')">
+              <div class="qa-icon">📤</div>
+              <div><div class="qa-title">Export Report</div><div class="qa-sub">Analytics CSV</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Weekly submissions chart -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Weekly Submissions</div>
+          <div class="badge badge-blue">This Week</div>
+        </div>
+        <div class="bar-chart" id="weekChart"></div>
+      </div>
+
+      <!-- Recent activity -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Recent Activity</div>
+          <div class="card-link">View all →</div>
+        </div>
+        <div class="activity-list" id="dashActivity"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: COURSES ══ -->
+  <div class="page" id="page-courses">
+    <div class="section-header">
+      <div>
+        <div class="section-title">My Courses</div>
+        <div class="section-subtitle">Manage and monitor all your courses</div>
+      </div>
+      <button class="btn btn-primary" type="button" onclick="openModal('newCourse')">＋ New Course</button>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+      <div class="search-box" style="flex:1;min-width:200px">
+        <span style="color:var(--text-3)">🔍</span>
+        <input type="text" id="courseSearch" placeholder="Search courses..." oninput="filterCourses()"/>
+      </div>
+      <select class="form-select course-filter" id="courseFilter" title="Filter courses by status" onchange="filterCourses()">
+        <option value="">All Status</option>
+        <option value="Active">Active</option>
+        <option value="Pending">Pending</option>
+        <option value="Draft">Draft</option>
+      </select>
+      <select class="form-select" style="width:auto" id="diffFilter" onchange="filterCourses()">
+        <option value="">All Levels</option>
+        <option value="Beginner">Beginner</option>
+        <option value="Intermediate">Intermediate</option>
+        <option value="Advanced">Advanced</option>
+      </select>
+    </div>
+
+    <div class="course-cards" id="courseGrid"></div>
+  </div>
+
+  <!-- ══ PAGE: ASSESSMENTS ══ -->
+  <div class="page" id="page-assessments">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Assessments</div>
+        <div class="section-subtitle">Quizzes, placements, and boss exams</div>
+      </div>
+      <button class="btn btn-primary" type="button" onclick="openModal('newQuiz')">＋ New Assessment</button>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'tab-all')">All</div>
+      <div class="tab" onclick="switchTab(this,'tab-quiz')">Quizzes</div>
+      <div class="tab" onclick="switchTab(this,'tab-boss')">Boss Exams</div>
+      <div class="tab" onclick="switchTab(this,'tab-placement')">Placement Tests</div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Assessment</th>
+              <th>Course</th>
+              <th>Type</th>
+              <th>Questions</th>
+              <th>Avg Score</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="assessmentTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: STUDENTS ══ -->
+  <div class="page" id="page-students">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Students</div>
+        <div class="section-subtitle">Track learner progress and performance</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" type="button" onclick="showToast('Report exported!','success')">📤 Export</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+      <div class="search-box" style="flex:1;min-width:200px">
+        <span style="color:var(--text-3)">🔍</span>
+        <input type="text" id="studentSearch" placeholder="Search by name or email..." oninput="filterStudents()"/>
+      </div>
+      <select class="form-select" style="width:auto" id="studentCourseFilter" onchange="filterStudents()">
+        <option value="">All Courses</option>
+        <option value="Full-Stack">Full-Stack</option>
+        <option value="JavaScript">JavaScript</option>
+        <option value="Node.js">Node.js</option>
+        <option value="CSS">CSS</option>
+      </select>
+      <select class="form-select" style="width:auto" id="studentStatusFilter" onchange="filterStudents()">
+        <option value="">All Progress</option>
+        <option value="high">High (75%+)</option>
+        <option value="mid">Mid (40–74%)</option>
+        <option value="low">Low (&lt;40%)</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Course</th>
+              <th>Progress</th>
+              <th>XP</th>
+              <th>Level</th>
+              <th>Last Active</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="studentTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: ANALYTICS ══ -->
+  <div class="page" id="page-analytics">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Analytics</div>
+        <div class="section-subtitle">Detailed performance insights</div>
+      </div>
+      <select class="form-select" style="width:auto">
+        <option>Last 7 days</option>
+        <option>Last 30 days</option>
+        <option>Last 3 months</option>
+      </select>
+    </div>
+
+    <div class="stats-grid" style="margin-bottom:20px">
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon" style="background:rgba(59,130,246,0.12)">✅</div>
+          <div class="stat-trend trend-up">↑ 8%</div>
+        </div>
+        <div class="stat-value">76%</div>
+        <div class="stat-label">Completion Rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon" style="background:var(--green-dim)">🎯</div>
+          <div class="stat-trend trend-up">↑ 5%</div>
+        </div>
+        <div class="stat-value">68%</div>
+        <div class="stat-label">Quiz Pass Rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon" style="background:var(--purple-dim)">⚡</div>
+          <div class="stat-trend trend-neutral">→ 0%</div>
+        </div>
+        <div class="stat-value">2.4h</div>
+        <div class="stat-label">Avg Study Time/Day</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top">
+          <div class="stat-icon" style="background:var(--amber-dim)">🔄</div>
+          <div class="stat-trend trend-down">↓ 3%</div>
+        </div>
+        <div class="stat-value">18%</div>
+        <div class="stat-label">Dropout Rate</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Monthly Enrollments</div>
+        </div>
+        <div class="bar-chart" id="monthChart"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text-3)">
+          <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Student Distribution</div>
+        </div>
+        <div class="donut-wrap" style="margin-top:8px">
+          <div class="donut" style="background:conic-gradient(var(--blue-500) 0% 45%, var(--green) 45% 70%, var(--amber) 70% 88%, var(--red) 88% 100%)">
+            <div class="donut-center">
+              <div class="donut-val">348</div>
+              <div class="donut-sub">Total</div>
+            </div>
+          </div>
+          <div class="legend-list">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--blue-500)"></div><span class="legend-label">Full-Stack</span><span class="legend-val">156</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span class="legend-label">JavaScript</span><span class="legend-val">87</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div><span class="legend-label">Node.js</span><span class="legend-val">62</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div><span class="legend-label">CSS</span><span class="legend-val">43</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Course Performance Breakdown</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Course</th>
+              <th>Students</th>
+              <th>Completion</th>
+              <th>Avg Score</th>
+              <th>Rating</th>
+              <th>Trend</th>
+            </tr>
+          </thead>
+          <tbody id="analyticsTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: FAILURE POINTS ══ -->
+  <div class="page" id="page-failure">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Failure Points</div>
+        <div class="section-subtitle">Topics where students struggle the most</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Ranked Topics</div></div>
+        <div class="fp-list" id="fullFpList"></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Failure Distribution</div></div>
+        <div class="bar-chart" id="fpChart"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text-3)">
+          <span>Async</span><span>REST</span><span>CSS</span><span>SQL</span><span>JWT</span><span>DOM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Affected Students</div>
+        <div class="card-link">Export list →</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Failed Topic</th>
+              <th>Attempts</th>
+              <th>Last Try</th>
+              <th>Remedial Status</th>
+            </tr>
+          </thead>
+          <tbody id="fpStudentTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: PROFILE ══ -->
+  <div class="page" id="page-profile">
+    <div class="section-header">
+      <div>
+        <div class="section-title">My Profile</div>
+        <div class="section-subtitle">Manage your teacher profile and bio</div>
+      </div>
+      <button class="btn btn-primary" type="button" onclick="showToast('Profile saved!','success')">💾 Save Changes</button>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">Personal Information</div></div>
+          <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px">
+            <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--blue-800),var(--blue-500));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:24px;border:3px solid var(--border-md)">KK</div>
+            <div>
+              <button class="btn btn-ghost" type="button">📷 Change Photo</button>
+              <div style="font-size:11px;color:var(--text-3);margin-top:6px">JPG, PNG max 2MB</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Full Name</label>
+              <input class="form-input" value="Khalil Khalfi"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" value="khalil@dzire.dz"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Professional Bio</label>
+            <textarea class="form-textarea">Full-Stack Web Developer with 5+ years of experience in Node.js, React, and PostgreSQL. Passionate about teaching adaptive learning methods.</textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Specialization</label>
+              <input class="form-input" value="Full-Stack Web Development"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Experience (years)</label>
+              <input class="form-input" type="number" value="5"/>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">Teaching Stats</div></div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Courses Published</span><span style="font-weight:600">12</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Student Satisfaction</span><span style="font-weight:600">96%</span></div>
+              <div class="progress-bar"><div class="progress-fill green" style="width:96%"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Response Rate</span><span style="font-weight:600">88%</span></div>
+              <div class="progress-bar"><div class="progress-fill" style="width:88%"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Boss Exam Pass Rate</span><span style="font-weight:600">71%</span></div>
+              <div class="progress-bar"><div class="progress-fill amber" style="width:71%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Security</div></div>
+          <div class="form-group">
+            <label class="form-label">Current Password</label>
+            <input class="form-input" type="password" placeholder="••••••••"/>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <input class="form-input" type="password" placeholder="••••••••"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirm Password</label>
+              <input class="form-input" type="password" placeholder="••••••••"/>
+            </div>
+          </div>
+          <button class="btn btn-ghost" type="button" onclick="showToast('Password updated!','success')">🔒 Update Password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ PAGE: SETTINGS ══ -->
+  <div class="page" id="page-settings">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Settings</div>
+        <div class="section-subtitle">Customize your Dzire experience</div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-header">🔔 Notifications</div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-label">Email Notifications</div>
+          <div class="settings-desc">Receive email when students submit assignments</div>
+        </div>
+        <div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-label">Failure Point Alerts</div>
+          <div class="settings-desc">Get notified when students hit repeated failures</div>
+        </div>
+        <div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-label">New Enrollment Alerts</div>
+          <div class="settings-desc">Notify when a student enrolls in your course</div>
+        </div>
+        <div class="toggle" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-label">Boss Exam Results</div>
+          <div class="settings-desc">Alert when a student passes or fails a boss exam</div>
+        </div>
+        <div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-header">📚 Course Defaults</div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-label">Auto-approve Course Edits</div>
+          <div class="settings-desc">Skip admin review for minor course edits</div>
+        </div>
+        <div class="toggle" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-label">Max Video Duration</div>
+          <div class="settings-desc">Enforce 10-minute maximum per lesson video</div>
+        </div>
+        <div class="badge badge-green">Enforced</div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-label">Remedial Auto-Trigger</div>
+          <div class="settings-desc">Auto-start remedial session after 3 failed attempts</div>
+        </div>
+        <div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-header">🎨 Appearance</div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-label">Compact Sidebar</div>
+          <div class="settings-desc">Keep sidebar collapsed by default</div>
+        </div>
+        <div class="toggle" onclick="this.classList.toggle('on');document.getElementById('sidebar').classList.toggle('collapsed');document.getElementById('main').classList.toggle('expanded')"><div class="toggle-knob"></div></div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-info">
+          <div class="settings-label">Animations</div>
+          <div class="settings-desc">Enable page transition animations</div>
+        </div>
+        <div class="toggle on" onclick="this.classList.toggle('on')"><div class="toggle-knob"></div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ═══════════════════════════════
+     MODALS
+═══════════════════════════════ -->
+
+<!-- New Course Modal -->
+<div class="modal-overlay" id="modal-newCourse">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Create New Course</div>
+      <div class="modal-close" onclick="closeModal('newCourse')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Course Title</label>
+        <input class="form-input" placeholder="e.g. Advanced JavaScript Concepts"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea" placeholder="Describe what students will learn..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Domain</label>
+          <select class="form-select">
+            <option>Web Development</option>
+            <option>Data Science</option>
+            <option>Mobile Development</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Subdomain</label>
+          <select class="form-select">
+            <option>Frontend</option>
+            <option>Backend</option>
+            <option>Full-Stack</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Difficulty Level</label>
+          <select class="form-select">
+            <option>Beginner</option>
+            <option>Intermediate</option>
+            <option>Advanced</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">XP Reward per Lesson</label>
+          <input class="form-input" type="number" value="10" min="5" max="100"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newCourse')">Cancel</button>
+      <button class="btn btn-primary" onclick="createCourse()">Create Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Quiz Modal -->
+<div class="modal-overlay" id="modal-newQuiz">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Create Assessment</div>
+      <div class="modal-close" onclick="closeModal('newQuiz')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Assessment Title</label>
+        <input class="form-input" placeholder="e.g. JavaScript Promises Quiz"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-select">
+            <option>Quiz</option>
+            <option>Boss Exam</option>
+            <option>Placement Test</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Course</label>
+          <select class="form-select">
+            <option>Full-Stack Web Dev</option>
+            <option>JavaScript Advanced</option>
+            <option>Node.js & PostgreSQL</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Number of Questions</label>
+          <input class="form-input" type="number" value="10" min="1"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Passing Score (%)</label>
+          <input class="form-input" type="number" value="70" min="1" max="100"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newQuiz')">Cancel</button>
+      <button class="btn btn-primary" onclick="createQuiz()">Create Assessment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ═══════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════ -->
+
+<script src="js/teacher-app.js"></script>
+</body>
+</html>

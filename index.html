@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dzire – Master Your Skills with AI Quests</title>
+
+    <!-- Font Awesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- main css links  -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon">D</div>
+                <div class="logo-text">D<span>zire</span></div>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="courses.html">Our Courses</a></li>
+                <li><a href="#how">How It Works</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#testimonials">Testimonials</a></li>
+                <li><a href="login.html" class="btn-login">Login</a></li>
+                <li><a href="signup.html" class="btn-signup">Sign Up</a></li>
+            </ul>
+
+            <!-- Hamburger button (visible on mobile only) -->
+            <button class="menu-btn" id="menuBtn" title="Open Menu">
+                <i class="fa-solid fa-bars" id="menuIcon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile dropdown menu -->
+    <div class="mobile-nav" id="mobileNav">
+        <ul>
+            <li><a href="#how"          onclick="closeMobile()">How It Works</a></li>
+            <li><a href="#features"     onclick="closeMobile()">Features</a></li>
+            <li><a href="#testimonials" onclick="closeMobile()">Testimonials</a></li>
+            <li><a href="login.html">Login</a></li>
+            <li><a href="signup.html">Sign Up</a></li>
+        </ul>
+    </div>
+
+    <main>
+
+        <!-- HERO SECTION -->
+        <section id="hero" class="hero">
+            <div class="glow-top"></div>
+            <div class="glow-right"></div>
+            <div class="container">
+                <!-- Left: text content -->
+                <div class="hero-left">
+                    <div class="hero-badge">
+                        <div class="dot"></div>
+                        AI-Powered Learning Platform
+                    </div>
+                    <h1>
+                        Master Your<br>
+                        <span class="accent">Skills</span> with<br>
+                        Personalized AI Quests!
+                    </h1>
+                    <p>Adaptive learning paths, gamified challenges, and real-timeprogress tracking. Level up your knowledge and ace every skill.</p>
+                    <div class="hero-btns">
+                        <a href="signup.html" class="btn-primary">
+                            <i class="fa-solid fa-rocket"></i>
+                            Start Your Free Quest
+                        </a>
+                        <a href="courses.html" class="btn-ghost">
+                            <i class="fa-solid fa-book-open"></i>
+                            See Courses
+                        </a>
+                    </div>
+                    <!-- Social proof avatars -->
+                    <div class="hero-social-proof">
+                        <div class="avatars">
+                            <span>AM</span>
+                            <span>SB</span>
+                            <span>KL</span>
+                            <span>+</span>
+                        </div>
+                        <div class="social-text">
+                            Joined by <strong>10,000+</strong> learners worldwide
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: dashboard preview card -->
+                <div class="hero-visual">
+
+                    <!-- Floating badges around the card -->
+                    <div class="floating-badge">
+                        <div class="fb-icon">🔥</div>
+                        <div>
+                            <div class="fb-val">28</div>
+                            <div class="fb-lbl">Day Streak</div>
+                        </div>
+                    </div>
+
+                    <div class="floating-badge-2">
+                        <div class="fb-icon">⚔️</div>
+                        <div>
+                            <div class="fb-val">+150 XP</div>
+                            <div class="fb-lbl">Quest Complete!</div>
+                        </div>
+                    </div>
+
+                    <!-- Main dashboard card -->
+                    <div class="hero-card">
+                        <div class="hero-card-header">
+                            <div class="hc-profile">
+                                <div class="hc-avatar">AB</div>
+                                <div>
+                                    <div class="hc-name">Ahmed Benali</div>
+                                    <div class="hc-level">Level 8 · Code Warrior 🗡️</div>
+                                </div>
+                            </div>
+                            <div class="hc-xp">
+                                <div class="hc-xp-val">2,840</div>
+                                <div class="hc-xp-lbl">Total XP</div>
+                            </div>
+                        </div>
+
+                        <div class="xp-label">
+                            <span>Progress to Level 9</span>
+                            <span>2,840 / 3,000 XP</span>
+                        </div>
+                        <div class="xp-track">
+                            <div class="xp-fill"></div>
+                        </div>
+
+                        <div class="mini-stats">
+                            <div class="mini-stat">
+                                <div class="mini-stat-val" style="color:var(--blue-400)">17</div>
+                                <div class="mini-stat-lbl">Quests Done</div>
+                            </div>
+                            <div class="mini-stat">
+                                <div class="mini-stat-val" style="color:var(--amber)">11</div>
+                                <div class="mini-stat-lbl">Badges</div>
+                            </div>
+                            <div class="mini-stat">
+                                <div class="mini-stat-val" style="color:var(--green)">76%</div>
+                                <div class="mini-stat-lbl">Avg Score</div>
+                            </div>
+                        </div>
+
+                        <div class="boss-row">
+                            <div class="boss-info">
+                                <div class="boss-emoji">👹</div>
+                                <div>
+                                    <div class="boss-title">Next Boss Challenge</div>
+                                    <div class="boss-name">Node.js Final Exam</div>
+                                </div>
+                            </div>
+                            <button class="btn-battle">Battle ⚔️</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================================
+             STATS COUNTERS
+        ================================ -->
+        <div class="stats-section">
+            <div class="container">
+                <div class="stats-grid">
+                    <div class="stat-card reveal delay-1">
+                        <div class="stat-card-val" data-target="10000">0</div>
+                        <div class="stat-card-lbl">Active Learners</div>
+                    </div>
+                    <div class="stat-card reveal delay-2">
+                        <div class="stat-card-val" data-target="500">0</div>
+                        <div class="stat-card-lbl">Courses Available</div>
+                    </div>
+                    <div class="stat-card reveal delay-3">
+                        <div class="stat-card-val" data-target="98" data-suffix="%">0</div>
+                        <div class="stat-card-lbl">Success Rate</div>
+                    </div>
+                    <div class="stat-card reveal delay-4">
+                        <div class="stat-card-val" data-target="50000">0</div>
+                        <div class="stat-card-lbl">Quests Completed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================
+             HOW IT WORKS
+        ================================ -->
+        <section id="how" class="how">
+            <div class="container">
+                <div class="section-head reveal">
+                    <div class="section-tag">How It Works</div>
+                    <div class="section-title">How Dzire Transforms Your Learning</div>
+                    <div class="section-sub">
+                        Your journey to mastery starts here — powered by adaptive AI and gamification.
+                    </div>
+                </div>
+
+                <div class="features-grid">
+                    <div class="feature-card reveal delay-1">
+                        <div class="feature-icon">🧠</div>
+                        <h3>Adaptive Paths</h3>
+                        <p>AI-driven personalized paths adapt to your strengths and weaknesses for optimal learning efficiency.</p>
+                    </div>
+                    <div class="feature-card reveal delay-2">
+                        <div class="feature-icon">🎮</div>
+                        <h3>Gamified Challenges</h3>
+                        <p>Earn XP, unlock achievements, and battle Boss Exams for ultimate mastery and fun learning.</p>
+                    </div>
+                    <div class="feature-card reveal delay-3">
+                        <div class="feature-icon">💡</div>
+                        <h3>Remedial Support</h3>
+                        <p>Instant feedback and targeted remedial videos and docs for every challenge you face.</p>
+                    </div>
+                    <div class="feature-card reveal delay-4">
+                        <div class="feature-icon">📈</div>
+                        <h3>Real-time Progress</h3>
+                        <p>Track your mastery level and conquer subjects with detailed analytics and insights.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================
+             FEATURES / ADVENTURE
+        ================================ -->
+        <section id="features" class="adventure">
+            <div class="container">
+
+                <!-- Left: feature list -->
+                <div class="reveal-left">
+                    <div class="section-tag">Features</div>
+                    <div class="section-title">Learning Made Epic: Your Adventure Awaits!</div>
+                    <p style="color:var(--text-2); font-size:16px; line-height:1.7; margin-bottom:8px">
+                        Transform your study routine into an exciting quest where every lesson
+                        completed brings you closer to mastery.
+                    </p>
+
+                    <div class="adventure-items">
+                        <div class="adventure-item">
+                            <div class="adventure-item-icon">🏆</div>
+                            <div>
+                                <h3>Achievement System</h3>
+                                <p>Unlock badges and trophies as you master each subject and complete quests.</p>
+                            </div>
+                        </div>
+                        <div class="adventure-item">
+                            <div class="adventure-item-icon">⚡</div>
+                            <div>
+                                <h3>XP & Levels</h3>
+                                <p>Gain experience points and level up your academic journey with every lesson.</p>
+                            </div>
+                        </div>
+                        <div class="adventure-item">
+                            <div class="adventure-item-icon">👹</div>
+                            <div>
+                                <h3>Boss Challenges</h3>
+                                <p>Face epic boss exams to prove your mastery and unlock legendary rewards.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: stats widget -->
+                <div class="reveal-right">
+                    <div class="stats-widget">
+                        <div class="widget-header">
+                            <div class="w-profile">
+                                <div class="w-avatar">AB</div>
+                                <div>
+                                    <div class="w-name">Ahmed Benali</div>
+                                    <div class="w-level">Level 23 Scholar</div>
+                                </div>
+                            </div>
+                            <div class="w-xp-badge">
+                                <div class="w-xp-val">12,450</div>
+                                <div class="w-xp-lbl">Total XP</div>
+                            </div>
+                        </div>
+
+                        <div class="widget-body">
+                            <div class="w-progress-label">
+                                <span>Progress to Level 24</span>
+                                <span>2,450 / 3,000 XP</span>
+                            </div>
+                            <div class="w-bar">
+                                <div class="w-fill"></div>
+                            </div>
+
+                            <div class="w-stats">
+                                <div class="w-stat">
+                                    <div class="w-stat-val" style="color:var(--gold)">15</div>
+                                    <div class="w-stat-lbl">Achievements</div>
+                                </div>
+                                <div class="w-stat">
+                                    <div class="w-stat-val" style="color:var(--red)">28🔥</div>
+                                    <div class="w-stat-lbl">Day Streak</div>
+                                </div>
+                                <div class="w-stat">
+                                    <div class="w-stat-val" style="color:var(--green)">92%</div>
+                                    <div class="w-stat-lbl">Mastery</div>
+                                </div>
+                            </div>
+
+                            <div class="w-boss">
+                                <div class="w-boss-info">
+                                    <div style="font-size:22px">👹</div>
+                                    <div>
+                                        <div class="w-boss-lbl">Next Boss Challenge</div>
+                                        <div class="w-boss-name">Node.js Final Exam</div>
+                                    </div>
+                                </div>
+                                <button class="btn-battle">Battle ⚔️</button>
+                            </div>
+                        </div>
+
+                        <div class="widget-footer">
+                            <p>Recent Badges Unlocked</p>
+                            <div class="badge-row">
+                                <div class="badge-icon">🏅</div>
+                                <div class="badge-icon">👑</div>
+                                <div class="badge-icon">💎</div>
+                                <div class="badge-icon">🛡️</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================================
+             TESTIMONIALS
+        ================================ -->
+        <section id="testimonials" class="testimonials">
+            <div class="container">
+                <div class="section-head reveal">
+                    <div class="section-tag">Testimonials</div>
+                    <div class="section-title">What Students Say About Dzire</div>
+                    <div class="section-sub">Real success stories from our learning community.</div>
+                </div>
+            </div>
+
+            <!-- Infinite auto-scroll slider (cards duplicated for seamless loop) -->
+            <div class="testimonials-slider-wrap">
+                <div class="testimonials-track">
+
+                    <!-- Set 1 -->
+                    <div class="testimonial-card">
+                        <div class="t-header">
+                            <div class="t-avatar">JD</div>
+                            <div>
+                                <div class="t-name">John Doe</div>
+                                <div class="t-role">Software Engineer</div>
+                            </div>
+                        </div>
+                        <div class="t-text">"Dzire made studying fun! I improved my grades by 40% and actually look forward to learning now."</div>
+                        <div class="t-stars">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <div class="t-header">
+                            <div class="t-avatar" style="background:linear-gradient(135deg,#065F46,var(--green))">SB</div>
+                            <div>
+                                <div class="t-name">Sara Benali</div>
+                                <div class="t-role">CS Student</div>
+                            </div>
+                        </div>
+                        <div class="t-text">"The Boss Challenges are incredible. Nothing beats the feeling of defeating a tough exam boss after weeks of preparation!"</div>
+                        <div class="t-stars">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <div class="t-header">
+                            <div class="t-avatar" style="background:linear-gradient(135deg,#6B21A8,var(--purple))">KL</div>
+                            <div>
+                                <div class="t-name">Khalil Larbi</div>
+                                <div class="t-role">Full-Stack Developer</div>
+                            </div>
+                        </div>
+                        <div class="t-text">"Adaptive paths are a game changer. The AI knew exactly where I was struggling and served me the right content at the right time."</div>
+                        <div class="t-stars">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <div class="t-header">
+                            <div class="t-avatar" style="background:linear-gradient(135deg,#9D174D,#EC4899)">MA</div>
+                            <div>
+                                <div class="t-name">Meriem Amrani</div>
+                                <div class="t-role">UX Designer</div>
+                            </div>
+                        </div>
+                        <div class="t-text">"I finished 3 courses in one month because the XP system made me addicted to learning. Every lesson feels like a reward."</div>
+                        <div class="t-stars">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <div class="t-header">
+                            <div class="t-avatar" style="background:linear-gradient(135deg,#92400E,#F59E0B)">YM</div>
+                            <div>
+                                <div class="t-name">Yacine Mansouri</div>
+                                <div class="t-role">Backend Developer</div>
+                            </div>
+                        </div>
+                        <div class="t-text">"The skill tree made my learning roadmap crystal clear. I always knew what to tackle next and felt real progression every week."</div>
+                        <div class="t-stars">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+
+                    <div class="testimonial-card">
+                        <div class="t-header">
+                            <div class="t-avatar" style="background:linear-gradient(135deg,#134E4A,#14B8A6)">RK</div>
+                            <div>
+                                <div class="t-name">Rania Kamel</div>
+                                <div class="t-role">Data Analyst</div>
+                            </div>
+                        </div>
+                        <div class="t-text">"The leaderboard kept me competitive in the best way. Best e-learning experience I've ever had."</div>
+                        <div class="t-stars">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+
+                    <!-- Set 2 — duplicate for seamless infinite loop -->
+                    <div class="testimonial-card">
+                        <div class="t-header">
+                            <div class="t-avatar">JD</div>
+                            <div><div class="t-name">John Doe</div><div class="t-role">Software Engineer</div></div>
+                        </div>
+                        <div class="t-text">"Dzire made studying fun! I improved my grades by 40% and actually look forward to learning now."</div>
+                        <div class="t-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="t-header">
+                            <div class="t-avatar" style="background:linear-gradient(135deg,#065F46,var(--green))">SB</div>
+                            <div><div class="t-name">Sara Benali</div><div class="t-role">CS Student</div></div>
+                        </div>
+                        <div class="t-text">"The Boss Challenges are incredible. Nothing beats the feeling of defeating a tough exam boss after weeks of preparation!"</div>
+                        <div class="t-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="t-header">
+                            <div class="t-avatar" style="background:linear-gradient(135deg,#6B21A8,var(--purple))">KL</div>
+                            <div><div class="t-name">Khalil Larbi</div><div class="t-role">Full-Stack Developer</div></div>
+                        </div>
+                        <div class="t-text">"Adaptive paths are a game changer. The AI knew exactly where I was struggling and served me the right content at the right time."</div>
+                        <div class="t-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="t-header">
+                            <div class="t-avatar" style="background:linear-gradient(135deg,#9D174D,#EC4899)">MA</div>
+                            <div><div class="t-name">Meriem Amrani</div><div class="t-role">UX Designer</div></div>
+                        </div>
+                        <div class="t-text">"I finished 3 courses in one month because the XP system made me addicted to learning."</div>
+                        <div class="t-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="t-header">
+                            <div class="t-avatar" style="background:linear-gradient(135deg,#92400E,#F59E0B)">YM</div>
+                            <div><div class="t-name">Yacine Mansouri</div><div class="t-role">Backend Developer</div></div>
+                        </div>
+                        <div class="t-text">"The skill tree made my learning roadmap crystal clear. I always knew what to tackle next."</div>
+                        <div class="t-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="t-header">
+                            <div class="t-avatar" style="background:linear-gradient(135deg,#134E4A,#14B8A6)">RK</div>
+                            <div><div class="t-name">Rania Kamel</div><div class="t-role">Data Analyst</div></div>
+                        </div>
+                        <div class="t-text">"The leaderboard kept me competitive in the best way. Best e-learning experience I've ever had."</div>
+                        <div class="t-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================
+             CTA
+        ================================ -->
+        <section class="cta-section">
+            <div class="container">
+                <div class="cta-inner reveal">
+                    <div class="section-tag" style="justify-content:center; margin-bottom:20px">
+                        Start Today
+                    </div>
+                    <h2>Ready to Conquer Your Skills? ⚔️</h2>
+                    <p>Join thousands of students who have transformed their learning journey with Dzire.</p>
+                    <div class="cta-btns">
+                        <a href="signup.html" class="btn-primary">
+                            <i class="fa-solid fa-rocket"></i>
+                            Enroll Today — It's Free
+                        </a>
+                        <a href="courses.html" class="btn-ghost">
+                            <i class="fa-solid fa-book-open"></i>
+                            Browse Courses
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================================
+         FOOTER
+    ================================ -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <div class="logo-icon">D</div>
+                        <div class="logo-text">D<span>zire</span></div>
+                    </a>
+                    <p>Revolutionizing education through AI-powered adaptive learning and gamification. Master your skills with personalized quests.</p>
+                    <div class="social-links">
+                        <a href="#" title="Facebook"><i class="fa-brands fa-facebook"></i></a>
+                        <a href="#" title="Twitter"><i class="fa-brands fa-twitter"></i></a>
+                        <a href="#" title="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" title="LinkedIn"><i class="fa-brands fa-linkedin"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="#hero">Home</a></li>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#how">How It Works</a></li>
+                        <li><a href="#testimonials">Testimonials</a></li>
+                        <li><a href="login.html">Login</a></li>
+                        <li><a href="signup.html">Sign Up</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Contact Us</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2024 Dzire. All rights reserved. Built with ❤️ for learners.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Our JavaScript file (loaded at the end so the HTML is ready first) -->
+    <script src="js/script.js"></script>
+
+</body>
+</html>

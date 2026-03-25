@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up – Dzire</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/signup.css">
+</head>
+<body>
+
+    <!-- Background decorations -->
+    <div class="bg-grid"></div>
+    <div class="glow-1"></div>
+    <div class="glow-2"></div>
+
+    <!-- ================================
+         FLOATING WIDGETS (hidden mobile)
+    ================================ -->
+
+    <!-- Top left: XP counter -->
+    <div class="xp-counter">
+        <div class="xp-icon">⚡</div>
+        <div style="position: relative;">
+            <div class="xp-label">Total XP</div>
+            <div class="xp-value" id="xpValue">0</div>
+            <div class="xp-bar-track">
+                <div class="xp-bar-fill" id="xpBarFill" style="width: 0%"></div>
+            </div>
+            <span class="xp-pop" id="xpPop"></span>
+        </div>
+    </div>
+
+    <!-- Top right: Level ring -->
+    <div class="level-widget">
+        <div class="level-ring">
+            <svg viewBox="0 0 40 40" width="40" height="40">
+                <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(59,130,246,0.15)" stroke-width="3"/>
+                <circle cx="20" cy="20" r="16" fill="none" stroke="#3B82F6" stroke-width="3"
+                    stroke-dasharray="100.5" stroke-dashoffset="18" stroke-linecap="round"
+                    transform="rotate(-90 20 20)"/>
+            </svg>
+            <div class="level-num">8</div>
+        </div>
+        <div>
+            <div class="level-name">Code Warrior 🗡️</div>
+            <div class="level-sub">160 XP to Level 9</div>
+        </div>
+    </div>
+
+    <!-- Bottom left: Learners counter -->
+    <div class="learners-widget">
+        <div class="live-dot"></div>
+        <div class="learners-icon">👥</div>
+        <div>
+            <div class="learners-val" id="learnersVal">10,000+</div>
+            <div class="learners-lbl">Learners Enrolled</div>
+        </div>
+    </div>
+
+    <!-- Bottom right: Quest widget -->
+    <div class="quest-widget">
+        <div class="quest-emoji">🚀</div>
+        <div>
+            <div class="quest-name">Start Your Quest</div>
+            <div class="quest-sub">Join thousands of learners</div>
+        </div>
+    </div>
+
+    <!-- Floating badge chips (animated by signup.js) -->
+    <div class="badge-chip chip1" id="chip1">🏅 First Quest</div>
+    <div class="badge-chip badge-chip-diamond" id="chip2">💎 Diamond Rank</div>
+    <div class="badge-chip badge-chip-fast-learner" id="chip3">⚡ Fast Learner</div>
+    <div class="badge-chip" id="chip4" style="color:#A78BFA; border-color:rgba(167,139,250,0.3)">👑 Quest Master</div>
+
+    <!-- ================================
+         SIGNUP CARD
+    ================================ -->
+    <div class="signup-card">
+
+        <!-- Logo -->
+        <a href="index.html" class="logo">
+            <div class="logo-icon">D</div>
+            <div class="logo-text">D<span>zire</span></div>
+        </a>
+
+        <!-- Mini stats bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-val">10k+</div>
+                <div class="stat-lbl">Learners</div>
+            </div>
+            <div class="stat-sep"></div>
+            <div class="stat-item">
+                <div class="stat-val">500+</div>
+                <div class="stat-lbl">Courses</div>
+            </div>
+            <div class="stat-sep"></div>
+            <div class="stat-item">
+                <div class="stat-val">98%</div>
+                <div class="stat-lbl">Success</div>
+            </div>
+        </div>
+
+        <!-- Title -->
+        <div class="card-header">
+            <h1>Start Your Quest ⚔️</h1>
+            <p>Join thousands of learners achieving their goals.</p>
+        </div>
+
+        <!-- Role toggle — Student or Teacher -->
+        <div class="role-toggle">
+            <button class="role-btn active" data-role="student" id="btn-student">
+                <i class="fa-solid fa-user-graduate"></i> Student
+            </button>
+            <button class="role-btn" data-role="teacher" id="btn-teacher">
+                <i class="fa-solid fa-chalkboard-user"></i> Teacher
+            </button>
+        </div>
+
+        <!-- Success / error message (shown by JS) -->
+        <div class="msg" id="msg"></div>
+
+        <!-- Signup form -->
+        <form id="signup-form">
+
+            <!-- Full name -->
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input
+                    type="text"
+                    id="full-name"
+                    class="form-input"
+                    placeholder="Ahmed Ali"
+                >
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input
+                    type="email"
+                    id="email"
+                    class="form-input"
+                    placeholder="ahmed@example.com"
+                >
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <div class="input-wrap">
+                    <input
+                        type="password"
+                        id="password"
+                        class="form-input"
+                        placeholder="Min. 8 characters"
+                    >
+                    <i class="fa-solid fa-eye toggle-pass" id="togglePassword"></i>
+                </div>
+                <!-- Hint updates in real-time as user types -->
+                <div class="pass-hint" id="pass-hint">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Min. 8 characters with letters and numbers
+                </div>
+            </div>
+
+            <!-- Terms checkbox -->
+            <div class="checkbox-wrap">
+                <input type="checkbox" id="terms">
+                <label for="terms">
+                    I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
+                </label>
+            </div>
+
+            <!-- Submit (disabled until form is valid) -->
+            <button type="submit" class="submit-btn" id="submit-btn" disabled>
+                Enroll Today <i class="fa-solid fa-arrow-right"></i>
+            </button>
+
+        </form>
+
+        <!-- Divider -->
+        <div class="divider"><span>or continue with</span></div>
+
+        <!-- Google signup (placeholder) -->
+        <!-- <button class="google-btn">
+            <i class="fa-brands fa-google"></i>
+            Continue with Google
+        </button> -->
+
+        <!-- Link to login -->
+        <div class="signin-link">
+            Already have an account? <a href="login.html">Sign in</a>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/signup.js"></script>
+
+</body>
+</html>
