@@ -497,97 +497,97 @@
   </div>
 
   <!-- ══ PAGE: PROFILE ══ -->
-  <div class="page" id="page-profile">
-    <div class="section-header">
-      <div>
-        <div class="section-title">My Profile</div>
-        <div class="section-subtitle">Manage your teacher profile and bio</div>
+<div class="page" id="page-profile">
+  <div class="section-header">
+    <div>
+      <div class="section-title">My Profile</div>
+      <div class="section-subtitle">Manage your teacher profile and bio</div>
+    </div>
+    <button class="btn btn-primary" type="button" onclick="updateProfile()">💾 Save Changes</button>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-title">Personal Information</div></div>
+        <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px">
+          <div id="profileAvatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--blue-800),var(--blue-500));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:24px;border:3px solid var(--border-md)">KK</div>
+          <div>
+            <button class="btn btn-ghost" type="button" onclick="uploadAvatar()">📷 Change Photo</button>
+            <div style="font-size:11px;color:var(--text-3);margin-top:6px">JPG, PNG max 2MB</div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input class="form-input" id="profileFullName" value="Khalil Khalfi" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" id="profileEmail" value="khalil@dzire.dz" disabled readonly />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Professional Bio</label>
+          <textarea class="form-textarea" id="profileBio">Full-Stack Web Developer with 5+ years of experience in Node.js, React, and PostgreSQL. Passionate about teaching adaptive learning methods.</textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Specialization</label>
+            <input class="form-input" id="profileSpecialization" value="Full-Stack Web Development" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Experience (years)</label>
+            <input class="form-input" type="number" id="profileExperienceYears" value="5" />
+          </div>
+        </div>
       </div>
-      <button class="btn btn-primary" type="button" onclick="showToast('Profile saved!','success')">💾 Save Changes</button>
     </div>
 
-    <div class="grid-2">
-      <div>
-        <div class="card" style="margin-bottom:16px">
-          <div class="card-header"><div class="card-title">Personal Information</div></div>
-          <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px">
-            <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--blue-800),var(--blue-500));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:24px;border:3px solid var(--border-md)">KK</div>
-            <div>
-              <button class="btn btn-ghost" type="button">📷 Change Photo</button>
-              <div style="font-size:11px;color:var(--text-3);margin-top:6px">JPG, PNG max 2MB</div>
-            </div>
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header"><div class="card-title">Teaching Stats</div></div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Courses Published</span><span style="font-weight:600">12</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Full Name</label>
-              <input class="form-input" value="Khalil Khalfi"/>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Email</label>
-              <input class="form-input" value="khalil@dzire.dz"/>
-            </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Student Satisfaction</span><span style="font-weight:600">96%</span></div>
+            <div class="progress-bar"><div class="progress-fill green" style="width:96%"></div></div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Professional Bio</label>
-            <textarea class="form-textarea">Full-Stack Web Developer with 5+ years of experience in Node.js, React, and PostgreSQL. Passionate about teaching adaptive learning methods.</textarea>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Response Rate</span><span style="font-weight:600">88%</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:88%"></div></div>
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">Specialization</label>
-              <input class="form-input" value="Full-Stack Web Development"/>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Experience (years)</label>
-              <input class="form-input" type="number" value="5"/>
-            </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Boss Exam Pass Rate</span><span style="font-weight:600">71%</span></div>
+            <div class="progress-bar"><div class="progress-fill amber" style="width:71%"></div></div>
           </div>
         </div>
       </div>
 
-      <div>
-        <div class="card" style="margin-bottom:16px">
-          <div class="card-header"><div class="card-title">Teaching Stats</div></div>
-          <div style="display:flex;flex-direction:column;gap:14px">
-            <div>
-              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Courses Published</span><span style="font-weight:600">12</span></div>
-              <div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div>
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Student Satisfaction</span><span style="font-weight:600">96%</span></div>
-              <div class="progress-bar"><div class="progress-fill green" style="width:96%"></div></div>
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Response Rate</span><span style="font-weight:600">88%</span></div>
-              <div class="progress-bar"><div class="progress-fill" style="width:88%"></div></div>
-            </div>
-            <div>
-              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Boss Exam Pass Rate</span><span style="font-weight:600">71%</span></div>
-              <div class="progress-bar"><div class="progress-fill amber" style="width:71%"></div></div>
-            </div>
-          </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Security</div></div>
+        <div class="form-group">
+          <label class="form-label">Current Password</label>
+          <input class="form-input" type="password" placeholder="••••••••" />
         </div>
-
-        <div class="card">
-          <div class="card-header"><div class="card-title">Security</div></div>
+        <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Current Password</label>
-            <input class="form-input" type="password" placeholder="••••••••"/>
+            <label class="form-label">New Password</label>
+            <input class="form-input" type="password" placeholder="••••••••" />
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">New Password</label>
-              <input class="form-input" type="password" placeholder="••••••••"/>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Confirm Password</label>
-              <input class="form-input" type="password" placeholder="••••••••"/>
-            </div>
+          <div class="form-group">
+            <label class="form-label">Confirm Password</label>
+            <input class="form-input" type="password" placeholder="••••••••" />
           </div>
-          <button class="btn btn-ghost" type="button" onclick="showToast('Password updated!','success')">🔒 Update Password</button>
         </div>
+        <button class="btn btn-ghost" type="button" onclick="showToast('Password updated!','success')">🔒 Update Password</button>
       </div>
     </div>
   </div>
+</div>
 
   <!-- ══ PAGE: SETTINGS ══ -->
   <div class="page" id="page-settings">
@@ -674,6 +674,193 @@
     </div>
   </div>
 
+  <!-- ========== PAGE: COURSE CONTENT BUILDER ========== -->
+<div class="page" id="page-courseContent">
+  <!-- Course Header (using your existing layout) -->
+  <div class="section-header">
+    <div>
+      <div class="section-title" id="courseContentTitle">Full-Stack Web Development</div>
+      <div class="section-subtitle" id="courseContentSubtitle">Intermediate · 142 students · 24 lessons</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" type="button" onclick="showToast('Course settings saved','success')">
+        ⚙️ Settings
+      </button>
+      <button class="btn btn-primary" type="button" onclick="openModal('newChapter')">
+        ＋ New Chapter
+      </button>
+    </div>
+  </div>
+
+  <!-- Course Description Card (uses your card class) -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+      <div class="card-title">Course Description</div>
+      <div class="card-link" onclick="showToast('Edit description','info')">✎ Edit</div>
+    </div>
+    <p style="color: var(--text-2); line-height: 1.5; margin-bottom: 16px;">
+      Master full‑stack development with modern tools. This course covers React, Node.js, Express, and PostgreSQL.
+    </p>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+      <div><span class="badge badge-blue">⭐ 4.8</span></div>
+      <div><span class="badge badge-green">✅ 78% completion</span></div>
+      <div><span class="badge badge-purple">📹 24 lessons</span></div>
+    </div>
+  </div>
+
+  <!-- Preview Mode Toggle (uses your btn-ghost + active class) -->
+  <div style="display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 20px;">
+    <button class="btn btn-ghost active" id="previewOffBtn" onclick="togglePreview(false)">✏️ Edit Mode</button>
+    <button class="btn btn-ghost" id="previewOnBtn" onclick="togglePreview(true)">👁️ Preview Mode</button>
+  </div>
+
+  <!-- Chapters & Lessons Card (your exact card structure) -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Chapters & Lessons</div>
+      <div class="card-link" onclick="showToast('Reorder mode','info')">⇅ Reorder</div>
+    </div>
+
+    <div class="chapters-list" id="chaptersContainer">
+      <!-- Chapter 1 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <div class="chapter-title">
+            <span class="chapter-expand">▼</span>
+            <span>Chapter 1: Introduction to JavaScript</span>
+          </div>
+          <div class="chapter-actions">
+            <button class="icon-btn-sm" onclick="openModal('editChapter')">✎</button>
+            <button class="icon-btn-sm" onclick="showToast('Chapter deleted','error')">🗑️</button>
+          </div>
+        </div>
+        <div class="chapter-content">
+          <div class="lessons-list">
+            <!-- Premium Lesson Item -->
+            <div class="lesson-item">
+              <div class="lesson-info">
+                <div class="lesson-drag-icon">⋮⋮</div>
+                <div class="lesson-icon" style="background: rgba(59,130,246,0.12);">🎥</div>
+                <div class="lesson-details">
+                  <div class="lesson-title">Lesson 1: Introduction to Async/Await</div>
+                  <div class="lesson-meta">
+                    <span class="badge badge-blue">12 mins</span>
+                    <span class="badge badge-green">Free Preview</span>
+                  </div>
+                </div>
+              </div>
+              <div class="lesson-actions">
+                <button class="btn btn-ghost" onclick="uploadContent(this)">📤 Content</button>
+                <button class="btn btn-ghost" onclick="openModal('editLesson')">✎ Edit</button>
+                <button class="btn btn-ghost" style="color: var(--red);" onclick="showToast('Lesson deleted','error')">🗑️ Delete</button>
+              </div>
+            </div>
+
+            <!-- Another Lesson (PDF example) -->
+            <div class="lesson-item">
+              <div class="lesson-info">
+                <div class="lesson-drag-icon">⋮⋮</div>
+                <div class="lesson-icon" style="background: rgba(16,185,129,0.12);">📄</div>
+                <div class="lesson-details">
+                  <div class="lesson-title">Lesson 2: Variables and Data Types</div>
+                  <div class="lesson-meta">
+                    <span class="badge badge-purple">PDF</span>
+                    <span class="badge badge-blue">5 pages</span>
+                  </div>
+                </div>
+              </div>
+              <div class="lesson-actions">
+                <button class="btn btn-ghost" onclick="uploadContent(this)">📤 Content</button>
+                <button class="btn btn-ghost" onclick="openModal('editLesson')">✎ Edit</button>
+                <button class="btn btn-ghost" style="color: var(--red);" onclick="showToast('Lesson deleted','error')">🗑️ Delete</button>
+              </div>
+            </div>
+
+            <!-- Assessment Item (premium style) -->
+            <div class="assessment-item">
+              <div class="assessment-info">
+                <div class="lesson-drag-icon">⋮⋮</div>
+                <div class="lesson-icon" style="background: rgba(167,139,250,0.12);">📝</div>
+                <div class="lesson-details">
+                  <div class="lesson-title">Quiz: JavaScript Basics</div>
+                  <div class="lesson-meta">
+                    <span class="badge badge-purple">5 questions</span>
+                    <span class="badge badge-blue">Pass: 70%</span>
+                  </div>
+                </div>
+              </div>
+              <div class="lesson-actions">
+                <button class="btn btn-ghost" onclick="openModal('editAssessment')">✎ Edit</button>
+                <button class="btn btn-ghost" style="color: var(--red);" onclick="showToast('Assessment deleted','error')">🗑️ Delete</button>
+              </div>
+            </div>
+          </div>
+
+  <div class="chapter-buttons">
+    <button class="btn btn-ghost add-lesson-btn" onclick="openModal('newLesson')">＋ Add Lesson</button>
+    <button class="btn btn-ghost add-assessment-btn" onclick="openAddQuizModal('CHAPTER_ID_HERE')">📝 Add Assessment</button>
+  </div>
+</div>
+      </div>
+
+      <!-- Chapter 2 -->
+      <div class="chapter-card">
+        <div class="chapter-header">
+          <div class="chapter-title">
+            <span class="chapter-expand">▼</span>
+            <span>Chapter 2: DOM Manipulation</span>
+          </div>
+          <div class="chapter-actions">
+            <button class="icon-btn-sm" onclick="openModal('editChapter')">✎</button>
+            <button class="icon-btn-sm" onclick="showToast('Chapter deleted','error')">🗑️</button>
+          </div>
+        </div>
+        <div class="chapter-content">
+          <div class="lessons-list">
+            <div class="lesson-item">
+              <div class="lesson-info">
+                <span class="lesson-type">🎥 Video</span>
+                <span class="lesson-title">Selecting Elements</span>
+                <span class="lesson-duration">8:21</span>
+              </div>
+              <div class="lesson-actions">
+                <button class="icon-btn-sm" onclick="openModal('editLesson')">✎</button>
+                <button class="icon-btn-sm" onclick="uploadContent(this)">📤 Content</button>
+                <button class="icon-btn-sm" onclick="showToast('Lesson deleted','error')">🗑️</button>
+              </div>
+            </div>
+          </div>
+          <div class="chapter-buttons">
+            <button class="btn btn-ghost add-lesson-btn" onclick="openModal('newLesson')">＋ Add Lesson</button>
+            <button class="btn btn-ghost add-assessment-btn" onclick="openAddQuizModal('CHAPTER_ID_HERE')">📝 Add Assessment</button>📝 Add Assessment</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px; text-align: center;">
+      <button class="btn btn-ghost" onclick="openModal('newChapter')">➕ Add New Chapter</button>
+    </div>
+  </div>
+
+  <!-- PREVIEW MODE PANEL (hidden by default) -->
+  <div id="previewPanel" style="display: none;">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Student Preview</div>
+        <div class="preview-nav">
+          <button class="icon-btn-sm" id="prevLessonBtn" disabled>← Previous</button>
+          <span id="previewIndex">1/3</span>
+          <button class="icon-btn-sm" id="nextLessonBtn">Next →</button>
+        </div>
+      </div>
+      <div id="previewContent" class="preview-content">
+        <!-- dynamic content will be injected here -->
+      </div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /main -->
 </div><!-- /app -->
 
@@ -691,42 +878,30 @@
     <div class="modal-body">
       <div class="form-group">
         <label class="form-label">Course Title</label>
-        <input class="form-input" placeholder="e.g. Advanced JavaScript Concepts"/>
+        <input class="form-input" id="newCourseTitle" placeholder="e.g. Advanced JavaScript Concepts"/>
       </div>
       <div class="form-group">
         <label class="form-label">Description</label>
-        <textarea class="form-textarea" placeholder="Describe what students will learn..."></textarea>
+        <textarea class="form-textarea" id="newCourseDescription" placeholder="Describe what students will learn..."></textarea>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Domain</label>
-          <select class="form-select">
-            <option>Web Development</option>
-            <option>Data Science</option>
-            <option>Mobile Development</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Subdomain</label>
-          <select class="form-select">
-            <option>Frontend</option>
-            <option>Backend</option>
-            <option>Full-Stack</option>
-          </select>
-        </div>
+      <div class="form-group">
+        <label class="form-label">Subdomain</label>
+        <select class="form-select" id="newCourseSubdomain">
+          <option value="">Loading subdomains...</option>
+        </select>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Difficulty Level</label>
-          <select class="form-select">
+          <select class="form-select" id="newCourseDifficulty">
             <option>Beginner</option>
             <option>Intermediate</option>
             <option>Advanced</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">XP Reward per Lesson</label>
-          <input class="form-input" type="number" value="10" min="5" max="100"/>
+          <label class="form-label">Default XP Reward</label>
+          <input class="form-input" id="newCourseXpReward" type="number" value="10" min="5" max="100"/>
         </div>
       </div>
     </div>
@@ -739,54 +914,241 @@
 
 <!-- New Quiz Modal -->
 <div class="modal-overlay" id="modal-newQuiz">
-  <div class="modal">
+  <div class="modal" style="max-width:400px">
     <div class="modal-header">
-      <div class="modal-title">Create Assessment</div>
+      <div class="modal-title">📝 New Assessment</div>
       <div class="modal-close" onclick="closeModal('newQuiz')">✕</div>
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <label class="form-label">Assessment Title</label>
-        <input class="form-input" placeholder="e.g. JavaScript Promises Quiz"/>
+        <label>Assessment Title</label>
+        <input type="text" id="quiz_title_input" placeholder="e.g. JavaScript Basics Quiz">
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Type</label>
-          <select class="form-select">
-            <option>Quiz</option>
-            <option>Boss Exam</option>
-            <option>Placement Test</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Course</label>
-          <select class="form-select">
-            <option>Full-Stack Web Dev</option>
-            <option>JavaScript Advanced</option>
-            <option>Node.js & PostgreSQL</option>
-          </select>
-        </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="quiz_type_input">
+          <option value="quiz">Quiz</option>
+          <option value="final_exam">Final Exam</option>
+        </select>
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Number of Questions</label>
-          <input class="form-input" type="number" value="10" min="1"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Passing Score (%)</label>
-          <input class="form-input" type="number" value="70" min="1" max="100"/>
-        </div>
+      <div class="form-group">
+        <label>Passing Score (%)</label>
+        <input type="number" id="quiz_passing_score_input" value="65" min="1" max="100">
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('newQuiz')">Cancel</button>
-      <button class="btn btn-primary" onclick="createQuiz()">Create Assessment</button>
+      <button class="btn btn-primary" onclick="proceedToQuizBuilder()">Next: Add Questions</button>
     </div>
   </div>
 </div>
 
 <!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
+
+<div class="modal-overlay" id="modal-newChapter">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Create New Chapter</div>
+      <div class="modal-close" onclick="closeModal('newChapter')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Chapter Title</label>
+        <input class="form-input" id="newChapterTitle" placeholder="e.g. Introduction to Variables"/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newChapter')">Cancel</button>
+      <button class="btn btn-primary" onclick="createChapter()">Create Chapter</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-newLesson">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New Lesson</div>
+      <div class="modal-close" onclick="closeModal('newLesson')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Lesson Title</label>
+        <input class="form-input" id="newLessonTitle" placeholder="e.g. What is JavaScript?"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Content Type</label>
+          <select class="form-select" id="newLessonContentType">
+            <option value="video">🎥 Video</option>
+            <option value="pdf">📄 PDF Document</option>
+            <option value="text">📝 Text / Article</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Duration (minutes)</label>
+          <input class="form-input" type="number" id="newLessonDuration" placeholder="e.g. 15"/>
+        </div>
+      </div>
+      <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="newLessonFreePreview" style="width:16px; height:16px;"/>
+        <label class="form-label" style="margin:0;">Make this lesson a Free Preview</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newLesson')">Cancel</button>
+      <button class="btn btn-primary" onclick="createLesson()">Create Lesson</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-uploadContent">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Upload Lesson Content</div>
+      <div class="modal-close" onclick="closeModal('uploadContent')">✕</div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="uploadCourseId">
+      <input type="hidden" id="uploadChapterId">
+      <input type="hidden" id="uploadLessonId">
+
+      <div class="form-group">
+        <label class="form-label">Select File (Video or PDF)</label>
+        <input type="file" class="form-input" id="lessonFileInput" accept="video/mp4,video/avi,video/mkv,application/pdf" style="padding: 10px;" />
+        <div style="font-size:11px;color:var(--text-3);margin-top:6px">Supported: MP4, AVI, PDF</div>
+      </div>
+      
+      <p id="uploadStatusText" style="font-size: 14px; font-weight: 600; margin-top: 10px; text-align: center;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('uploadContent')" id="cancelUploadBtn">Cancel</button>
+      <button class="btn btn-primary" onclick="submitContentUpload()" id="startUploadBtn">📤 Start Upload</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-newAssessment">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Assessment to Chapter</div>
+      <div class="modal-close" onclick="closeModal('newAssessment')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Assessment Title</label>
+        <input class="form-input" id="newAssessmentTitle" placeholder="e.g. Chapter 1 Quiz"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="newAssessmentType">
+            <option value="quiz">Quiz</option>
+            <option value="assignment">Assignment</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Passing Score (%)</label>
+          <input class="form-input" type="number" id="newAssessmentPassingScore" value="70"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newAssessment')">Cancel</button>
+      <button class="btn btn-primary" onclick="createAssessment()">Create Assessment</button>
+    </div>
+  </div>
+</div>
+
+<!-- quiz builder -->
+<div class="modal-overlay" id="modal-quizBuilder">
+  <div class="modal qb-modal">
+
+    <!-- ── Header ── -->
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="qb-modal-icon">📝</div>
+        <div>
+          <div class="modal-title">Quiz Builder</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:2px">
+            Build a structured quiz with questions &amp; answers
+          </div>
+        </div>
+      </div>
+      <div class="modal-close" onclick="closeModal('quizBuilder')" aria-label="Close">✕</div>
+    </div>
+
+    <!-- ── Body ── -->
+    <div class="modal-body qb-body">
+
+      <!-- Hidden type field -->
+      <input type="hidden" id="qb-type" value="quiz">
+      <input type="hidden" id="qb-passing-score" value="65">
+
+      <!-- ── Section 1: Assessment Details ── -->
+      <div class="qb-section">
+        <div class="qb-section-label">
+          <span class="qb-section-dot" style="background:var(--blue-500)"></span>
+          Assessment Details
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex:2;margin-bottom:0">
+            <label class="form-label">Assessment Title <span style="color:var(--red)">*</span></label>
+            <input
+              class="form-input"
+              id="qb-title"
+              placeholder="e.g. JavaScript Basics Quiz"
+              autocomplete="off"
+            />
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Type</label>
+            <div class="form-input qb-type-badge" aria-disabled="true">
+              <span class="badge badge-blue" style="pointer-events:none">📝 Quiz</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Section 2: Questions ── -->
+      <div class="qb-section">
+        <div class="qb-section-label">
+          <span class="qb-section-dot" style="background:var(--purple)"></span>
+          Questions
+          <span class="badge badge-purple" id="qb-q-count" style="margin-left:6px">1</span>
+        </div>
+
+        <!-- Dynamic questions injected here -->
+        <div id="qb-questions-container" aria-live="polite"></div>
+
+        <!-- Add question button -->
+        <button
+          class="btn btn-ghost qb-add-btn"
+          type="button"
+          onclick="qbAddQuestion()"
+          id="qb-add-btn"
+        >
+          <span style="font-size:16px;line-height:1">＋</span>
+          Add Another Question
+        </button>
+      </div>
+
+    </div><!-- /modal-body -->
+
+    <!-- ── Footer ── -->
+    <div class="modal-footer">
+      <div style="font-size:11px;color:var(--text-3);flex:1;display:flex;align-items:center;gap:4px">
+        <span>💡</span> JSON payload is logged to console on save
+      </div>
+      <button class="btn btn-ghost" type="button" onclick="closeModal('quizBuilder')">Cancel</button>
+      <button class="btn btn-primary" type="button" onclick="saveQuizAssessment()">
+        💾 Save Assessment
+      </button>
+    </div>
+
+  </div><!-- /modal -->
+</div><!-- /modal-overlay -->
 
 <!-- ═══════════════════════════════
      JAVASCRIPT

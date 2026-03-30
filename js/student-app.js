@@ -807,6 +807,45 @@ function wirePhotoButton() {
     };
 }
 
+function renderLessonView(lesson) {
+  return `
+    <div class="lesson-viewer">
+      <h2>${escapeHtml(lesson.title)}</h2>
+      
+      <div class="lesson-tabs">
+        ${lesson.video_url ? `<button class="tab-btn active" onclick="switchTab('video')">🎥 Watch</button>` : ''}
+        ${lesson.summary_text ? `<button class="tab-btn" onclick="switchTab('summary')">📝 Read</button>` : ''}
+        ${lesson.pdf_url ? `<button class="tab-btn" onclick="switchTab('pdf')">📄 Resources</button>` : ''}
+      </div>
+
+      <div class="tab-content" id="lessonContent">
+        ${lesson.video_url ? `
+            <video controls class="main-video">
+                <source src="${lesson.video_url}" type="video/mp4">
+            </video>
+        ` : 'Please select a tab above'}
+      </div>
+    </div>
+  `;
+}
+
+// دالة التنقل بين المحتويات دون إعادة تحميل الصفحة
+function switchTab(type, lesson) {
+    const container = document.getElementById('lessonContent');
+    if (type === 'video') {
+        container.innerHTML = `<video controls src="${lesson.video_url}"></video>`;
+    } else if (type === 'summary') {
+        container.innerHTML = `<div class="summary-body">${lesson.summary_text}</div>`;
+    } else if (type === 'pdf') {
+        container.innerHTML = `
+            <div class="pdf-viewer">
+                <p>Download or view the lesson resource:</p>
+                <a href="${lesson.pdf_url}" target="_blank" class="btn">📕 Open PDF</a>
+                <iframe src="${lesson.pdf_url}" width="100%" height="500px"></iframe>
+            </div>`;
+    }
+}
+
 /* ══════════════════════════════════════
    INIT
 ══════════════════════════════════════ */
