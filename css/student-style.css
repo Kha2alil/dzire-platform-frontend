@@ -1364,3 +1364,17 @@ tbody tr:hover td { background: rgba(59,130,246,0.04); }
 
 /* badge not earned */
 .badge-not-earned { font-size: 10px; color: var(--text-3); }
+
+
+#exploreCourseGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* تأثير عند تمرير الماوس على بطاقة الكورس */
+#exploreCourseGrid .card:hover {
+    transform: translateY(-5px);
+    border-color: var(--blue-500);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
