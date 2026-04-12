@@ -381,15 +381,59 @@ const pageTitles = {
     profile:      'My Profile',
     settings:     'Settings',
 };
+// ✅ التأكد من أن الكلمة بين القوسين هي pageId (حساسة لحالة الأحرف)
+function navigate(pageId) {
+    console.log("Navigating to:", pageId);
 
-function navigate(page) {
+    // 1. إخفاء كل الصفحات
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const pageEl = document.getElementById('page-' + page);
-    if (pageEl) pageEl.classList.add('active');
-    document.querySelectorAll(`.nav-item[data-page="${page}"]`).forEach(n => n.classList.add('active'));
-    document.getElementById('pageTitle').textContent = pageTitles[page] || page;
+    
+    // 2. إظهار الصفحة المطلوبة (تأكد أن الـ ID في الـ HTML يطابق "page-" + pageId)
+    const targetPage = document.getElementById('page-' + pageId);
+    if (targetPage) {
+        targetPage.classList.add('active');
+    } else {
+        console.error(`Page not found: page-${pageId}`);
+        return; // توقف هنا إذا لم تجد الصفحة
+    }
+
+    // 3. تحديث موديول My Courses
+    if (pageId === 'courses') {
+        if (typeof MyCoursesModule !== 'undefined') {
+            MyCoursesModule.init(); 
+        } else {
+            console.warn("MyCoursesModule is not defined. Check my-courses.js script tag.");
+        }
+    }
+
+    // 4. تحديث موديول Explore
+    if (pageId === 'explore') {
+        if (typeof ExploreModule !== 'undefined') {
+            ExploreModule.init(); 
+        } else {
+            console.warn("ExploreModule is not defined. Check explore.js script tag.");
+        }
+    }
+
+    // 5. تحديث العنوان في الـ Topbar
+    const pageTitle = document.getElementById('pageTitle');
+    if (pageTitle) {
+        pageTitle.innerText = pageId.charAt(0).toUpperCase() + pageId.slice(1);
+    }
 }
+
+// ═══════════════════════════════
+// كود تفعيل النقر (السطر 425)
+// ═══════════════════════════════
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+        // استخراج القيمة من data-page في الـ HTML
+        const target = this.getAttribute('data-page'); 
+        if (target) {
+            navigate(target); // ✅ نمرر القيمة للدالة المصححة أعلاه
+        }
+    });
+});
 
 document.querySelectorAll('.nav-item[data-page]').forEach(item => {
     item.addEventListener('click', () => navigate(item.dataset.page));
@@ -486,23 +530,36 @@ function switchTab(el) {
 /* ══════════════════════════════════════
    RENDER: DASHBOARD
 ══════════════════════════════════════ */
-function renderDashCourses() {
-    document.getElementById('dashCourseList').innerHTML = STUDENT_COURSES
-        .filter(c => c.status !== 'Completed')
-        .slice(0, 3)
-        .map(c => `
-            <div class="dash-course-item" onclick="navigate('courses')">
-                <div class="dash-course-icon" style="background:${c.color}">${c.emoji}</div>
-                <div class="dash-course-info">
-                    <div class="dash-course-title">${c.title}</div>
-                    <div class="dash-course-meta">📹 ${c.doneLessons}/${c.lessons} lessons done</div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:${c.progress}%"></div></div>
-                </div>
-                <div class="dash-course-pct">${c.progress}%</div>
-            </div>
-        `).join('');
-}
+// function renderDashCourses() {
+//     const container = document.getElementById('dashCourseList');
+//     if (!container) return;
 
+//     // تنظيف الحاوية
+//     container.innerHTML = '';
+
+//     // جلب أول كورسين غير مكتملين من مصفوفة البيانات الخاصة بك
+//     // ملاحظة: تأكد أن اسم المصفوفة عندك هو STUDENT_COURSES
+//     const ongoing = STUDENT_COURSES.filter(c => c.progress < 100).slice(0, 2);
+
+//     if (ongoing.length === 0) {
+//         container.innerHTML = '<p style="padding:20px; color:var(--text-3)">No courses in progress.</p>';
+//         return;
+//     }
+
+//     ongoing.forEach(course => {
+//         container.innerHTML += `
+//             <div class="course-progress-item" style="margin-bottom: 16px; cursor:pointer" onclick="navigate('courses')">
+//                 <div style="display:flex; justify-content:space-between; margin-bottom:8px">
+//                     <div style="font-weight:600; color:var(--text-1)">${course.title}</div>
+//                     <div style="color:var(--blue-500); font-weight:bold">${course.progress}%</div>
+//                 </div>
+//                 <div class="progress-bar" style="height:8px; background:var(--bg-3); border-radius:4px; overflow:hidden">
+//                     <div class="progress-fill" style="width:${course.progress}%; height:100%; background:var(--blue-500)"></div>
+//                 </div>
+//             </div>
+//         `;
+//     });
+// }
 function renderDailyGoals() {
     document.getElementById('dailyGoals').innerHTML = DAILY_GOALS.map((g, i) => `
         <div class="daily-goal-item ${g.done ? 'done' : ''}" onclick="toggleGoal(${i})">
@@ -579,49 +636,49 @@ function renderPath() {
 
 /* ══════════════════════════════════════
    RENDER: COURSES
-══════════════════════════════════════ */
-function renderStudentCourses(data) {
-    const el = document.getElementById('studentCourseGrid');
-    if (!data.length) {
-        el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📚</div><div class="empty-title">No courses found</div></div>';
-        return;
-    }
-    el.innerHTML = data.map(c => {
-        const statusClass = c.status === 'Completed'   ? 'badge-green' :
-                            c.status === 'In Progress' ? 'badge-blue'  : 'badge-amber';
-        const progClass   = c.progress === 100 ? 'green' : c.progress > 0 ? '' : 'amber';
-        const actionBtn   = c.status === 'In Progress'
-            ? '<button class="btn btn-primary btn-xs" onclick="showToast(\'Resuming...\',\'success\')">▶ Resume</button>'
-            : c.status === 'Completed'
-            ? '<div class="badge badge-green">✓ Done</div>'
-            : '<button class="btn btn-ghost btn-xs" onclick="showToast(\'Starting...\',\'success\')">Start</button>';
-        return `
-            <div class="course-card">
-                <div class="course-card-top" style="background:${c.color}">${c.emoji}</div>
-                <div class="course-card-body">
-                    <div class="course-card-title">${c.title}</div>
-                    <div class="course-card-meta"><span>👨‍🏫 ${c.teacher}</span><span>📹 ${c.doneLessons}/${c.lessons}</span></div>
-                    <div class="progress-bar"><div class="progress-fill ${progClass}" style="width:${c.progress}%"></div></div>
-                    <div class="course-card-footer">
-                        <div class="badge ${statusClass}">${c.status}</div>
-                        <div class="course-pct">${c.progress}%</div>
-                        ${actionBtn}
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
+// ══════════════════════════════════════ */
+// function renderStudentCourses(data) {
+//     const el = document.getElementById('studentCourseGrid');
+//     if (!data.length) {
+//         el.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📚</div><div class="empty-title">No courses found</div></div>';
+//         return;
+//     }
+//     el.innerHTML = data.map(c => {
+//         const statusClass = c.status === 'Completed'   ? 'badge-green' :
+//                             c.status === 'In Progress' ? 'badge-blue'  : 'badge-amber';
+//         const progClass   = c.progress === 100 ? 'green' : c.progress > 0 ? '' : 'amber';
+//         const actionBtn   = c.status === 'In Progress'
+//             ? '<button class="btn btn-primary btn-xs" onclick="showToast(\'Resuming...\',\'success\')">▶ Resume</button>'
+//             : c.status === 'Completed'
+//             ? '<div class="badge badge-green">✓ Done</div>'
+//             : '<button class="btn btn-ghost btn-xs" onclick="showToast(\'Starting...\',\'success\')">Start</button>';
+//         return `
+//             <div class="course-card">
+//                 <div class="course-card-top" style="background:${c.color}">${c.emoji}</div>
+//                 <div class="course-card-body">
+//                     <div class="course-card-title">${c.title}</div>
+//                     <div class="course-card-meta"><span>👨‍🏫 ${c.teacher}</span><span>📹 ${c.doneLessons}/${c.lessons}</span></div>
+//                     <div class="progress-bar"><div class="progress-fill ${progClass}" style="width:${c.progress}%"></div></div>
+//                     <div class="course-card-footer">
+//                         <div class="badge ${statusClass}">${c.status}</div>
+//                         <div class="course-pct">${c.progress}%</div>
+//                         ${actionBtn}
+//                     </div>
+//                 </div>
+//             </div>
+//         `;
+//     }).join('');
+// }
 
-function filterStudentCourses() {
-    const search   = document.getElementById('courseSearch').value.toLowerCase();
-    const status   = document.getElementById('courseStatusFilter').value;
-    const filtered = STUDENT_COURSES.filter(c =>
-        (!search || c.title.toLowerCase().includes(search)) &&
-        (!status || c.status === status)
-    );
-    renderStudentCourses(filtered);
-}
+// function filterStudentCourses() {
+//     const search   = document.getElementById('courseSearch').value.toLowerCase();
+//     const status   = document.getElementById('courseStatusFilter').value;
+//     const filtered = STUDENT_COURSES.filter(c =>
+//         (!search || c.title.toLowerCase().includes(search)) &&
+//         (!status || c.status === status)
+//     );
+//     renderStudentCourses(filtered);
+// }
 
 /* ══════════════════════════════════════
    RENDER: QUESTS
@@ -851,13 +908,12 @@ function switchTab(type, lesson) {
 ══════════════════════════════════════ */
 async function init() {
     await loadUserData();
-    renderDashCourses();
+    // renderDashCourses();
     renderDailyGoals();
     renderActivity();
     renderUpcoming();
     renderNotifications();
     renderPath();
-    renderStudentCourses(STUDENT_COURSES);
     renderQuests();
     renderSkillTree();
     renderAssessments();
