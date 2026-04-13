@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start Your Quest – Dzire</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/variables.css">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* ── Background ── */
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0;
+            background-image: radial-gradient(circle, rgba(59,130,246,0.07) 1px, transparent 1px);
+            background-size: 30px 30px;
+            mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+            -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+        }
+        .glow-1 { position:fixed; top:-200px; left:10%; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle,rgba(37,99,235,0.09) 0%,transparent 70%); pointer-events:none; z-index:0; animation:glowDrift1 8s ease-in-out infinite; }
+        .glow-2 { position:fixed; bottom:-120px; right:10%; width:400px; height:400px; border-radius:50%; background:radial-gradient(circle,rgba(167,139,250,0.06) 0%,transparent 70%); pointer-events:none; z-index:0; animation:glowDrift2 10s ease-in-out infinite; }
+        @keyframes glowDrift1 { 0%,100% { transform:translate(0,0); } 50% { transform:translate(30px,40px); } }
+        @keyframes glowDrift2 { 0%,100% { transform:translate(0,0); } 50% { transform:translate(-20px,-30px); } }
+
+        /* ── Card ── */
+        .onboarding-card {
+            position: relative; z-index: 5;
+            background: var(--bg-card);
+            border: 1px solid var(--border-md);
+            border-radius: var(--radius);
+            width: 100%; max-width: 640px;
+            margin: 24px;
+            box-shadow: var(--shadow), 0 0 80px rgba(37,99,235,0.07);
+            animation: cardIn 0.5s cubic-bezier(0.4,0,0.2,1);
+            overflow: hidden;
+        }
+        @keyframes cardIn { from { opacity:0; transform:translateY(24px) scale(0.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+
+        /* ── Progress header ── */
+        .progress-header {
+            padding: 24px 32px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-3);
+        }
+        .logo { display:flex; align-items:center; gap:10px; text-decoration:none; margin-bottom:20px; }
+        .logo-icon { width:30px; height:30px; background:linear-gradient(135deg,var(--blue-800),var(--blue-500)); border-radius:8px; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:800; font-size:14px; box-shadow:0 0 16px rgba(59,130,246,0.3); }
+        .logo-text { font-family:'Syne',sans-serif; font-weight:800; font-size:18px; color:var(--text); }
+        .logo-text span { color:var(--blue-400); }
+
+        .steps-row { display:flex; align-items:center; gap:0; }
+        .step-item { display:flex; align-items:center; gap:8px; flex:1; }
+        .step-item:last-child { flex:none; }
+        .step-dot {
+            width:28px; height:28px; border-radius:50%;
+            display:flex; align-items:center; justify-content:center;
+            font-size:12px; font-weight:700; font-family:'Syne',sans-serif;
+            flex-shrink:0; transition:all 0.3s;
+        }
+        .step-dot.done   { background:var(--blue-600); color:white; box-shadow:0 0 12px rgba(59,130,246,0.4); }
+        .step-dot.active { background:var(--bg-card); border:2px solid var(--blue-500); color:var(--blue-400); }
+        .step-dot.todo   { background:var(--bg); border:1px solid var(--border); color:var(--text-3); }
+        .step-label { font-size:12px; font-weight:500; transition:color 0.3s; }
+        .step-label.active { color:var(--blue-400); }
+        .step-label.done   { color:var(--text-2); }
+        .step-label.todo   { color:var(--text-3); }
+        .step-line { flex:1; height:1px; background:var(--border); margin:0 8px; }
+        .step-line.done { background:var(--blue-600); }
+
+        /* ── Scrollable body ── */
+        .card-body { padding:32px; max-height:65vh; overflow-y:auto; }
+        .card-body::-webkit-scrollbar { width:4px; }
+        .card-body::-webkit-scrollbar-thumb { background:var(--border-md); border-radius:10px; }
+
+        /* ── Step panels ── */
+        .step-panel { display:none; animation:stepIn 0.35s ease; }
+        .step-panel.active { display:block; }
+        @keyframes stepIn { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
+
+        .step-heading { margin-bottom:6px; }
+        .step-heading h2 { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; letter-spacing:-0.3px; margin-bottom:6px; }
+        .step-heading p { font-size:14px; color:var(--text-2); line-height:1.6; margin-bottom:24px; }
+
+        /* ── Domain grid ── */
+        .domain-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-bottom:8px; }
+        .domain-card {
+            background:var(--bg-3); border:1px solid var(--border);
+            border-radius:var(--radius-sm); padding:18px 16px;
+            cursor:pointer; transition:all 0.2s;
+            display:flex; flex-direction:column; align-items:flex-start; gap:8px;
+            position:relative; overflow:hidden;
+        }
+        .domain-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--domain-accent,var(--blue-500)); transform:scaleX(0); transition:transform 0.3s; }
+        .domain-card:hover { border-color:var(--border-md); transform:translateY(-2px); }
+        .domain-card.selected { border-color:var(--domain-accent,var(--blue-500)); background:var(--domain-dim,rgba(59,130,246,0.06)); box-shadow:0 0 20px var(--domain-glow,rgba(59,130,246,0.12)); }
+        .domain-card.selected::before { transform:scaleX(1); }
+        .domain-icon { font-size:22px; }
+        .domain-name { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; }
+        .domain-desc { font-size:12px; color:var(--text-3); line-height:1.4; }
+        .selected-check { position:absolute; top:10px; right:10px; width:18px; height:18px; border-radius:50%; background:var(--blue-500); display:none; align-items:center; justify-content:center; font-size:9px; color:white; }
+        .domain-card.selected .selected-check { display:flex; }
+
+        /* ── Subdomain list ── */
+        .subdomain-header { display:flex; align-items:center; gap:12px; margin-bottom:20px; padding:14px; background:rgba(59,130,246,0.06); border:1px solid var(--border-md); border-radius:var(--radius-sm); }
+        .subdomain-header-icon { font-size:24px; }
+        .subdomain-header-name { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; }
+        .subdomain-header-sub  { font-size:12px; color:var(--text-3); }
+
+        .subdomain-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+        .subdomain-chip {
+            background:var(--bg-3); border:1px solid var(--border);
+            border-radius:var(--radius-sm); padding:14px;
+            cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:10px;
+        }
+        .subdomain-chip:hover { border-color:var(--border-md); }
+        .subdomain-chip.selected { border-color:var(--blue-500); background:rgba(59,130,246,0.08); }
+        .subdomain-chip-icon { width:32px; height:32px; border-radius:8px; background:rgba(59,130,246,0.1); display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+        .subdomain-chip.selected .subdomain-chip-icon { background:rgba(59,130,246,0.2); }
+        .subdomain-chip-name { font-size:13px; font-weight:600; }
+        .subdomain-chip-pop  { font-size:11px; color:var(--text-3); margin-top:1px; }
+        .subdomain-chip-radio { margin-left:auto; width:16px; height:16px; border-radius:50%; border:2px solid var(--border-md); flex-shrink:0; transition:all 0.2s; display:flex; align-items:center; justify-content:center; }
+        .subdomain-chip.selected .subdomain-chip-radio { border-color:var(--blue-500); background:var(--blue-500); }
+        .subdomain-chip.selected .subdomain-chip-radio::after { content:''; width:5px; height:5px; border-radius:50%; background:white; }
+
+        /* ── Level step ── */
+        .level-option-row { display:flex; flex-direction:column; gap:10px; }
+        .level-option {
+            background:var(--bg-3); border:1px solid var(--border);
+            border-radius:var(--radius-sm); padding:16px 18px;
+            cursor:pointer; transition:all 0.2s;
+            display:flex; align-items:center; gap:16px;
+        }
+        .level-option:hover { border-color:var(--border-md); }
+        .level-option.selected { border-color:var(--blue-500); background:rgba(59,130,246,0.06); }
+        .level-icon { font-size:22px; width:38px; text-align:center; flex-shrink:0; }
+        .level-body { flex:1; }
+        .level-name { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; margin-bottom:3px; }
+        .level-desc { font-size:12px; color:var(--text-2); line-height:1.5; }
+        .level-badge { font-size:11px; font-weight:600; padding:3px 9px; border-radius:20px; flex-shrink:0; }
+        .level-badge.easy     { background:var(--green-dim); color:var(--green); }
+        .level-badge.mid      { background:rgba(245,158,11,0.15); color:var(--amber); }
+        .level-badge.hard     { background:rgba(167,139,250,0.15); color:var(--purple); }
+
+        .placement-cta { margin-top:20px; padding:16px; background:linear-gradient(135deg,rgba(37,99,235,0.08),rgba(37,99,235,0.04)); border:1px solid var(--border-md); border-radius:var(--radius-sm); display:flex; align-items:center; gap:14px; cursor:pointer; transition:all 0.2s; }
+        .placement-cta:hover { border-color:var(--blue-500); }
+        .placement-cta-icon { font-size:24px; }
+        .placement-cta-title { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; margin-bottom:3px; }
+        .placement-cta-sub { font-size:12px; color:var(--text-2); }
+        .placement-cta-arrow { margin-left:auto; color:var(--blue-400); font-size:14px; }
+
+        /* ── Summary (step 4) ── */
+        .summary-hero { text-align:center; margin-bottom:28px; }
+        .summary-xp-badge { display:inline-flex; align-items:center; gap:8px; background:var(--green-dim); border:1px solid rgba(16,185,129,0.25); border-radius:20px; padding:6px 18px; font-size:13px; font-weight:600; color:var(--green); margin-bottom:16px; }
+        .summary-title { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; margin-bottom:8px; }
+        .summary-sub { font-size:14px; color:var(--text-2); }
+        .summary-cards { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px; }
+        .summary-card { background:var(--bg-3); border:1px solid var(--border); border-radius:var(--radius-sm); padding:16px; }
+        .summary-card-lbl { font-size:11px; font-weight:600; letter-spacing:.5px; text-transform:uppercase; color:var(--text-3); margin-bottom:6px; }
+        .summary-card-val { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; color:var(--text); }
+        .summary-card-val span { font-size:18px; margin-right:6px; }
+        .summary-path { background:rgba(59,130,246,0.06); border:1px solid var(--border-md); border-radius:var(--radius-sm); padding:14px 16px; margin-bottom:8px; }
+        .summary-path-title { font-size:12px; color:var(--text-3); margin-bottom:6px; }
+        .path-steps { display:flex; gap:6px; flex-wrap:wrap; }
+        .path-chip { font-size:11px; padding:4px 10px; border-radius:20px; background:rgba(59,130,246,0.1); border:1px solid var(--border); color:var(--text-2); }
+        .path-chip.active { background:var(--blue-600); color:white; border-color:transparent; }
+
+        /* ── Footer bar ── */
+        .card-footer {
+            padding:20px 32px;
+            border-top:1px solid var(--border);
+            display:flex; align-items:center; justify-content:space-between;
+            background:var(--bg-3);
+        }
+        .btn-back {
+            display:flex; align-items:center; gap:8px;
+            padding:10px 18px; border-radius:var(--radius-sm);
+            border:1px solid var(--border); color:var(--text-2);
+            background:transparent; cursor:pointer;
+            font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500;
+            transition:all 0.2s;
+        }
+        .btn-back:hover { border-color:var(--border-md); color:var(--text); background:var(--bg-hover); }
+        .btn-back:disabled { opacity:0.3; cursor:not-allowed; }
+        .btn-next {
+            display:flex; align-items:center; gap:8px;
+            padding:11px 24px; border-radius:var(--radius-sm);
+            background:linear-gradient(135deg,var(--blue-600),var(--blue-800));
+            color:white; border:none; cursor:pointer;
+            font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600;
+            box-shadow:var(--shadow-blue); transition:all 0.25s;
+        }
+        .btn-next:hover { background:linear-gradient(135deg,var(--blue-500),var(--blue-600)); transform:translateY(-1px); }
+        .btn-next:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
+        .step-counter { font-size:12px; color:var(--text-3); }
+
+        /* ── Msg ── */
+        .msg { padding:11px 14px; border-radius:var(--radius-sm); font-size:13px; font-weight:500; margin-bottom:14px; display:none; }
+        .msg.error   { display:flex; align-items:center; gap:8px; background:var(--red-dim); border:1px solid rgba(239,68,68,0.25); color:var(--red); }
+        .msg.success { display:flex; align-items:center; gap:8px; background:var(--green-dim); border:1px solid rgba(16,185,129,0.25); color:var(--green); }
+        .msg.warning { display:flex; align-items:center; gap:8px; background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.25); color:var(--amber); }
+
+        /* ── Skeleton loader ── */
+        .skeleton {
+            background: linear-gradient(90deg, var(--bg-3) 25%, var(--bg-hover) 50%, var(--bg-3) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: var(--radius-sm);
+        }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* ── Loading spinner ── */
+        .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:6px; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+
+        @media (max-width:520px) {
+            .domain-grid, .subdomain-grid, .summary-cards { grid-template-columns:1fr; }
+            .card-body { padding:20px; }
+            .card-footer { padding:16px 20px; }
+            .progress-header { padding:20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="glow-1"></div>
+<div class="glow-2"></div>
+
+<div class="onboarding-card" id="onboardingCard">
+
+    <!-- ── Progress Header ── -->
+    <div class="progress-header">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">D</div>
+            <div class="logo-text">D<span>zire</span></div>
+        </a>
+        <div class="steps-row" id="stepsRow">
+            <!-- injected by JS -->
+        </div>
+    </div>
+
+    <!-- ── Card Body ── -->
+    <div class="card-body">
+        <div class="msg" id="msg"></div>
+
+        <!-- Step 1 — Domain Selection -->
+        <div class="step-panel active" id="step-1">
+            <div class="step-heading">
+                <h2>Choose Your Domain 🗺️</h2>
+                <p>Select the field you want to master. This powers your personalised learning path.</p>
+            </div>
+            <div class="domain-grid" id="domainGrid">
+                <div class="skeleton" style="height:110px"></div>
+                <div class="skeleton" style="height:110px"></div>
+                <div class="skeleton" style="height:110px"></div>
+                <div class="skeleton" style="height:110px"></div>
+            </div>
+        </div>
+
+        <!-- Step 2 — Subdomain Selection -->
+        <div class="step-panel" id="step-2">
+            <div class="step-heading">
+                <h2>Pick Your Specialisation 🎯</h2>
+                <p>Narrow down to the area that excites you most.</p>
+            </div>
+            <div class="subdomain-header" id="subdomainHeader">
+                <div class="subdomain-header-icon"></div>
+                <div>
+                    <div class="subdomain-header-name"></div>
+                    <div class="subdomain-header-sub">Select one specialisation below</div>
+                </div>
+            </div>
+            <div class="subdomain-grid" id="subdomainGrid">
+                <div class="skeleton" style="height:60px"></div>
+                <div class="skeleton" style="height:60px"></div>
+            </div>
+        </div>
+
+        <!-- Step 3 — Level / Placement -->
+        <div class="step-panel" id="step-3">
+            <div class="step-heading">
+                <h2>What's Your Experience Level? ⚡</h2>
+                <p>Be honest — this sets your starting point. You can always retake the placement test later.</p>
+            </div>
+            <div class="level-option-row">
+                <div class="level-option" data-level="beginner" onclick="selectLevel(this)">
+                    <div class="level-icon">🌱</div>
+                    <div class="level-body">
+                        <div class="level-name">Complete Beginner</div>
+                        <div class="level-desc">I'm new to this field — start from the very basics.</div>
+                    </div>
+                    <div class="level-badge easy">Beginner</div>
+                </div>
+                <div class="level-option" data-level="intermediate" onclick="selectLevel(this)">
+                    <div class="level-icon">🔥</div>
+                    <div class="level-body">
+                        <div class="level-name">I Know the Basics</div>
+                        <div class="level-desc">I have some experience and want to deepen my knowledge.</div>
+                    </div>
+                    <div class="level-badge mid">Intermediate</div>
+                </div>
+                <div class="level-option" data-level="pro" onclick="selectLevel(this)">
+                    <div class="level-icon">⚔️</div>
+                    <div class="level-body">
+                        <div class="level-name">Experienced Practitioner</div>
+                        <div class="level-desc">I work in this field and want to fill advanced gaps.</div>
+                    </div>
+                    <div class="level-badge hard">Advanced</div>
+                </div>
+            </div>
+
+            <div class="placement-cta" id="placementCta" onclick="goPlacementTest()">
+                <div class="placement-cta-icon">🧪</div>
+                <div>
+                    <div class="placement-cta-title">Not sure? Take the Placement Test</div>
+                    <div class="placement-cta-sub">10 questions · 5 min · get an accurate level assignment</div>
+                </div>
+                <div class="placement-cta-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+            </div>
+        </div>
+
+        <!-- Step 4 — Confirmation / Summary -->
+        <div class="step-panel" id="step-4">
+            <div class="summary-hero">
+                <div class="summary-xp-badge">🎉 +100 XP — Quest Setup Complete!</div>
+                <div class="summary-title">Your Quest Begins Now!</div>
+                <div class="summary-sub">Here's your personalised learning setup.</div>
+            </div>
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="summary-card-lbl">Domain</div>
+                    <div class="summary-card-val" id="sumDomain"></div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-lbl">Specialisation</div>
+                    <div class="summary-card-val" id="sumSubdomain"></div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-lbl">Starting Level</div>
+                    <div class="summary-card-val" id="sumLevel"></div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-card-lbl">Starting XP</div>
+                    <div class="summary-card-val"><span>⚡</span>100 XP</div>
+                </div>
+            </div>
+            <div class="summary-path">
+                <div class="summary-path-title">Your personalised learning path</div>
+                <div class="path-steps">
+                    <div class="path-chip active">Placement Test</div>
+                    <div class="path-chip">Foundation Quests</div>
+                    <div class="path-chip">Core Skills</div>
+                    <div class="path-chip">Boss Exams</div>
+                    <div class="path-chip">Mastery</div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /card-body -->
+
+    <!-- ── Footer ── -->
+    <div class="card-footer">
+        <button class="btn-back" id="btnBack" onclick="goBack()">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </button>
+        <span class="step-counter" id="stepCounter">Step 1 of 3</span>
+        <button class="btn-next" id="btnNext" onclick="goNext()" disabled>
+            Continue <i class="fa-solid fa-arrow-right"></i>
+        </button>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CONFIG
+═══════════════════════════════════════════════════════════════ */
+const API         = 'http://localhost:3000/api';
+const getToken    = () => localStorage.getItem('token');
+const authHeader  = () => ({ Authorization: `Bearer ${getToken()}` });
+
+/**
+ * Local flag key — written immediately on successful save so the
+ * status check on the next page load never re-triggers onboarding.
+ */
+const DONE_KEY = 'onboarding_done';
+
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════ */
+const state = {
+    currentStep:       1,
+    totalSteps:        3,
+    selectedDomain:    null,   // { id, name, emoji, accent, dim, glow }
+    selectedSubdomain: null,   // { id, name, emoji }
+    selectedLevel:     null,   // 'beginner' | 'intermediate' | 'pro'
+    domains:           [],
+    subdomains:        {},     // cache keyed by domain id
+    isSaving:          false,  // guards double-submit
+};
+
+const STEP_LABELS = ['Domain', 'Specialisation', 'Level', 'Ready!'];
+
+/* Domain visual metadata — keyed by domain name returned from the API */
+const DOMAIN_META = {
+    'Web Development':         { emoji:'🌐', accent:'#3B82F6', dim:'rgba(59,130,246,0.06)',  glow:'rgba(59,130,246,0.12)'  },
+    'Data Science':            { emoji:'📊', accent:'#A78BFA', dim:'rgba(167,139,250,0.06)', glow:'rgba(167,139,250,0.12)' },
+    'Mobile Development':      { emoji:'📱', accent:'#10B981', dim:'rgba(16,185,129,0.06)',  glow:'rgba(16,185,129,0.12)'  },
+    'Cybersecurity':           { emoji:'🔐', accent:'#EF4444', dim:'rgba(239,68,68,0.06)',   glow:'rgba(239,68,68,0.12)'   },
+    'DevOps & Cloud':          { emoji:'☁️',  accent:'#22D3EE', dim:'rgba(34,211,238,0.06)',  glow:'rgba(34,211,238,0.12)'  },
+    'Artificial Intelligence': { emoji:'🤖', accent:'#F59E0B', dim:'rgba(245,158,11,0.06)',  glow:'rgba(245,158,11,0.12)'  },
+    default:                   { emoji:'📚', accent:'#3B82F6', dim:'rgba(59,130,246,0.06)',  glow:'rgba(59,130,246,0.12)'  },
+};
+
+const SUBDOMAIN_ICONS = {
+    'Full-Stack':'🌐','Frontend':'🎨','Backend':'⚙️',
+    'React':'⚛️','Vue':'💚','Angular':'🔴',
+    'Node.js':'🗄️','Python':'🐍','Data Analysis':'📈',
+    'Machine Learning':'🧠','iOS':'🍎','Android':'🤖',
+    'Ethical Hacking':'🛡️','AWS':'☁️','Docker':'🐳',
+    default:'🔧',
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   BOOT — runs once when the page loads
+═══════════════════════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', async () => {
+    // 1. Must be logged in
+    if (!getToken()) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // 2. Check local flag first (saves a network round-trip)
+    if (localStorage.getItem(DONE_KEY) === 'true') {
+        redirectToDashboard();
+        return;
+    }
+
+    // 3. Verify with server (catches the case where the flag was cleared)
+    try {
+        const res = await axios.get(`${API}/onboarding/status`, { headers: authHeader() });
+        if (res.data?.onboardingDone) {
+            localStorage.setItem(DONE_KEY, 'true');
+            redirectToDashboard();
+            return;
+        }
+    } catch (e) {
+        // Non-fatal — the student may be brand-new.  Show the UI.
+        console.warn('[onboarding] status check failed — proceeding to UI:', e.message);
+    }
+
+    // 4. Render UI
+    renderSteps();
+    await fetchDomains();
+});
+
+function redirectToDashboard() {
+    window.location.href = 'student-dashboard.html';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STEP HEADER RENDERER
+═══════════════════════════════════════════════════════════════ */
+function renderSteps() {
+    const row = document.getElementById('stepsRow');
+    row.innerHTML = '';
+
+    STEP_LABELS.slice(0, state.totalSteps + 1).forEach((label, i) => {
+        const n       = i + 1;
+        const dotCls  = n < state.currentStep ? 'done'   : n === state.currentStep ? 'active' : 'todo';
+        const lblCls  = n < state.currentStep ? 'done'   : n === state.currentStep ? 'active' : 'todo';
+
+        const div = document.createElement('div');
+        div.className = 'step-item';
+        div.innerHTML = `
+            ${i > 0 ? `<div class="step-line ${n <= state.currentStep ? 'done' : ''}"></div>` : ''}
+            <div class="step-dot ${dotCls}">
+                ${n < state.currentStep ? '<i class="fa-solid fa-check" style="font-size:10px"></i>' : n}
+            </div>
+            <span class="step-label ${lblCls}">${label}</span>`;
+        row.appendChild(div);
+    });
+
+    document.getElementById('stepCounter').textContent =
+        state.currentStep <= state.totalSteps
+            ? `Step ${state.currentStep} of ${state.totalSteps}`
+            : '';
+
+    document.getElementById('btnBack').disabled = state.currentStep === 1;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DATA — FETCH DOMAINS
+═══════════════════════════════════════════════════════════════ */
+async function fetchDomains() {
+    try {
+        const res     = await axios.get(`${API}/onboarding/domains`, { headers: authHeader() });
+        const domains = res.data?.domains || [];
+
+        if (!domains.length) throw new Error('Server returned an empty domains list.');
+
+        state.domains = domains;
+        renderDomains();
+    } catch (e) {
+        console.error('[onboarding] fetchDomains failed:', e.response?.data || e.message);
+        showMsg(
+            `Could not load domains: ${e.response?.data?.errors?.[0] || e.message}. Please refresh the page.`,
+            'error'
+        );
+        // Render an empty grid so the user sees the error rather than skeletons forever
+        document.getElementById('domainGrid').innerHTML =
+            '<p style="color:var(--text-3);font-size:13px;grid-column:1/-1;padding:8px 0">Failed to load. Please refresh.</p>';
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DATA — FETCH SUBDOMAINS (cached per domain)
+═══════════════════════════════════════════════════════════════ */
+async function fetchSubdomains(domainId) {
+    // Return from cache if already fetched
+    if (state.subdomains[domainId]) {
+        renderSubdomains(state.subdomains[domainId]);
+        return;
+    }
+
+    // Show skeleton while loading
+    document.getElementById('subdomainGrid').innerHTML =
+        '<div class="skeleton" style="height:60px"></div><div class="skeleton" style="height:60px"></div>';
+
+    try {
+        const res  = await axios.get(
+            `${API}/onboarding/subdomains?domain_id=${domainId}`,
+            { headers: authHeader() }
+        );
+        const list = res.data?.subdomains || [];
+        state.subdomains[domainId] = list;
+        renderSubdomains(list);
+    } catch (e) {
+        console.error('[onboarding] fetchSubdomains failed:', e.response?.data || e.message);
+        showMsg(`Could not load specialisations: ${e.message}`, 'error');
+        document.getElementById('subdomainGrid').innerHTML =
+            '<p style="color:var(--text-3);font-size:13px;grid-column:1/-1;padding:8px 0">Failed to load. Please go back and try again.</p>';
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER HELPERS
+═══════════════════════════════════════════════════════════════ */
+function renderDomains() {
+    const grid = document.getElementById('domainGrid');
+    grid.innerHTML = '';
+
+    state.domains.forEach(d => {
+        const meta = DOMAIN_META[d.name] || DOMAIN_META.default;
+        const card = document.createElement('div');
+        card.className     = 'domain-card';
+        card.dataset.id    = d.id;
+        card.dataset.name  = d.name;
+        card.style.setProperty('--domain-accent', meta.accent);
+        card.style.setProperty('--domain-dim',    meta.dim);
+        card.style.setProperty('--domain-glow',   meta.glow);
+        card.innerHTML = `
+            <div class="selected-check"><i class="fa-solid fa-check" style="font-size:8px"></i></div>
+            <div class="domain-icon">${meta.emoji}</div>
+            <div class="domain-name">${d.name}</div>
+            <div class="domain-desc">Master ${d.name.toLowerCase()} with quests &amp; boss exams</div>`;
+        card.addEventListener('click', () => selectDomain(card, d, meta));
+        grid.appendChild(card);
+    });
+}
+
+function renderSubdomains(list) {
+    const grid = document.getElementById('subdomainGrid');
+    grid.innerHTML = '';
+
+    if (!list.length) {
+        grid.innerHTML = '<p style="color:var(--text-3);font-size:13px;padding:8px 0;grid-column:1/-1">No specialisations found for this domain.</p>';
+        return;
+    }
+
+    list.forEach(s => {
+        const icon = SUBDOMAIN_ICONS[s.name] || SUBDOMAIN_ICONS.default;
+        const chip = document.createElement('div');
+        chip.className    = 'subdomain-chip';
+        chip.dataset.id   = s.id;
+        chip.dataset.name = s.name;
+        chip.innerHTML = `
+            <div class="subdomain-chip-icon">${icon}</div>
+            <div>
+                <div class="subdomain-chip-name">${s.name}</div>
+                <div class="subdomain-chip-pop">Specialisation track</div>
+            </div>
+            <div class="subdomain-chip-radio"></div>`;
+        chip.addEventListener('click', () => selectSubdomain(chip, s, icon));
+        grid.appendChild(chip);
+    });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SELECTION HANDLERS
+═══════════════════════════════════════════════════════════════ */
+function selectDomain(card, domain, meta) {
+    document.querySelectorAll('.domain-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    // Reset subdomain selection when a new domain is chosen
+    state.selectedDomain    = { ...domain, ...meta };
+    state.selectedSubdomain = null;
+    document.getElementById('btnNext').disabled = false;
+}
+
+function selectSubdomain(chip, sub, icon) {
+    document.querySelectorAll('.subdomain-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    state.selectedSubdomain = { ...sub, emoji: icon };
+    document.getElementById('btnNext').disabled = false;
+}
+
+function selectLevel(el) {
+    document.querySelectorAll('.level-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    state.selectedLevel = el.dataset.level;
+    document.getElementById('btnNext').disabled = false;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════════ */
+function goNext() {
+    if (state.isSaving) return; // Prevent double-click during save
+
+    if (state.currentStep === 1) {
+        if (!state.selectedDomain) return;
+        populateSubdomainHeader();
+        fetchSubdomains(state.selectedDomain.id);
+        showStep(2);
+
+    } else if (state.currentStep === 2) {
+        if (!state.selectedSubdomain) return;
+        showStep(3);
+
+    } else if (state.currentStep === 3) {
+        if (!state.selectedLevel) return;
+        buildSummary();
+        showStep(4, true);   // Shows spinner, disables btn
+        submitOnboarding();  // Async — redirects on success
+
+    } else if (state.currentStep === 4) {
+        // "Start My Quest" fallback if submitOnboarding() didn't auto-redirect yet
+        redirectToDashboard();
+    }
+}
+
+function goBack() {
+    if (state.currentStep > 1) showStep(state.currentStep - 1);
+}
+
+/**
+ * Transition to a step panel.
+ * @param {number}  n        – Target step number (1-4)
+ * @param {boolean} isFinal  – True when entering the summary/saving step
+ */
+function showStep(n, isFinal = false) {
+    document.querySelector('.step-panel.active')?.classList.remove('active');
+    document.getElementById(`step-${n}`)?.classList.add('active');
+    state.currentStep = n;
+    renderSteps();
+
+    const btn = document.getElementById('btnNext');
+
+    if (isFinal) {
+        btn.innerHTML = '<div class="spinner"></div> Saving…';
+        btn.disabled  = true;
+    } else {
+        btn.innerHTML = 'Continue <i class="fa-solid fa-arrow-right"></i>';
+        // Determine whether the Next button should be enabled for this step
+        const enabled =
+            (n === 1 && !!state.selectedDomain)    ||
+            (n === 2 && !!state.selectedSubdomain) ||
+            (n === 3 && !!state.selectedLevel)     ||
+            n === 4;
+        btn.disabled = !enabled;
+    }
+
+    document.getElementById('btnBack').disabled = n === 1;
+}
+
+function populateSubdomainHeader() {
+    const d   = state.selectedDomain;
+    const hdr = document.getElementById('subdomainHeader');
+    hdr.querySelector('.subdomain-header-icon').textContent = d.emoji;
+    hdr.querySelector('.subdomain-header-name').textContent = d.name;
+}
+
+function buildSummary() {
+    const lvlMap = {
+        beginner:     '🌱 Beginner',
+        intermediate: '🔥 Intermediate',
+        pro:          '⚔️ Advanced',
+    };
+    document.getElementById('sumDomain').innerHTML    = `<span>${state.selectedDomain.emoji}</span>${state.selectedDomain.name}`;
+    document.getElementById('sumSubdomain').innerHTML = `<span>${state.selectedSubdomain.emoji}</span>${state.selectedSubdomain.name}`;
+    document.getElementById('sumLevel').innerHTML     = lvlMap[state.selectedLevel] || state.selectedLevel;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PLACEMENT TEST SHORTCUT
+═══════════════════════════════════════════════════════════════ */
+function goPlacementTest() {
+    if (!state.selectedDomain || !state.selectedSubdomain) {
+        showMsg('Please select a domain and specialisation first.', 'error');
+        if (!state.selectedDomain)    showStep(1);
+        else if (!state.selectedSubdomain) showStep(2);
+        return;
+    }
+    const p = new URLSearchParams({
+        domain_id:    state.selectedDomain.id,
+        subdomain_id: state.selectedSubdomain.id,
+        level:        state.selectedLevel || 'beginner',
+    });
+    window.location.href = `placement-test.html?${p}`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   API SUBMIT  ← Core fix
+   Sends domain_id, subdomain_id AND level to POST /onboarding/skip
+   The backend's skipToLevel() currently ignores level, so we also
+   cache the selections in localStorage for the dashboard to read.
+═══════════════════════════════════════════════════════════════ */
+async function submitOnboarding() {
+    state.isSaving = true;
+    const btn = document.getElementById('btnNext');
+
+    // Safety check — all three selections must be present
+    if (!state.selectedDomain || !state.selectedSubdomain || !state.selectedLevel) {
+        showMsg('Something went wrong — please go back and complete all steps.', 'error');
+        btn.innerHTML = 'Continue <i class="fa-solid fa-arrow-right"></i>';
+        btn.disabled  = false;
+        state.isSaving = false;
+        return;
+    }
+
+    const payload = {
+        domain_id:    state.selectedDomain.id,
+        subdomain_id: state.selectedSubdomain.id,
+        level:        state.selectedLevel,   // ← the key addition
+    };
+
+    console.log('[onboarding] submitting payload:', payload);
+
+    try {
+        const res = await axios.post(
+            `${API}/onboarding/skip`,
+            payload,
+            { headers: authHeader() }
+        );
+
+        console.log('[onboarding] skip response:', res.data);
+
+        // ── SUCCESS ─────────────────────────────────────────────
+        // 1. Set local completion flag immediately
+        localStorage.setItem(DONE_KEY, 'true');
+
+        // 2. Cache the full selection so the student dashboard can
+        //    display a personalised welcome banner without an extra request.
+        localStorage.setItem('onboarding', JSON.stringify({
+            domain:      state.selectedDomain.name,
+            subdomain:   state.selectedSubdomain.name,
+            level:       state.selectedLevel,
+            domain_id:   state.selectedDomain.id,
+            subdomain_id:state.selectedSubdomain.id,
+            saved_at:    new Date().toISOString(),
+        }));
+
+        redirectToDashboard();
+
+    } catch (e) {
+        state.isSaving = false;
+
+        // 409 = already completed on the server → treat as success
+        if (e.response?.status === 409) {
+            console.warn('[onboarding] already completed on server — redirecting.');
+            localStorage.setItem(DONE_KEY, 'true');
+            redirectToDashboard();
+            return;
+        }
+
+        // Any other error — let the user retry
+        const errMsg =
+            e.response?.data?.errors?.[0] ||
+            e.response?.data?.message     ||
+            e.message                     ||
+            'Could not save your setup. Please try again.';
+
+        console.error('[onboarding] skip failed:', e.response?.data || e.message);
+        showMsg(errMsg, 'error');
+
+        // Restore the button so the user can retry
+        btn.innerHTML = '🚀 Try Again <i class="fa-solid fa-arrow-right"></i>';
+        btn.disabled  = false;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MESSAGE HELPER
+═══════════════════════════════════════════════════════════════ */
+function showMsg(text, type = 'error') {
+    const el = document.getElementById('msg');
+    const iconMap = { error: 'circle-xmark', success: 'circle-check', warning: 'triangle-exclamation' };
+    el.className  = `msg ${type}`;
+    el.innerHTML  = `<i class="fa-solid fa-${iconMap[type] || 'circle-info'}"></i> ${text}`;
+    // Auto-hide non-error messages after 6 s
+    if (type !== 'error') {
+        setTimeout(() => { el.className = 'msg'; }, 6000);
+    }
+}
+</script>
+</body>
+</html>

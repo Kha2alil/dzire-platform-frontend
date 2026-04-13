@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Placement Test – Dzire</title>
+    <!-- reuse your existing fonts + variables -->
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+    <style>
+        /* paste :root variables from student-style.css */
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'DM Sans',sans-serif; background:#060C1A; color:#E8F0FF; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+        .card { background:#0D1730; border:1px solid rgba(59,130,246,0.25); border-radius:14px; width:100%; max-width:600px; padding:32px; }
+        h2 { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; margin-bottom:8px; }
+        .meta { font-size:13px; color:#5E7A9E; margin-bottom:28px; }
+        .progress-bar { height:4px; background:rgba(255,255,255,0.06); border-radius:10px; margin-bottom:28px; overflow:hidden; }
+        .progress-fill { height:100%; background:linear-gradient(90deg,#1E40AF,#3B82F6); border-radius:10px; transition:width 0.4s; }
+        .question-text { font-size:16px; font-weight:600; margin-bottom:20px; line-height:1.5; }
+        .options { display:flex; flex-direction:column; gap:10px; margin-bottom:28px; }
+        .option { background:#0F1B35; border:1px solid rgba(59,130,246,0.12); border-radius:8px; padding:13px 16px; cursor:pointer; font-size:14px; transition:all 0.2s; display:flex; align-items:center; gap:12px; }
+        .option:hover { border-color:rgba(59,130,246,0.35); background:#112040; }
+        .option.selected { border-color:#3B82F6; background:rgba(59,130,246,0.1); }
+        .option-letter { width:24px; height:24px; border-radius:50%; background:rgba(59,130,246,0.1); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#60A5FA; flex-shrink:0; }
+        .option.selected .option-letter { background:#2563EB; color:white; }
+        .footer { display:flex; justify-content:space-between; align-items:center; }
+        .btn { padding:11px 24px; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer; border:none; transition:all 0.2s; }
+        .btn-primary { background:#2563EB; color:white; }
+        .btn-primary:hover { background:#3B82F6; }
+        .btn-primary:disabled { opacity:0.4; cursor:not-allowed; }
+        .counter { font-size:13px; color:#5E7A9E; }
+        .spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin .7s linear infinite; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div id="loadingState">
+        <h2>Loading your test… 🧪</h2>
+        <p class="meta">Fetching personalised questions.</p>
+    </div>
+    <div id="testState" style="display:none">
+        <h2>Placement Test 🧪</h2>
+        <p class="meta" id="testMeta"></p>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <div class="question-text" id="questionText"></div>
+        <div class="options" id="optionsContainer"></div>
+        <div class="footer">
+            <span class="counter" id="counter"></span>
+            <button class="btn btn-primary" id="btnNext" onclick="nextQuestion()" disabled>Next →</button>
+        </div>
+    </div>
+    <div id="errorState" style="display:none">
+        <h2>Oops 😕</h2>
+        <p class="meta" id="errorMsg"></p>
+        <button class="btn btn-primary" onclick="window.location.href='onboarding.html'">← Go Back</button>
+    </div>
+</div>
+
+<script>
+const API      = 'http://localhost:3000/api';
+const getToken = () => localStorage.getItem('token');
+const params   = new URLSearchParams(window.location.search);
+
+const domainId    = params.get('domain_id');
+const subdomainId = params.get('subdomain_id');
+const level       = params.get('level') || 'beginner';
+
+let questions  = [];
+let answers    = [];   // [{ questionId, answer }]
+let currentIdx = 0;
+
+/* ── Boot ── */
+window.addEventListener('DOMContentLoaded', async () => {
+    if (!getToken()) { window.location.href = 'login.html'; return; }
+    if (!domainId || !subdomainId) { showError('Missing test parameters. Please go back.'); return; }
+    await loadQuestions();
+});
+
+async function loadQuestions() {
+    try {
+        const res = await fetch(
+            `${API}/onboarding/questions?subdomain_id=${subdomainId}&domain_id=${domainId}&level=${level}`,
+            { headers: { Authorization: `Bearer ${getToken()}` } }
+        );
+        const data = await res.json();
+        if (!data.success) throw new Error(data.errors?.[0] || 'Failed to load questions');
+        questions = data.questions;
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('testState').style.display = 'block';
+        document.getElementById('testMeta').textContent =
+            `${questions.length} questions · answer honestly for the best match`;
+        renderQuestion();
+    } catch (e) {
+        showError(e.message);
+    }
+}
+
+function renderQuestion() {
+    const q    = questions[currentIdx];
+    const opts = Array.isArray(q.options) ? q.options : JSON.parse(q.options);
+    const pct  = Math.round(((currentIdx) / questions.length) * 100);
+
+    document.getElementById('progressFill').style.width = pct + '%';
+    document.getElementById('counter').textContent =
+        `Question ${currentIdx + 1} of ${questions.length}`;
+    document.getElementById('questionText').textContent = q.question_text;
+    document.getElementById('btnNext').disabled = true;
+    document.getElementById('btnNext').textContent =
+        currentIdx === questions.length - 1 ? 'Submit Test 🚀' : 'Next →';
+
+    const letters = ['A','B','C','D','E','F'];
+    document.getElementById('optionsContainer').innerHTML = opts.map((opt, i) => `
+        <div class="option" onclick="selectOption(this, '${escapeAttr(opt)}')" data-value="${escapeAttr(opt)}">
+            <div class="option-letter">${letters[i]}</div>
+            <span>${escapeHtml(opt)}</span>
+        </div>
+    `).join('');
+
+    // Pre-select if they came back to this question
+    const existing = answers.find(a => a.questionId === q.id);
+    if (existing) {
+        document.querySelectorAll('.option').forEach(el => {
+            if (el.dataset.value === existing.answer) el.classList.add('selected');
+        });
+        document.getElementById('btnNext').disabled = false;
+    }
+}
+
+function selectOption(el, value) {
+    document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    document.getElementById('btnNext').disabled = false;
+    // Store answer (replace if already answered)
+    const q = questions[currentIdx];
+    const idx = answers.findIndex(a => a.questionId === q.id);
+    if (idx >= 0) answers[idx].answer = value;
+    else          answers.push({ questionId: q.id, answer: value });
+}
+
+async function nextQuestion() {
+    if (currentIdx < questions.length - 1) {
+        currentIdx++;
+        renderQuestion();
+    } else {
+        await submitTest();
+    }
+}
+
+async function submitTest() {
+    const btn = document.getElementById('btnNext');
+    btn.disabled  = true;
+    btn.innerHTML = '<div class="spinner"></div>';
+
+    try {
+        const res = await fetch(`${API}/onboarding/submit`, {
+            method:  'POST',
+            headers: {
+                'Content-Type':  'application/json',
+                Authorization:   `Bearer ${getToken()}`
+            },
+            body: JSON.stringify({
+                subdomain_id: subdomainId,
+                domain_id:    domainId,
+                level,
+                answers,
+            })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.errors?.[0] || 'Submission failed');
+
+        // Cache result for the dashboard welcome banner
+        localStorage.setItem('onboarding', JSON.stringify({
+            level:         data.assignedLevel,
+            score:         data.scorePercent,
+            subdomainId,
+            domainId,
+        }));
+
+        window.location.href = 'student-dashboard.html';
+    } catch (e) {
+        if (e.message.includes('409') || e.message.includes('already')) {
+            window.location.href = 'student-dashboard.html';
+        } else {
+            showError(e.message);
+        }
+    }
+}
+
+function showError(msg) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('testState').style.display   = 'none';
+    document.getElementById('errorState').style.display  = 'block';
+    document.getElementById('errorMsg').textContent = msg;
+}
+
+function escapeHtml(s)  { return String(s).replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+function escapeAttr(s)  { return String(s).replace(/"/g, '&quot;'); }
+</script>
+</body>
+</html>
