@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dzire – Course Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/teacher-style.css"/>
+<link rel="stylesheet" href="css/variables.css"/>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">D</div><div class="logo-text">D<span>zire</span></div></div>
+  <div class="sidebar-toggle" id="sidebarToggle">◀</div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <a href="teacher-dashboard.html" class="nav-item"><span class="nav-icon">⊞</span><span class="nav-label">Dashboard</span></a>
+    <a href="teacher-courses.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-label">My Courses</span><span class="nav-badge blue">12</span></a>
+    <a href="teacher-assessments.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-label">Assessments</span></a>
+    <a href="teacher-students.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-label">Students</span><span class="nav-badge blue">348</span></a>
+    <div class="nav-section-label">Analytics</div>
+    <a href="teacher-analytics.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-label">Analytics</span></a>
+    <a href="teacher-failure.html" class="nav-item"><span class="nav-icon">⚠️</span><span class="nav-label">Failure Points</span><span class="nav-badge">5</span></a>
+    <div class="nav-section-label">Account</div>
+    <a href="teacher-profile.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">My Profile</span></a>
+    <a href="teacher-settings.html" class="nav-item"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
+  </nav>
+  <div class="sidebar-profile"><div class="profile-avatar">KK</div><div class="profile-info"><div class="profile-name">Khalil Khalfi</div><div class="profile-role">Teacher · Full-Stack</div></div></div>
+</aside>
+
+<!-- MAIN -->
+<div class="main" id="main">
+  <header class="topbar">
+    <div class="topbar-left"><div class="page-breadcrumb"><span>Dzire</span><span>›</span><span class="current" id="pageTitle">Course Builder</span></div></div>
+    <div class="topbar-right">
+      <div class="search-box"><span>🔍</span><input type="text" placeholder="Search..."/></div>
+      <div class="icon-btn" style="position:relative" id="notifBtn">🔔<div class="notif-badge" id="notifBadge"></div><div class="notif-panel" id="notifPanel">...</div></div>
+      <button class="btn btn-ghost active" id="previewOffBtn" onclick="togglePreview(false)">✏️ Edit Mode</button>
+      <button class="btn btn-ghost" id="previewOnBtn" onclick="togglePreview(true)">👁️ Preview Mode</button>
+    </div>
+  </header>
+
+  <!-- PAGE: COURSE BUILDER (يتم ملؤه بواسطة JavaScript) -->
+  <div class="page active" id="page-courseContent">
+    <div class="section-header">
+      <div>
+        <div class="section-title" id="courseContentTitle">Loading...</div>
+        <div class="section-subtitle" id="courseContentSubtitle"></div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-ghost" type="button" onclick="showToast('Course settings saved','success')">⚙️ Settings</button>
+        <button class="btn btn-primary" type="button" onclick="openModal('newChapter')">＋ New Chapter</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom: 24px;">
+      <div class="card-header">
+        <div class="card-title">Course Description</div>
+        <div class="card-link" onclick="showToast('Edit description','info')">✎ Edit</div>
+      </div>
+      <p id="courseDescription" style="color: var(--text-2); line-height: 1.5; margin-bottom: 16px;"></p>
+      <div id="courseBadges" style="display: flex; gap: 16px; flex-wrap: wrap;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Chapters & Lessons</div>
+        <div class="card-link" onclick="showToast('Reorder mode','info')">⇅ Reorder</div>
+      </div>
+      <div class="chapters-list" id="chaptersContainer">
+        <div class="empty-state">Loading course content...</div>
+      </div>
+      <div style="margin-top: 20px; text-align: center;">
+        <button class="btn btn-ghost" onclick="openModal('newChapter')">➕ Add New Chapter</button>
+      </div>
+    </div>
+
+    <!-- PREVIEW MODE PANEL -->
+    <div id="previewPanel" style="display: none;">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Student Preview</div>
+          <div class="preview-nav">
+            <button class="icon-btn-sm" id="prevLessonBtn" disabled>← Previous</button>
+            <span id="previewIndex">0/0</span>
+            <button class="icon-btn-sm" id="nextLessonBtn">Next →</button>
+          </div>
+        </div>
+        <div id="previewContent" class="preview-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS (نفس الأصل) -->
+<div class="modal-overlay" id="modal-newCourse"><div class="modal">...</div></div>
+<div class="modal-overlay" id="modal-newQuiz"><div class="modal">...</div></div>
+<div class="modal-overlay" id="modal-newChapter"><div class="modal"><div class="modal-header"><div class="modal-title">Create New Chapter</div><div class="modal-close" onclick="closeModal('newChapter')">✕</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Chapter Title</label><input class="form-input" id="newChapterTitle" placeholder="e.g. Introduction to Variables"/></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newChapter')">Cancel</button><button class="btn btn-primary" onclick="createChapter()">Create Chapter</button></div></div></div>
+<div class="modal-overlay" id="modal-newLesson"><div class="modal"><div class="modal-header"><div class="modal-title">Add New Lesson</div><div class="modal-close" onclick="closeModal('newLesson')">✕</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Lesson Title</label><input class="form-input" id="newLessonTitle" placeholder="e.g. What is JavaScript?"/></div><div class="form-row"><div class="form-group"><label class="form-label">Content Type</label><select class="form-select" id="newLessonContentType"><option value="video">🎥 Video</option><option value="pdf">📄 PDF Document</option><option value="text">📝 Text / Article</option></select></div><div class="form-group"><label class="form-label">Duration (minutes)</label><input class="form-input" type="number" id="newLessonDuration" placeholder="e.g. 15"/></div></div><div class="form-group"><input type="checkbox" id="newLessonFreePreview"/><label>Make this lesson a Free Preview</label></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newLesson')">Cancel</button><button class="btn btn-primary" onclick="createLesson()">Create Lesson</button></div></div></div>
+<div class="modal-overlay" id="modal-uploadContent"><div class="modal"><div class="modal-header"><div class="modal-title">Upload Lesson Content</div><div class="modal-close" onclick="closeModal('uploadContent')">✕</div></div><div class="modal-body"><input type="file" id="contentFileInput" accept="video/mp4,application/pdf"/></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('uploadContent')">Cancel</button><button class="btn btn-primary" onclick="submitContentUpload()">Upload</button></div></div></div>
+<div class="modal-overlay" id="modal-newAssessment"><div class="modal"><div class="modal-header"><div class="modal-title">Add Assessment to Chapter</div><div class="modal-close" onclick="closeModal('newAssessment')">✕</div></div><div class="modal-body"><div class="form-group"><label>Title</label><input id="newAssessmentTitle"/></div><div class="form-row"><div class="form-group"><label>Type</label><select id="newAssessmentType"><option>quiz</option><option>assignment</option></select></div><div class="form-group"><label>Passing Score</label><input id="newAssessmentPassingScore" value="70"/></div></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newAssessment')">Cancel</button><button class="btn btn-primary" onclick="createAssessment()">Create</button></div></div></div>
+<div class="modal-overlay" id="modal-quizBuilder">...</div>
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/teacher-common.js"></script>
+<script src="js/teacher-course-builder.js"></script>
+</body>
+</html>

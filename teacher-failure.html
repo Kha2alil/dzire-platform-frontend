@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dzire – Teacher Failure Points</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/teacher-style.css"/>
+<link rel="stylesheet" href="css/variables.css"/>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">D</div><div class="logo-text">D<span>zire</span></div></div>
+  <div class="sidebar-toggle" id="sidebarToggle">◀</div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <a href="teacher-dashboard.html" class="nav-item"><span class="nav-icon">⊞</span><span class="nav-label">Dashboard</span></a>
+    <a href="teacher-courses.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-label">My Courses</span><span class="nav-badge blue">12</span></a>
+    <a href="teacher-assessments.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-label">Assessments</span></a>
+    <a href="teacher-students.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-label">Students</span><span class="nav-badge blue">348</span></a>
+    <div class="nav-section-label">Analytics</div>
+    <a href="teacher-analytics.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-label">Analytics</span></a>
+    <a href="teacher-failure.html" class="nav-item active"><span class="nav-icon">⚠️</span><span class="nav-label">Failure Points</span><span class="nav-badge">5</span></a>
+    <div class="nav-section-label">Account</div>
+    <a href="teacher-profile.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">My Profile</span></a>
+    <a href="teacher-settings.html" class="nav-item"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
+  </nav>
+  <div class="sidebar-profile"><div class="profile-avatar">KK</div><div class="profile-info"><div class="profile-name">Khalil Khalfi</div><div class="profile-role">Teacher · Full-Stack</div></div></div>
+</aside>
+
+<!-- MAIN -->
+<div class="main" id="main">
+  <header class="topbar">
+    <div class="topbar-left"><div class="page-breadcrumb"><span>Dzire</span><span>›</span><span class="current" id="pageTitle">Failure Points</span></div></div>
+    <div class="topbar-right">
+      <div class="search-box"><span style="color:var(--text-3);font-size:14px">🔍</span><input type="text" id="globalSearch" placeholder="Search students, courses..."/></div>
+      <div class="icon-btn" style="position:relative" id="notifBtn">🔔<div class="notif-badge" id="notifBadge"></div><div class="notif-panel" id="notifPanel"><div class="notif-head">Notifications<span class="notif-clear" id="clearNotif">Clear all</span></div><div class="notif-list" id="notifList"></div></div></div>
+      <button class="btn btn-primary" id="topbarAction" type="button" onclick="showToast('Exported!','success')">📤 Export List</button>
+    </div>
+  </header>
+
+  <!-- PAGE: FAILURE POINTS -->
+  <div class="page active" id="page-failure">
+    <div class="section-header">
+      <div><div class="section-title">Failure Points</div><div class="section-subtitle">Topics where students struggle the most</div></div>
+    </div>
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card"><div class="card-header"><div class="card-title">Ranked Topics</div></div><div class="fp-list" id="fullFpList"></div></div>
+      <div class="card"><div class="card-header"><div class="card-title">Failure Distribution</div></div><div class="bar-chart" id="fpChart"></div><div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text-3)"><span>Async</span><span>REST</span><span>CSS</span><span>SQL</span><span>JWT</span><span>DOM</span></div></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Affected Students</div><div class="card-link">Export list →</div></div>
+      <div class="table-wrap"><table><thead><tr><th>Student</th><th>Failed Topic</th><th>Attempts</th><th>Last Try</th><th>Remedial Status</th></tr></thead><tbody id="fpStudentTable"></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS (نفس الأصل) -->
+<div class="modal-overlay" id="modal-newCourse">...</div>
+<div class="modal-overlay" id="modal-newQuiz">...</div>
+<div class="modal-overlay" id="modal-newChapter">...</div>
+<div class="modal-overlay" id="modal-newLesson">...</div>
+<div class="modal-overlay" id="modal-uploadContent">...</div>
+<div class="modal-overlay" id="modal-newAssessment">...</div>
+<div class="modal-overlay" id="modal-quizBuilder">...</div>
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/teacher-common.js"></script>
+<script src="js/teacher-failure.js"></script>
+</body>
+</html>

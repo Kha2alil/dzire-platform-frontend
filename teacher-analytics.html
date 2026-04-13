@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dzire – Teacher Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/teacher-style.css"/>
+<link rel="stylesheet" href="css/variables.css"/>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">D</div><div class="logo-text">D<span>zire</span></div></div>
+  <div class="sidebar-toggle" id="sidebarToggle">◀</div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <a href="teacher-dashboard.html" class="nav-item"><span class="nav-icon">⊞</span><span class="nav-label">Dashboard</span></a>
+    <a href="teacher-courses.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-label">My Courses</span><span class="nav-badge blue">12</span></a>
+    <a href="teacher-assessments.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-label">Assessments</span></a>
+    <a href="teacher-students.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-label">Students</span><span class="nav-badge blue">348</span></a>
+    <div class="nav-section-label">Analytics</div>
+    <a href="teacher-analytics.html" class="nav-item active"><span class="nav-icon">📊</span><span class="nav-label">Analytics</span></a>
+    <a href="teacher-failure.html" class="nav-item"><span class="nav-icon">⚠️</span><span class="nav-label">Failure Points</span><span class="nav-badge">5</span></a>
+    <div class="nav-section-label">Account</div>
+    <a href="teacher-profile.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">My Profile</span></a>
+    <a href="teacher-settings.html" class="nav-item"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
+  </nav>
+  <div class="sidebar-profile"><div class="profile-avatar">KK</div><div class="profile-info"><div class="profile-name">Khalil Khalfi</div><div class="profile-role">Teacher · Full-Stack</div></div></div>
+</aside>
+
+<!-- MAIN -->
+<div class="main" id="main">
+  <header class="topbar">
+    <div class="topbar-left"><div class="page-breadcrumb"><span>Dzire</span><span>›</span><span class="current" id="pageTitle">Analytics</span></div></div>
+    <div class="topbar-right">
+      <div class="search-box"><span style="color:var(--text-3);font-size:14px">🔍</span><input type="text" id="globalSearch" placeholder="Search students, courses..."/></div>
+      <div class="icon-btn" style="position:relative" id="notifBtn">🔔<div class="notif-badge" id="notifBadge"></div><div class="notif-panel" id="notifPanel"><div class="notif-head">Notifications<span class="notif-clear" id="clearNotif">Clear all</span></div><div class="notif-list" id="notifList"></div></div></div>
+      <button class="btn btn-primary" id="topbarAction" type="button" onclick="showToast('Downloading...','success')">📥 Download Report</button>
+    </div>
+  </header>
+
+  <!-- PAGE: ANALYTICS -->
+  <div class="page active" id="page-analytics">
+    <div class="section-header">
+      <div><div class="section-title">Analytics</div><div class="section-subtitle">Detailed performance insights</div></div>
+      <select class="form-select" style="width:auto"><option>Last 7 days</option><option>Last 30 days</option><option>Last 3 months</option></select>
+    </div>
+    <div class="stats-grid" style="margin-bottom:20px">
+      <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:rgba(59,130,246,0.12)">✅</div><div class="stat-trend trend-up">↑ 8%</div></div><div class="stat-value">76%</div><div class="stat-label">Completion Rate</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--green-dim)">🎯</div><div class="stat-trend trend-up">↑ 5%</div></div><div class="stat-value">68%</div><div class="stat-label">Quiz Pass Rate</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--purple-dim)">⚡</div><div class="stat-trend trend-neutral">→ 0%</div></div><div class="stat-value">2.4h</div><div class="stat-label">Avg Study Time/Day</div></div>
+      <div class="stat-card"><div class="stat-top"><div class="stat-icon" style="background:var(--amber-dim)">🔄</div><div class="stat-trend trend-down">↓ 3%</div></div><div class="stat-value">18%</div><div class="stat-label">Dropout Rate</div></div>
+    </div>
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card"><div class="card-header"><div class="card-title">Monthly Enrollments</div></div><div class="bar-chart" id="monthChart"></div><div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text-3)"><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span></div></div>
+      <div class="card"><div class="card-header"><div class="card-title">Student Distribution</div></div><div class="donut-wrap" style="margin-top:8px"><div class="donut" style="background:conic-gradient(var(--blue-500) 0% 45%, var(--green) 45% 70%, var(--amber) 70% 88%, var(--red) 88% 100%)"><div class="donut-center"><div class="donut-val">348</div><div class="donut-sub">Total</div></div></div><div class="legend-list"><div class="legend-item"><div class="legend-dot" style="background:var(--blue-500)"></div><span class="legend-label">Full-Stack</span><span class="legend-val">156</span></div><div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div><span class="legend-label">JavaScript</span><span class="legend-val">87</span></div><div class="legend-item"><div class="legend-dot" style="background:var(--amber)"></div><span class="legend-label">Node.js</span><span class="legend-val">62</span></div><div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div><span class="legend-label">CSS</span><span class="legend-val">43</span></div></div></div></div>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-title">Course Performance Breakdown</div></div><div class="table-wrap"><table><thead><tr><th>Course</th><th>Students</th><th>Completion</th><th>Avg Score</th><th>Rating</th><th>Trend</th></tr></thead><tbody id="analyticsTable"></tbody></table></div></div>
+  </div>
+</div>
+
+<!-- MODALS (نفس الأصل) -->
+<div class="modal-overlay" id="modal-newCourse">...</div>
+<div class="modal-overlay" id="modal-newQuiz">...</div>
+<div class="modal-overlay" id="modal-newChapter">...</div>
+<div class="modal-overlay" id="modal-newLesson">...</div>
+<div class="modal-overlay" id="modal-uploadContent">...</div>
+<div class="modal-overlay" id="modal-newAssessment">...</div>
+<div class="modal-overlay" id="modal-quizBuilder">...</div>
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/teacher-common.js"></script>
+<script src="js/teacher-analytics.js"></script>
+</body>
+</html>

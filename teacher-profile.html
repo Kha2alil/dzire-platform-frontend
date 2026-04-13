@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Dzire – Teacher Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="css/teacher-style.css"/>
+<link rel="stylesheet" href="css/variables.css"/>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><div class="logo-icon">D</div><div class="logo-text">D<span>zire</span></div></div>
+  <div class="sidebar-toggle" id="sidebarToggle">◀</div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <a href="teacher-dashboard.html" class="nav-item"><span class="nav-icon">⊞</span><span class="nav-label">Dashboard</span></a>
+    <a href="teacher-courses.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-label">My Courses</span><span class="nav-badge blue">12</span></a>
+    <a href="teacher-assessments.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-label">Assessments</span></a>
+    <a href="teacher-students.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-label">Students</span><span class="nav-badge blue">348</span></a>
+    <div class="nav-section-label">Analytics</div>
+    <a href="teacher-analytics.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-label">Analytics</span></a>
+    <a href="teacher-failure.html" class="nav-item"><span class="nav-icon">⚠️</span><span class="nav-label">Failure Points</span><span class="nav-badge">5</span></a>
+    <div class="nav-section-label">Account</div>
+    <a href="teacher-profile.html" class="nav-item active"><span class="nav-icon">👤</span><span class="nav-label">My Profile</span></a>
+    <a href="teacher-settings.html" class="nav-item"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
+  </nav>
+  <div class="sidebar-profile"><div class="profile-avatar">KK</div><div class="profile-info"><div class="profile-name">Khalil Khalfi</div><div class="profile-role">Teacher · Full-Stack</div></div></div>
+</aside>
+
+<!-- MAIN -->
+<div class="main" id="main">
+  <header class="topbar">
+    <div class="topbar-left"><div class="page-breadcrumb"><span>Dzire</span><span>›</span><span class="current" id="pageTitle">My Profile</span></div></div>
+    <div class="topbar-right">
+      <div class="search-box"><span style="color:var(--text-3);font-size:14px">🔍</span><input type="text" id="globalSearch" placeholder="Search students, courses..."/></div>
+      <div class="icon-btn" style="position:relative" id="notifBtn">🔔<div class="notif-badge" id="notifBadge"></div><div class="notif-panel" id="notifPanel"><div class="notif-head">Notifications<span class="notif-clear" id="clearNotif">Clear all</span></div><div class="notif-list" id="notifList"></div></div></div>
+      <button class="btn btn-primary" id="topbarAction" type="button" onclick="updateProfile()">💾 Save Changes</button>
+    </div>
+  </header>
+
+  <!-- PAGE: PROFILE -->
+  <div class="page active" id="page-profile">
+    <div class="section-header">
+      <div><div class="section-title">My Profile</div><div class="section-subtitle">Manage your teacher profile and bio</div></div>
+      <button class="btn btn-primary" type="button" onclick="updateProfile()">💾 Save Changes</button>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">Personal Information</div></div>
+          <div style="display:flex;align-items:center;gap:18px;margin-bottom:22px">
+            <div id="profileAvatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--blue-800),var(--blue-500));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:24px;border:3px solid var(--border-md)">KK</div>
+            <div><button class="btn btn-ghost" type="button" onclick="uploadAvatar()">📷 Change Photo</button><div style="font-size:11px;color:var(--text-3);margin-top:6px">JPG, PNG max 2MB</div></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="profileFullName" value="Khalil Khalfi" /></div>
+            <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="profileEmail" value="khalil@dzire.dz" disabled readonly /></div>
+          </div>
+          <div class="form-group"><label class="form-label">Professional Bio</label><textarea class="form-textarea" id="profileBio">Full-Stack Web Developer with 5+ years of experience in Node.js, React, and PostgreSQL. Passionate about teaching adaptive learning methods.</textarea></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Specialization</label><input class="form-input" id="profileSpecialization" value="Full-Stack Web Development" /></div>
+            <div class="form-group"><label class="form-label">Experience (years)</label><input class="form-input" type="number" id="profileExperienceYears" value="5" /></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">Teaching Stats</div></div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Courses Published</span><span style="font-weight:600">12</span></div><div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Student Satisfaction</span><span style="font-weight:600">96%</span></div><div class="progress-bar"><div class="progress-fill green" style="width:96%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Response Rate</span><span style="font-weight:600">88%</span></div><div class="progress-bar"><div class="progress-fill" style="width:88%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Boss Exam Pass Rate</span><span style="font-weight:600">71%</span></div><div class="progress-bar"><div class="progress-fill amber" style="width:71%"></div></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Security</div></div>
+          <div class="form-group"><label class="form-label">Current Password</label><input class="form-input" type="password" placeholder="••••••••" /></div>
+          <div class="form-row"><div class="form-group"><label class="form-label">New Password</label><input class="form-input" type="password" placeholder="••••••••" /></div><div class="form-group"><label class="form-label">Confirm Password</label><input class="form-input" type="password" placeholder="••••••••" /></div></div>
+          <button class="btn btn-ghost" type="button" onclick="showToast('Password updated!','success')">🔒 Update Password</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS (نفس الأصل) -->
+<div class="modal-overlay" id="modal-newCourse">...</div>
+<div class="modal-overlay" id="modal-newQuiz">...</div>
+<div class="modal-overlay" id="modal-newChapter">...</div>
+<div class="modal-overlay" id="modal-newLesson">...</div>
+<div class="modal-overlay" id="modal-uploadContent">...</div>
+<div class="modal-overlay" id="modal-newAssessment">...</div>
+<div class="modal-overlay" id="modal-quizBuilder">...</div>
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="js/teacher-common.js"></script>
+<script src="js/teacher-profile.js"></script>
+</body>
+</html>
