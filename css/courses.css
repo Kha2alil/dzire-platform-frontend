@@ -502,3 +502,159 @@
     .nav-links    { display: none; }
     .menu-btn     { display: flex; }
 }
+
+/* ========== COURSE PLAYER ONLY ========== */
+    .course-player-layout {
+      display: flex;
+      gap: 1.8rem;
+      padding: 28px;
+    }
+    .player-main {
+      flex: 2.5;
+      min-width: 0;
+    }
+    .player-sidebar {
+      flex: 1.2;
+      background: var(--glass-surface, rgba(15,20,40,0.75));
+      -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
+      backdrop-filter: blur(var(--glass-blur, 12px));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.3rem;
+      height: fit-content;
+      max-height: calc(100vh - 150px);
+      overflow-y: auto;
+    }
+    .video-card {
+      background: var(--glass-surface, rgba(15,20,40,0.75));
+      -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
+      backdrop-filter: blur(var(--glass-blur, 12px));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+    .study-mode-toggle {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+    .mode-btn {
+      background: transparent;
+      border: 1px solid var(--border-md);
+      padding: 0.5rem 1.2rem;
+      border-radius: 40px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text-2);
+    }
+    .mode-btn.active {
+      background: var(--blue-600);
+      border-color: var(--blue-500);
+      color: white;
+      box-shadow: 0 0 10px rgba(59,130,246,0.4);
+    }
+    .lesson-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-bottom: 0.8rem;
+    }
+    .lesson-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #fff, var(--text-2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .xp-badge {
+      background: var(--gold-dim);
+      border: 1px solid rgba(251,191,36,0.4);
+      border-radius: 60px;
+      padding: 0.3rem 1.2rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      color: var(--gold);
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+    }
+    .lesson-description {
+      color: var(--text-2);
+      font-size: 0.95rem;
+      margin: 1rem 0 1.4rem;
+      line-height: 1.6;
+      border-right: 2px solid var(--blue-500);
+      padding-right: 1rem;
+    }
+    .glow-button {
+      background: linear-gradient(95deg, rgba(59,130,246,0.2), rgba(59,130,246,0.05));
+      border: 1px solid var(--blue-500);
+      border-radius: 60px;
+      padding: 0.85rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      color: var(--blue-400);
+      cursor: pointer;
+      transition: 0.25s;
+      width: 100%;
+      text-align: center;
+    }
+    .glow-button:hover {
+      background: rgba(59,130,246,0.3);
+      box-shadow: 0 0 14px rgba(59,130,246,0.6);
+      color: white;
+    }
+    .chapter-block {
+      margin-bottom: 1.8rem;
+    }
+    .chapter-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 0.8rem;
+      border-bottom: 1px dashed rgba(255,255,255,0.15);
+      padding-bottom: 0.4rem;
+    }
+    .lessons-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .lesson-item {
+      padding: 0.7rem 1rem;
+      border-radius: 16px;
+      background: rgba(10,15,30,0.6);
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      transition: all 0.2s;
+    }
+    .lesson-item:not(.locked):hover {
+      background: var(--bg-hover);
+      border-color: rgba(59,130,246,0.4);
+      transform: translateX(-3px);
+    }
+    .lesson-item.active {
+      background: rgba(59,130,246,0.15);
+      border: 1px solid var(--blue-500);
+      box-shadow: 0 0 12px rgba(59,130,246,0.4);
+    }
+    .lesson-item.locked {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    @media (max-width: 900px) {
+      .course-player-layout { flex-direction: column; padding: 16px; }
+      .player-sidebar { max-height: 400px; }
+      .lesson-title { font-size: 1.4rem; }
+    }

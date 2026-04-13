@@ -4,530 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dzire – Course Player</title>
+  <!-- Google Fonts & Font Awesome -->
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    /* ========== RESET & VARIABLES ========== */
-    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-    :root {
-      --blue-900: #1E3A8A;
-      --blue-800: #1E40AF;
-      --blue-600: #2563EB;
-      --blue-500: #3B82F6;
-      --blue-400: #60A5FA;
-      --blue-300: #93C5FD;
-      --bg:        #060C1A;
-      --bg-2:      #0A1225;
-      --bg-3:      #0F1B35;
-      --bg-card:   #0D1730;
-      --bg-hover:  #112040;
-      --border:    rgba(59,130,246,0.12);
-      --border-md: rgba(59,130,246,0.25);
-      --border-hi: rgba(59,130,246,0.5);
-      --text:      #E8F0FF;
-      --text-2:    #A8BEDD;
-      --text-3:    #5E7A9E;
-      --green:     #10B981;
-      --green-dim: rgba(16,185,129,0.15);
-      --amber:     #F59E0B;
-      --amber-dim: rgba(245,158,11,0.15);
-      --red:       #EF4444;
-      --red-dim:   rgba(239,68,68,0.15);
-      --purple:    #A78BFA;
-      --purple-dim:rgba(167,139,250,0.15);
-      --cyan:      #22D3EE;
-      --cyan-dim:  rgba(34,211,238,0.12);
-      --gold:      #FBBF24;
-      --gold-dim:  rgba(251,191,36,0.15);
-      --sidebar-w: 280px;
-      --sidebar-collapsed: 80px;
-      --topbar-h:  70px;
-      --radius:    20px;
-      --radius-sm: 12px;
-      --shadow:    0 8px 32px rgba(0,0,0,0.5);
-      --shadow-blue: 0 8px 32px rgba(37,99,235,0.2);
-      --glass-blur: 12px;
-      --glass-surface: rgba(15, 20, 40, 0.75);
-    }
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--blue-500); }
-
-    /* ========== LAYOUT ========== */
-    .app { display: flex; min-height: 100vh; }
-
-    /* ========== SIDEBAR ========== */
-    .sidebar {
-      width: var(--sidebar-w);
-      background: var(--bg-2);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      top: 0; left: 0; bottom: 0;
-      z-index: 200;
-      transition: width 0.3s cubic-bezier(0.4,0,0.2,1);
-      overflow: hidden;
-    }
-    .sidebar.collapsed { width: var(--sidebar-collapsed); }
-    .sidebar-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 20px 18px;
-      border-bottom: 1px solid var(--border);
-      min-height: var(--topbar-h);
-      overflow: hidden;
-    }
-    .logo-icon {
-      width: 34px; height: 34px;
-      background: linear-gradient(135deg, var(--blue-800), var(--blue-500));
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 16px;
-      flex-shrink: 0;
-      box-shadow: 0 0 20px rgba(59,130,246,0.3);
-    }
-    .logo-text {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800;
-      font-size: 20px;
-      letter-spacing: -0.5px;
-      white-space: nowrap;
-      color: var(--text);
-    }
-    .logo-text span { color: var(--blue-400); }
-    .sidebar-toggle {
-      position: absolute;
-      top: 20px; right: -14px;
-      width: 28px; height: 28px;
-      background: var(--bg-3);
-      border: 1px solid var(--border-md);
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      font-size: 12px;
-      transition: all 0.2s;
-      z-index: 10;
-    }
-    .sidebar-toggle:hover { background: var(--blue-600); border-color: var(--blue-500); }
-    .sidebar-nav {
-      flex: 1;
-      padding: 16px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-    .nav-section-label {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      color: var(--text-3);
-      padding: 12px 10px 6px;
-      white-space: nowrap;
-      transition: opacity 0.2s;
-    }
-    .sidebar.collapsed .nav-section-label { opacity: 0; }
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 11px 10px;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: all 0.2s;
-      color: var(--text-2);
-      white-space: nowrap;
-      text-decoration: none;
-    }
-    .nav-item:hover { background: var(--bg-hover); color: var(--text); }
-    .nav-item.active { background: rgba(37,99,235,0.15); color: var(--blue-400); }
-    .nav-item.active::before {
-      content: '';
-      position: absolute;
-      left: 0; top: 6px; bottom: 6px;
-      width: 3px;
-      background: var(--blue-500);
-      border-radius: 0 3px 3px 0;
-    }
-    .nav-icon { font-size: 18px; width: 22px; text-align: center; flex-shrink: 0; }
-    .nav-label { font-size: 14px; font-weight: 500; flex: 1; }
-    .nav-badge {
-      background: var(--red);
-      color: white;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 20px;
-      flex-shrink: 0;
-    }
-    .nav-badge.blue { background: var(--blue-600); }
-    .sidebar-profile {
-      padding: 14px 10px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .sidebar-profile:hover { background: var(--bg-hover); }
-    .profile-avatar {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--blue-800), var(--blue-500));
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700;
-      font-size: 13px;
-      flex-shrink: 0;
-      border: 2px solid var(--border-md);
-      position: relative;
-    }
-    .profile-avatar::after {
-      content: '';
-      position: absolute;
-      bottom: 1px; right: 1px;
-      width: 8px; height: 8px;
-      background: var(--green);
-      border-radius: 50%;
-      border: 2px solid var(--bg-2);
-    }
-    .profile-info { overflow: hidden; flex: 1; }
-    .profile-name { font-size: 13px; font-weight: 600; white-space: nowrap; }
-    .profile-role { font-size: 11px; color: var(--text-3); white-space: nowrap; }
-
-    /* ========== MAIN ========== */
-    .main {
-      margin-left: var(--sidebar-w);
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1);
-    }
-    .main.expanded { margin-left: var(--sidebar-collapsed); }
-
-    /* ========== TOPBAR ========== */
-    .topbar {
-      height: var(--topbar-h);
-      background: rgba(6,12,26,0.85);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 28px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .topbar-left { display: flex; align-items: center; gap: 16px; }
-    .page-breadcrumb {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      color: var(--text-3);
-    }
-    .page-breadcrumb span { color: var(--text-2); }
-    .page-breadcrumb .current {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      font-size: 16px;
-      color: var(--text);
-    }
-    .topbar-right { display: flex; align-items: center; gap: 10px; }
-    .xp-bar-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 7px 12px;
-    }
-    .xp-label { font-size: 12px; color: var(--text-3); white-space: nowrap; }
-    .xp-label strong { color: var(--blue-400); }
-    .xp-track {
-      width: 80px;
-      height: 5px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 10px;
-      overflow: hidden;
-    }
-    .xp-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--blue-800), var(--blue-400));
-      width: 0%;
-    }
-    .xp-level {
-      font-family: 'Syne', sans-serif;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--amber);
-    }
-    .search-box {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 8px 14px;
-    }
-    .search-box input {
-      background: none;
-      border: none;
-      outline: none;
-      color: var(--text);
-      font-size: 13px;
-      width: 160px;
-    }
-    .icon-btn {
-      width: 38px; height: 38px;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      position: relative;
-    }
-    .btn-primary {
-      background: var(--blue-600);
-      color: white;
-      border: none;
-      padding: 9px 18px;
-      border-radius: var(--radius-sm);
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
-    }
-    .btn-primary:hover { background: var(--blue-500); transform: translateY(-1px); }
-
-    /* ========== COURSE PLAYER STYLES ========== */
-    .course-player-layout {
-      display: flex;
-      gap: 1.8rem;
-      padding: 28px;
-    }
-    .player-main {
-      flex: 2.5;
-      min-width: 0;
-    }
-    .player-sidebar {
-      flex: 1.2;
-      background: var(--glass-surface);
-      backdrop-filter: blur(var(--glass-blur));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.3rem;
-      height: fit-content;
-      max-height: calc(100vh - 150px);
-      overflow-y: auto;
-    }
-    .video-card {
-      background: var(--glass-surface);
-      backdrop-filter: blur(var(--glass-blur));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.2rem;
-      margin-bottom: 1.5rem;
-    }
-    .content-container {
-      position: relative;
-      width: 100%;
-      border-radius: 18px;
-      overflow: hidden;
-      background: #000;
-      margin-bottom: 1.2rem;
-      border: 1px solid rgba(59,130,246,0.2);
-    }
-    .video-container {
-      position: relative;
-      padding-bottom: 56.25%;
-    }
-    .video-placeholder {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: linear-gradient(145deg, #0a0f1c, #03060e);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 0.8rem;
-      color: var(--text-2);
-    }
-    .pdf-container {
-      background: var(--bg-3);
-      min-height: 400px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      padding: 2rem;
-      gap: 1rem;
-      color: var(--text-2);
-    }
-    .pdf-preview {
-      background: var(--bg-card);
-      border: 1px solid var(--border-md);
-      border-radius: 12px;
-      padding: 2rem;
-      text-align: center;
-      width: 100%;
-    }
-    .study-mode-toggle {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 1rem;
-    }
-    .mode-btn {
-      background: transparent;
-      border: 1px solid var(--border-md);
-      padding: 0.5rem 1.2rem;
-      border-radius: 40px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      color: var(--text-2);
-    }
-    .mode-btn.active {
-      background: var(--blue-600);
-      border-color: var(--blue-500);
-      color: white;
-      box-shadow: 0 0 10px rgba(59,130,246,0.4);
-    }
-    .lesson-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      flex-wrap: wrap;
-      gap: 0.8rem;
-      margin-bottom: 0.8rem;
-    }
-    .lesson-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.8rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, #fff, var(--text-2));
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-    }
-    .xp-badge {
-      background: var(--gold-dim);
-      border: 1px solid rgba(251,191,36,0.4);
-      border-radius: 60px;
-      padding: 0.3rem 1.2rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-weight: 700;
-      color: var(--gold);
-      backdrop-filter: blur(4px);
-    }
-    .lesson-description {
-      color: var(--text-2);
-      font-size: 0.95rem;
-      margin: 1rem 0 1.4rem;
-      line-height: 1.6;
-      border-right: 2px solid var(--blue-500);
-      padding-right: 1rem;
-    }
-    .glow-button {
-      background: linear-gradient(95deg, rgba(59,130,246,0.2), rgba(59,130,246,0.05));
-      border: 1px solid var(--blue-500);
-      border-radius: 60px;
-      padding: 0.85rem;
-      font-family: 'Syne', sans-serif;
-      font-weight: 700;
-      color: var(--blue-400);
-      cursor: pointer;
-      transition: 0.25s;
-      width: 100%;
-      text-align: center;
-    }
-    .glow-button:hover {
-      background: rgba(59,130,246,0.3);
-      box-shadow: 0 0 14px rgba(59,130,246,0.6);
-      color: white;
-    }
-    .chapter-block {
-      margin-bottom: 1.8rem;
-    }
-    .chapter-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 0.8rem;
-      border-bottom: 1px dashed rgba(255,255,255,0.15);
-      padding-bottom: 0.4rem;
-    }
-    .lessons-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-    .lesson-item {
-      padding: 0.7rem 1rem;
-      border-radius: 16px;
-      background: rgba(10,15,30,0.6);
-      border: 1px solid transparent;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      transition: all 0.2s;
-    }
-    .lesson-item:not(.locked):hover {
-      background: var(--bg-hover);
-      border-color: rgba(59,130,246,0.4);
-      transform: translateX(-3px);
-    }
-    .lesson-item.active {
-      background: rgba(59,130,246,0.15);
-      border: 1px solid var(--blue-500);
-      box-shadow: 0 0 12px rgba(59,130,246,0.4);
-    }
-    .lesson-item.locked {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-    .lesson-icon { width: 26px; text-align: center; }
-    .lesson-name { flex: 1; font-size: 0.9rem; font-weight: 500; }
-    .xp-mini {
-      font-size: 0.7rem;
-      background: var(--amber-dim);
-      padding: 0.2rem 0.6rem;
-      border-radius: 40px;
-      color: var(--amber);
-    }
-    @media (max-width: 900px) {
-      .course-player-layout { flex-direction: column; padding: 16px; }
-      .player-sidebar { max-height: 400px; }
-      .lesson-title { font-size: 1.4rem; }
-      .topbar { padding: 0 16px; }
-    }
-  </style>
+  <!-- Shared student styles (sidebar, topbar, variables, etc.) -->
+  <link rel="stylesheet" href="css/student-style.css">
+  <link rel="stylesheet" href="css/course-player.css">
 </head>
 <body>
 <div class="app">
@@ -541,49 +23,41 @@
     <div class="sidebar-toggle" id="sidebarToggle">◀</div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Learn</div>
-      <a href="student-dashboard.html?page=dashboard" class="nav-item" data-page="dashboard">
-        <span class="nav-icon">⊞</span>
-        <span class="nav-label">Dashboard</span>
+      <a href="student-dashboard.html" class="nav-item" data-page="dashboard">
+        <span class="nav-icon">⊞</span><span class="nav-label">Dashboard</span>
       </a>
-      <a href="student-dashboard.html?page=my-path" class="nav-item" data-page="my-path">
-        <span class="nav-icon">🗺️</span>
-        <span class="nav-label">My Learning Path</span>
+      <a href="student-my-path.html" class="nav-item" data-page="my-path">
+        <span class="nav-icon">🗺️</span><span class="nav-label">My Learning Path</span>
       </a>
-      <a href="student-dashboard.html?page=courses" class="nav-item active" data-page="courses">
-        <span class="nav-icon">📚</span>
-        <span class="nav-label">My Courses</span>
+      <a href="student-courses.html" class="nav-item active" data-page="courses">
+        <span class="nav-icon">📚</span><span class="nav-label">My Courses</span>
         <span class="nav-badge blue">5</span>
       </a>
-      <a href="student-dashboard.html?page=quests" class="nav-item" data-page="quests">
-        <span class="nav-icon">⚔️</span>
-        <span class="nav-label">Quests</span>
+      <a href="student-quests.html" class="nav-item" data-page="quests">
+        <span class="nav-icon">⚔️</span><span class="nav-label">Quests</span>
         <span class="nav-badge">3</span>
       </a>
-      <a href="student-dashboard.html?page=skill-tree" class="nav-item" data-page="skill-tree">
-        <span class="nav-icon">🌳</span>
-        <span class="nav-label">Skill Tree</span>
+      <a href="student-skill-tree.html" class="nav-item" data-page="skill-tree">
+        <span class="nav-icon">🌳</span><span class="nav-label">Skill Tree</span>
       </a>
+
       <div class="nav-section-label">Progress</div>
-      <a href="student-dashboard.html?page=assessments" class="nav-item" data-page="assessments">
-        <span class="nav-icon">📝</span>
-        <span class="nav-label">Assessments</span>
+      <a href="student-assessments.html" class="nav-item" data-page="assessments">
+        <span class="nav-icon">📝</span><span class="nav-label">Assessments</span>
       </a>
-      <a href="student-dashboard.html?page=leaderboard" class="nav-item" data-page="leaderboard">
-        <span class="nav-icon">🏆</span>
-        <span class="nav-label">Leaderboard</span>
+      <a href="student-leaderboard.html" class="nav-item" data-page="leaderboard">
+        <span class="nav-icon">🏆</span><span class="nav-label">Leaderboard</span>
       </a>
-      <a href="student-dashboard.html?page=badges" class="nav-item" data-page="badges">
-        <span class="nav-icon">🎖️</span>
-        <span class="nav-label">Badges</span>
+      <a href="student-badges.html" class="nav-item" data-page="badges">
+        <span class="nav-icon">🎖️</span><span class="nav-label">Badges</span>
       </a>
+
       <div class="nav-section-label">Account</div>
-      <a href="student-dashboard.html?page=profile" class="nav-item" data-page="profile">
-        <span class="nav-icon">👤</span>
-        <span class="nav-label">My Profile</span>
+      <a href="student-profile.html" class="nav-item" data-page="profile">
+        <span class="nav-icon">👤</span><span class="nav-label">My Profile</span>
       </a>
-      <a href="student-dashboard.html?page=settings" class="nav-item" data-page="settings">
-        <span class="nav-icon">⚙️</span>
-        <span class="nav-label">Settings</span>
+      <a href="student-settings.html" class="nav-item" data-page="settings">
+        <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
       </a>
     </nav>
     <div class="sidebar-profile">
@@ -619,7 +93,7 @@
           <input type="text" placeholder="Search...">
         </div>
         <div class="icon-btn">🔔</div>
-        <a href="#" class="btn btn-primary">⚔️ Continue Quest</a>
+        <a href="student-quests.html" class="btn btn-primary">⚔️ Continue Quest</a>
       </div>
     </header>
 

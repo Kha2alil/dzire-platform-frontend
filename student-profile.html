@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dzire – My Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/student-style.css" />
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR (identical, active item = profile) -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">D</div>
+      <div class="logo-text">D<span>zire</span></div>
+    </div>
+    <div class="sidebar-toggle" id="sidebarToggle">◀</div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Learn</div>
+      <a href="student-dashboard.html" class="nav-item" data-page="dashboard">
+        <span class="nav-icon">⊞</span><span class="nav-label">Dashboard</span>
+      </a>
+      <a href="student-my-path.html" class="nav-item" data-page="my-path">
+        <span class="nav-icon">🗺️</span><span class="nav-label">My Learning Path</span>
+      </a>
+      <a href="student-explore.html" class="nav-item" data-page="explore">
+        <span class="nav-icon">🌍</span><span class="nav-label">Explore Catalog</span>
+        <span class="nav-badge blue">New</span>
+      </a>
+      <a href="student-courses.html" class="nav-item" data-page="courses">
+        <span class="nav-icon">📚</span><span class="nav-label">My Courses</span>
+        <span class="nav-badge blue" id="nav-courses-count">5</span>
+      </a>
+      <a href="student-quests.html" class="nav-item" data-page="quests">
+        <span class="nav-icon">⚔️</span><span class="nav-label">Quests</span>
+        <span class="nav-badge">3</span>
+      </a>
+      <a href="student-skill-tree.html" class="nav-item" data-page="skill-tree">
+        <span class="nav-icon">🌳</span><span class="nav-label">Skill Tree</span>
+      </a>
+
+      <div class="nav-section-label">Progress</div>
+      <a href="student-assessments.html" class="nav-item" data-page="assessments">
+        <span class="nav-icon">📝</span><span class="nav-label">Assessments</span>
+      </a>
+      <a href="student-leaderboard.html" class="nav-item" data-page="leaderboard">
+        <span class="nav-icon">🏆</span><span class="nav-label">Leaderboard</span>
+      </a>
+      <a href="student-badges.html" class="nav-item" data-page="badges">
+        <span class="nav-icon">🎖️</span><span class="nav-label">Badges</span>
+      </a>
+
+      <div class="nav-section-label">Account</div>
+      <a href="student-profile.html" class="nav-item active" data-page="profile">
+        <span class="nav-icon">👤</span><span class="nav-label">My Profile</span>
+      </a>
+      <a href="student-settings.html" class="nav-item" data-page="settings">
+        <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-profile" data-page="profile">
+      <div class="profile-avatar">AM</div>
+      <div class="profile-info">
+        <div class="profile-name">Ahmed Mansouri</div>
+        <div class="profile-role">Level 8 · Code Warrior</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main" id="main">
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="page-breadcrumb">
+          <span>Dzire</span><span>›</span><span class="current" id="pageTitle">My Profile</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="xp-bar-wrap">
+          <div class="xp-label">XP <strong>2,840</strong> / 3,000</div>
+          <div class="xp-track"><div class="xp-fill" style="width:94%"></div></div>
+          <div class="xp-level">Lv.8</div>
+        </div>
+        <div class="search-box">
+          <span style="color:var(--text-3);font-size:14px">🔍</span>
+          <input type="text" id="globalSearch" placeholder="Search courses, quests..." />
+        </div>
+        <div class="icon-btn" style="position:relative" id="notifBtn">
+          🔔
+          <div class="notif-badge-dot" id="notifBadge"></div>
+          <div class="notif-panel" id="notifPanel">
+            <div class="notif-head">Notifications<span class="notif-clear" id="clearNotif">Clear all</span></div>
+            <div class="notif-list" id="notifList"></div>
+          </div>
+        </div>
+        <a href="student-quests.html" class="btn btn-primary">⚔️ Continue Quest</a>
+      </div>
+    </header>
+
+    <!-- PROFILE CONTENT (extracted from original #page-profile) -->
+    <div class="page active" id="page-profile">
+      <div class="section-header">
+        <div>
+          <div class="section-title">My Profile</div>
+          <div class="section-subtitle">Manage your account and learning preferences</div>
+        </div>
+        <button class="btn btn-primary" id="saveProfileBtn">💾 Save Changes</button>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <div class="card card-mb">
+            <div class="card-header"><div class="card-title">Personal Info</div></div>
+            <div class="profile-avatar-row">
+              <div class="big-avatar">AM<div class="big-avatar-level">8</div></div>
+              <div>
+                <button class="btn btn-ghost btn-sm" id="changePhotoBtn">📷 Change Photo</button>
+                <div class="photo-hint">JPG, PNG max 2MB</div>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input class="form-input" data-field="full_name" placeholder="Enter your full name" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Username</label>
+                <input class="form-input" data-field="username" placeholder="Enter your username" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" data-field="email" placeholder="Enter your email address" readonly />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bio</label>
+              <textarea class="form-textarea" id="profileBio">Passionate Full-Stack developer in training. Love building things with Node.js and React. Currently on the Full-Stack track at Dzire.</textarea>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">🔒 Security</div></div>
+            <div class="form-group">
+              <label class="form-label">Current Password</label>
+              <input class="form-input" type="password" id="currentPassword" placeholder="••••••••" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input class="form-input" type="password" id="newPassword" placeholder="••••••••" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Confirm</label>
+                <input class="form-input" type="password" id="confirmPassword" placeholder="••••••••" />
+              </div>
+            </div>
+            <button class="btn btn-ghost" style="width:100%;justify-content:center" id="updatePasswordBtn">Update Password</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="card card-mb">
+            <div class="card-header"><div class="card-title">⚡ My Stats</div></div>
+            <div class="profile-stats-grid">
+              <div class="profile-stat">
+                <div class="profile-stat-val stat-val-blue" id="statTotalXp">0</div>
+                <div class="profile-stat-lbl">Total XP</div>
+              </div>
+              <div class="profile-stat">
+                <div class="profile-stat-val stat-val-amber" id="statCurrentLevel">0</div>
+                <div class="profile-stat-lbl">Current Level</div>
+              </div>
+              <div class="profile-stat">
+                <div class="profile-stat-val stat-val-green" id="statQuestsDone">0</div>
+                <div class="profile-stat-lbl">Quests Done</div>
+              </div>
+              <div class="profile-stat">
+                <div class="profile-stat-val stat-val-purple" id="statBadgesEarned">0</div>
+                <div class="profile-stat-lbl">Badges</div>
+              </div>
+              <div class="profile-stat">
+                <div class="profile-stat-val stat-val-red" id="statStreak">0</div>
+                <div class="profile-stat-lbl">Day Streak 🔥</div>
+              </div>
+              <div class="profile-stat">
+                <div class="profile-stat-val stat-val-cyan" id="statLeaderboardRank">#0</div>
+                <div class="profile-stat-lbl">Leaderboard</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-mb">
+            <div class="card-header"><div class="card-title">🎯 Learning Progress</div></div>
+            <div class="learning-progress-list">
+              <div class="learning-progress-item"><div class="learning-progress-meta"><span>Full-Stack Dev</span><span class="learning-progress-pct">78%</span></div><div class="progress-bar"><div class="progress-fill" style="width:78%"></div></div></div>
+              <div class="learning-progress-item"><div class="learning-progress-meta"><span>JavaScript Mastery</span><span class="learning-progress-pct">65%</span></div><div class="progress-bar"><div class="progress-fill" style="width:65%"></div></div></div>
+              <div class="learning-progress-item"><div class="learning-progress-meta"><span>Node.js Backend</span><span class="learning-progress-pct">45%</span></div><div class="progress-bar"><div class="progress-fill amber" style="width:45%"></div></div></div>
+              <div class="learning-progress-item"><div class="learning-progress-meta"><span>Database Design</span><span class="learning-progress-pct">30%</span></div><div class="progress-bar"><div class="progress-fill amber" style="width:30%"></div></div></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header"><div class="card-title">🗺️ My Track</div></div>
+            <div class="form-group">
+              <label class="form-label">Domain</label>
+              <select class="form-select" id="profileDomain">
+                <option>Web Development</option>
+                <option>Data Science</option>
+                <option>Mobile</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sub-domain</label>
+              <select class="form-select" id="profileSubdomain">
+                <option>Full-Stack</option>
+                <option>Frontend</option>
+                <option>Backend</option>
+              </select>
+            </div>
+            <button class="btn btn-ghost btn-full btn-center" id="updateTrackBtn">Update Track</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODALS & TOAST -->
+<div class="modal-overlay" id="modal-aiHint">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">🤖 AI Socratic Hint</div><div class="modal-close" onclick="closeModal('aiHint')">✕</div></div>
+    <div class="modal-body">
+      <div style="background:rgba(59,130,246,0.06);border:1px solid var(--border-md);border-radius:var(--radius-sm);padding:16px;margin-bottom:16px">
+        <div style="font-size:12px;color:var(--text-3);margin-bottom:6px">Topic</div>
+        <div style="font-size:14px;font-weight:600">How do I handle async errors in Node.js?</div>
+      </div>
+      <div class="ai-hint-steps" id="aiHintSteps"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('aiHint')">Close</button>
+      <button class="btn btn-primary" onclick="showToast('Next hint unlocked! 🤖','success')">Next Hint →</button>
+    </div>
+  </div>
+</div>
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="js/student-common.js"></script>
+<script src="js/student-profile.js"></script>
+</body>
+</html>

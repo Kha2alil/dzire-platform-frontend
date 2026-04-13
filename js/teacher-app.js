@@ -513,7 +513,6 @@ async function createCourse() {
     description,
     subdomain_id: subdomainId,
     difficulty_level: difficultyLevel,
-    default_xp_reward: xpReward
   };
 
   const data = await apiCall('POST', '/courses', body);
