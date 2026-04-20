@@ -7,10 +7,40 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="css/teacher-style.css"/>
 <link rel="stylesheet" href="css/variables.css"/>
+<style>
+  /* Quiz Builder Modal Styles — from origin/feature/admin-dash */
+  .qb-modal { max-width: 800px; width: 100%; }
+  .qb-modal-icon { width: 38px; height: 38px; background: var(--purple-dim); border: 1px solid rgba(167,139,250,0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .qb-body { max-height: 70vh; overflow-y: auto; padding: 20px; }
+  .qb-section { margin-bottom: 24px; }
+  .qb-section-label { display: flex; align-items: center; gap: 8px; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-3); margin-bottom: 12px; }
+  .qb-section-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .qb-add-btn { width: 100%; justify-content: center; gap: 8px; border-style: dashed; }
+  .qb-question-card { background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; }
+  .qb-card-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; background: rgba(59,130,246,0.05); border-bottom: 1px solid var(--border); }
+  .qb-card-header-left { display: flex; align-items: center; gap: 10px; }
+  .qb-q-number { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 800; color: var(--blue-400); background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.2); border-radius: 6px; padding: 2px 9px; }
+  .qb-remove-btn { background: transparent; border: 1px solid var(--red-dim); border-radius: var(--radius-sm); color: var(--red); padding: 5px 11px; cursor: pointer; font-size: 13px; }
+  .qb-option-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; }
+  .qb-option-row.qb-selected { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.04); }
+  .qb-radio-wrap { position: relative; width: 18px; height: 18px; flex-shrink: 0; }
+  .qb-radio-wrap input[type="radio"] { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+  .qb-radio-custom { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--border-md); background: var(--bg-3); transition: all 0.15s; }
+  .qb-radio-custom::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--green); opacity: 0; transform: scale(0.4); transition: all 0.15s; }
+  .qb-radio-wrap input[type="radio"]:checked ~ .qb-radio-custom { border-color: var(--green); background: rgba(16,185,129,0.1); }
+  .qb-radio-wrap input[type="radio"]:checked ~ .qb-radio-custom::after { opacity: 1; transform: scale(1); }
+  .qb-option-letter { width: 22px; height: 22px; border-radius: 6px; background: rgba(59,130,246,0.1); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 800; color: var(--blue-400); }
+  .qb-option-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 0; }
+  .qb-meta-row { display: grid; grid-template-columns: 1fr 1fr 100px; gap: 12px; margin-top: 12px; }
+  .btn-add-opt { background: none; border: 1px dashed var(--border); color: var(--blue-400); padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+  @media (max-width: 640px) { .qb-meta-row { grid-template-columns: 1fr 1fr; } }
+</style>
 </head>
 <body>
-  <!-- Sidebar overlay (mobile) -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Sidebar overlay (mobile) — from HEAD -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
 <div class="app">
 
 <!-- SIDEBAR -->
@@ -36,6 +66,7 @@
 <!-- MAIN -->
 <div class="main" id="main">
   <header class="topbar">
+    <!-- Hamburger button for mobile — from HEAD -->
     <button class="hamburger" id="hamburgerBtn">☰</button>
     <div class="topbar-left"><div class="page-breadcrumb"><span>Dzire</span><span>›</span><span class="current" id="pageTitle">Course Builder</span></div></div>
     <div class="topbar-right">
@@ -46,7 +77,7 @@
     </div>
   </header>
 
-  <!-- PAGE: COURSE BUILDER (يتم ملؤه بواسطة JavaScript) -->
+  <!-- PAGE: COURSE BUILDER -->
   <div class="page active" id="page-courseContent">
     <div class="section-header">
       <div>
@@ -54,6 +85,8 @@
         <div class="section-subtitle" id="courseContentSubtitle"></div>
       </div>
       <div class="header-actions">
+        <!-- Settings button — from origin/feature/admin-dash -->
+        <button class="btn btn-ghost" type="button" onclick="showToast('Course settings saved','success')">⚙️ Settings</button>
         <button class="btn btn-primary" type="button" onclick="openModal('newChapter')">＋ New Chapter</button>
       </div>
     </div>
@@ -95,16 +128,89 @@
       </div>
     </div>
   </div>
-</div>
+</div><!-- /.main -->
 
-<!-- MODALS (نفس الأصل) -->
-<!-- MODALS (نفس الأصل) -->
-<div class="modal-overlay" id="modal-newCourse">
-  <div class="modal">...</div>
-</div>
+<!-- ========== MODALS ========== -->
 
+<!-- Modal: New Quiz — Step 1 (full implementation from origin/feature/admin-dash) -->
 <div class="modal-overlay" id="modal-newQuiz">
-  <div class="modal">...</div>
+  <div class="modal" style="max-width: 450px;">
+    <div class="modal-header">
+      <div class="modal-title">📝 New Assessment</div>
+      <div class="modal-close" onclick="closeModal('newQuiz')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Assessment Title *</label>
+        <input type="text" id="quiz_title_input" class="form-input" placeholder="e.g. JavaScript Basics Quiz">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select id="quiz_type_input" class="form-select">
+          <option value="quiz">Quiz</option>
+          <option value="final_exam">Final Exam</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Passing Score (%)</label>
+        <input type="number" id="quiz_passing_score_input" class="form-input" value="70" min="1" max="100">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newQuiz')">Cancel</button>
+      <button class="btn btn-primary" onclick="proceedToQuizBuilder()">Next: Add Questions</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Quiz Builder — Step 2 (full implementation from origin/feature/admin-dash) -->
+<div class="modal-overlay" id="modal-quizBuilder">
+  <div class="modal qb-modal">
+    <div class="modal-header">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="qb-modal-icon">📝</div>
+        <div>
+          <div class="modal-title">Quiz Builder</div>
+          <div style="font-size: 11px; color: var(--text-3);">Build a structured quiz with questions & answers</div>
+        </div>
+      </div>
+      <div class="modal-close" onclick="closeModal('quizBuilder')">✕</div>
+    </div>
+    <div class="modal-body qb-body">
+      <input type="hidden" id="qb-type" value="quiz">
+      <input type="hidden" id="qb-passing-score" value="70">
+
+      <!-- Assessment Details -->
+      <div class="qb-section">
+        <div class="qb-section-label">
+          <span class="qb-section-dot" style="background: var(--blue-500);"></span>
+          Assessment Details
+        </div>
+        <div class="form-group">
+          <label class="form-label">Assessment Title *</label>
+          <input type="text" id="qb-title" class="form-input" placeholder="e.g. JavaScript Basics Quiz">
+        </div>
+      </div>
+
+      <!-- Questions Container -->
+      <div class="qb-section">
+        <div class="qb-section-label">
+          <span class="qb-section-dot" style="background: var(--purple);"></span>
+          Questions
+          <span class="badge badge-purple" id="qb-q-count" style="margin-left: 6px;">1</span>
+        </div>
+        <div id="qb-questions-container" class="qb-questions-container"></div>
+        <button class="btn btn-ghost qb-add-btn" type="button" onclick="qbAddQuestion()">
+          <span style="font-size: 16px;">＋</span> Add Another Question
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div style="font-size: 11px; color: var(--text-3); flex:1;">💡 JSON payload is logged to console on save</div>
+      <button class="btn btn-ghost" onclick="closeModal('quizBuilder')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQuizAssessment()">💾 Save Assessment</button>
+    </div>
+  </div>
 </div>
 
 <!-- Modal: New Chapter -->
@@ -117,7 +223,7 @@
     <div class="modal-body">
       <div class="form-group">
         <label class="form-label">Chapter Title</label>
-        <input class="form-input" id="newChapterTitle" placeholder="e.g. Introduction to Variables" />
+        <input class="form-input" id="newChapterTitle" placeholder="e.g. Introduction to Variables"/>
       </div>
     </div>
     <div class="modal-footer">
@@ -127,7 +233,7 @@
   </div>
 </div>
 
-<!-- Modal: New Lesson (with XP Reward field) -->
+<!-- Modal: New Lesson — includes XP Reward field from HEAD -->
 <div class="modal-overlay" id="modal-newLesson">
   <div class="modal">
     <div class="modal-header">
@@ -137,7 +243,7 @@
     <div class="modal-body">
       <div class="form-group">
         <label class="form-label">Lesson Title</label>
-        <input class="form-input" id="newLessonTitle" placeholder="e.g. What is JavaScript?" />
+        <input class="form-input" id="newLessonTitle" placeholder="e.g. What is JavaScript?"/>
       </div>
       <div class="form-row">
         <div class="form-group">
@@ -150,18 +256,18 @@
         </div>
         <div class="form-group">
           <label class="form-label">Duration (minutes)</label>
-          <input class="form-input" type="number" id="newLessonDuration" placeholder="e.g. 15" />
+          <input class="form-input" type="number" id="newLessonDuration" placeholder="e.g. 15"/>
         </div>
       </div>
-      <!-- XP Reward field -->
+      <!-- XP Reward field — from HEAD -->
       <div class="form-group">
         <label class="form-label">XP Reward</label>
-        <input class="form-input" type="number" id="newLessonXp" value="50" min="0" step="10" />
-        <div style="font-size:11px;color:var(--text-3);margin-top:6px">Points students earn upon completing this lesson</div>
+        <input class="form-input" type="number" id="newLessonXp" value="50" min="0" step="10"/>
+        <div style="font-size: 11px; color: var(--text-3); margin-top: 6px;">Points students earn upon completing this lesson</div>
       </div>
       <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="newLessonFreePreview" style="width:16px; height:16px;" />
-        <label class="form-label" style="margin:0;">Make this lesson a Free Preview</label>
+        <input type="checkbox" id="newLessonFreePreview" style="width: 16px; height: 16px;"/>
+        <label class="form-label" style="margin: 0;">Make this lesson a Free Preview</label>
       </div>
     </div>
     <div class="modal-footer">
@@ -179,7 +285,7 @@
       <div class="modal-close" onclick="closeModal('uploadContent')">✕</div>
     </div>
     <div class="modal-body">
-      <input type="file" id="contentFileInput" accept="video/mp4,application/pdf" />
+      <input type="file" id="contentFileInput" accept="video/mp4,application/pdf"/>
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('uploadContent')">Cancel</button>
@@ -188,7 +294,7 @@
   </div>
 </div>
 
-<!-- Modal: New Assessment -->
+<!-- Modal: New Assessment (simple, per-chapter version) -->
 <div class="modal-overlay" id="modal-newAssessment">
   <div class="modal">
     <div class="modal-header">
@@ -197,20 +303,20 @@
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <label>Title</label>
-        <input id="newAssessmentTitle" />
+        <label class="form-label">Title</label>
+        <input id="newAssessmentTitle" class="form-input"/>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Type</label>
-          <select id="newAssessmentType">
+          <label class="form-label">Type</label>
+          <select id="newAssessmentType" class="form-select">
             <option>quiz</option>
             <option>assignment</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Passing Score</label>
-          <input id="newAssessmentPassingScore" value="70" />
+          <label class="form-label">Passing Score</label>
+          <input id="newAssessmentPassingScore" class="form-input" value="70"/>
         </div>
       </div>
     </div>
@@ -221,12 +327,9 @@
   </div>
 </div>
 
-<!-- Modal: Quiz Builder -->
-<div class="modal-overlay" id="modal-quizBuilder">
-  <div class="modal qb-modal">...</div>
-</div>
-
 <div class="toast-container" id="toastContainer"></div>
+
+<!-- Axios — from HEAD -->
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="js/teacher-common.js"></script>
 <script src="js/teacher-course-builder.js"></script>

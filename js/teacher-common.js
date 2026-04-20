@@ -63,12 +63,13 @@ function getInitials(fullName) {
 // ======================== TOAST ========================
 function showToast(msg, type = 'success') {
   const container = document.getElementById('toastContainer');
+  if (!container) return;
   const toast = document.createElement('div');
+  const icons = { success: '✅', error: '❌', info: '🔔' };
   toast.className = `toast ${type}`;
-  toast.innerHTML = `<span class="toast-icon">${type === 'success' ? '✅' : '❌'}</span><span class="toast-msg">${msg}</span>`;
+  toast.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span><span class="toast-msg">${msg}</span>`;
   container.appendChild(toast);
   setTimeout(() => {
-    toast.style.animation = 'none';
     toast.style.opacity = '0';
     toast.style.transition = 'opacity 0.3s';
     setTimeout(() => toast.remove(), 300);
@@ -205,6 +206,7 @@ function populateSubdomainDropdown() {
 }
 
 // ======================== OPEN COURSE BUILDER ========================
+// Registered here so it is available across all teacher pages
 async function openCourseBuilder(courseId) {
   if (!courseId) {
     showToast('Course ID is missing', 'error');

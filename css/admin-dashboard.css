@@ -620,3 +620,85 @@ tbody tr:hover td{background:rgba(124,58,237,0.03)}
   .table-wrap th:nth-child(4),.table-wrap td:nth-child(4),
   .table-wrap th:nth-child(5),.table-wrap td:nth-child(5){display:none}
 }
+/* تنسيق أزرار المودال */
+/* ====================== مودال تغيير حالة الكورس ====================== */
+
+/* تنسيق زر Published (الأساسي) */
+.modal .btn-primary {
+    background: linear-gradient(135deg, var(--blue-600), var(--blue-800));
+    color: white;
+    border: none;
+    transition: all 0.2s;
+}
+
+.modal .btn-primary:hover {
+    background: linear-gradient(135deg, var(--blue-500), var(--blue-600));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+}
+
+/* تنسيق زر Draft (الثانوي) */
+.modal .btn-secondary {
+    background: var(--bg-3);
+    border: 1px solid var(--border-md);
+    color: var(--text-2);
+    transition: all 0.2s;
+}
+
+.modal .btn-secondary:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-hi);
+    color: var(--text);
+    transform: translateY(-1px);
+}
+
+/* تنسيق زر الإلغاء */
+.modal .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-3);
+    transition: all 0.2s;
+}
+
+.modal .btn-ghost:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-md);
+    color: var(--text);
+}
+
+/* تنسيق المودال نفسه (لضمان التوسيط والظل) */
+#modal-courseStatus .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border-md);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+#modal-courseStatus .modal-header {
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+}
+
+#modal-courseStatus .modal-footer {
+    border-top: 1px solid var(--border);
+    padding: 16px 20px;
+}
+
+#modal-courseStatus .modal-close {
+    background: var(--bg-3);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#modal-courseStatus .modal-close:hover {
+    background: var(--red-dim);
+    border-color: var(--red);
+    color: var(--red);
+}
