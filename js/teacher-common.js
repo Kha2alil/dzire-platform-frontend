@@ -1,6 +1,5 @@
 /* ═════════════════════════════════════════════════════════════════
    teacher-common.js – Shared utilities for all teacher pages
-   (تمت إضافة دالة openCourseBuilder)
 ═════════════════════════════════════════════════════════════════ */
 const API_BASE = 'http://localhost:3000/api';
 
@@ -51,12 +50,13 @@ function getInitials(fullName) {
 // ─────────────────────────────────────────────────────────────────
 function showToast(msg, type = 'success') {
   const container = document.getElementById('toastContainer');
+  if (!container) return;
   const toast = document.createElement('div');
+  const icons = { success: '✅', error: '❌', info: '🔔' };
   toast.className = `toast ${type}`;
-  toast.innerHTML = `<span class="toast-icon">${type === 'success' ? '✅' : '❌'}</span><span class="toast-msg">${msg}</span>`;
+  toast.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span><span class="toast-msg">${msg}</span>`;
   container.appendChild(toast);
   setTimeout(() => {
-    toast.style.animation = 'none';
     toast.style.opacity = '0';
     toast.style.transition = 'opacity 0.3s';
     setTimeout(() => toast.remove(), 300);
@@ -200,13 +200,12 @@ function populateSubdomainDropdown() {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// 🔧 دالة فتح بناء الكورس (مضافة هنا لتكون متاحة في كل الصفحات)
+// دالة فتح بناء الكورس (مضافة هنا لتكون متاحة في كل الصفحات)
 // ─────────────────────────────────────────────────────────────────
 async function openCourseBuilder(courseId) {
   if (!courseId) {
     showToast('Course ID is missing', 'error');
     return;
   }
-  // الانتقال إلى صفحة الباني مع تمرير معرف الكورس
   window.location.href = `teacher-course-builder.html?courseId=${courseId}`;
 }
