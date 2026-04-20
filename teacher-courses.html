@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="css/variables.css"/>
 </head>
 <body>
+  <!-- Sidebar overlay (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 <div class="app">
 
 <!-- SIDEBAR -->
@@ -34,6 +36,7 @@
 <!-- MAIN -->
 <div class="main" id="main">
   <header class="topbar">
+    <button class="hamburger" id="hamburgerBtn">☰</button>
     <div class="topbar-left"><div class="page-breadcrumb"><span>Dzire</span><span>›</span><span class="current" id="pageTitle">My Courses</span></div></div>
     <div class="topbar-right">
       <div class="search-box"><span style="color:var(--text-3);font-size:14px">🔍</span><input type="text" id="globalSearch" placeholder="Search students, courses..."/></div>
@@ -57,15 +60,260 @@
   </div>
 </div>
 
-<!-- MODALS (نفس الأصل) -->
-<div class="modal-overlay" id="modal-newCourse"><div class="modal"><div class="modal-header"><div class="modal-title">Create New Course</div><div class="modal-close" onclick="closeModal('newCourse')">✕</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Course Title</label><input class="form-input" id="newCourseTitle" placeholder="e.g. Advanced JavaScript Concepts"/></div><div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="newCourseDescription" placeholder="Describe what students will learn..."></textarea></div><div class="form-group"><label class="form-label">Subdomain</label><select class="form-select" id="newCourseSubdomain"><option value="">Loading subdomains...</option></select></div><div class="form-row"><div class="form-group"><label class="form-label">Difficulty Level</label><select class="form-select" id="newCourseDifficulty"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newCourse')">Cancel</button><button class="btn btn-primary" onclick="createCourse()">Create Course</button></div></div></div>
-<div class="modal-overlay" id="modal-newQuiz"><div class="modal" style="max-width:400px"><div class="modal-header"><div class="modal-title">📝 New Assessment</div><div class="modal-close" onclick="closeModal('newQuiz')">✕</div></div><div class="modal-body"><div class="form-group"><label>Assessment Title</label><input type="text" id="quiz_title_input" placeholder="e.g. JavaScript Basics Quiz"></div><div class="form-group"><label>Type</label><select id="quiz_type_input"><option value="quiz">Quiz</option><option value="final_exam">Final Exam</option></select></div><div class="form-group"><label>Passing Score (%)</label><input type="number" id="quiz_passing_score_input" value="65" min="1" max="100"></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newQuiz')">Cancel</button><button class="btn btn-primary" onclick="proceedToQuizBuilder()">Next: Add Questions</button></div></div></div>
-<div class="modal-overlay" id="modal-newChapter"><div class="modal"><div class="modal-header"><div class="modal-title">Create New Chapter</div><div class="modal-close" onclick="closeModal('newChapter')">✕</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Chapter Title</label><input class="form-input" id="newChapterTitle" placeholder="e.g. Introduction to Variables"/></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newChapter')">Cancel</button><button class="btn btn-primary" onclick="createChapter()">Create Chapter</button></div></div></div>
-<div class="modal-overlay" id="modal-newLesson"><div class="modal"><div class="modal-header"><div class="modal-title">Add New Lesson</div><div class="modal-close" onclick="closeModal('newLesson')">✕</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Lesson Title</label><input class="form-input" id="newLessonTitle" placeholder="e.g. What is JavaScript?"/></div><div class="form-row"><div class="form-group"><label class="form-label">Content Type</label><select class="form-select" id="newLessonContentType"><option value="video">🎥 Video</option><option value="pdf">📄 PDF Document</option><option value="text">📝 Text / Article</option></select></div><div class="form-group"><label class="form-label">Duration (minutes)</label><input class="form-input" type="number" id="newLessonDuration" placeholder="e.g. 15"/></div></div><div class="form-group" style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="newLessonFreePreview" style="width:16px; height:16px;"/><label class="form-label" style="margin:0;">Make this lesson a Free Preview</label></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newLesson')">Cancel</button><button class="btn btn-primary" onclick="createLesson()">Create Lesson</button></div></div></div>
-<div class="modal-overlay" id="modal-uploadContent"><div class="modal"><div class="modal-header"><div class="modal-title">Upload Lesson Content</div><div class="modal-close" onclick="closeModal('uploadContent')">✕</div></div><div class="modal-body"><input type="hidden" id="uploadCourseId"><input type="hidden" id="uploadChapterId"><input type="hidden" id="uploadLessonId"><div class="form-group"><label class="form-label">Select File (Video or PDF)</label><input type="file" class="form-input" id="lessonFileInput" accept="video/mp4,video/avi,video/mkv,application/pdf" style="padding: 10px;" /><div style="font-size:11px;color:var(--text-3);margin-top:6px">Supported: MP4, AVI, PDF</div></div><p id="uploadStatusText" style="font-size: 14px; font-weight: 600; margin-top: 10px; text-align: center;"></p></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('uploadContent')" id="cancelUploadBtn">Cancel</button><button class="btn btn-primary" onclick="submitContentUpload()" id="startUploadBtn">📤 Start Upload</button></div></div></div>
-<div class="modal-overlay" id="modal-newAssessment"><div class="modal"><div class="modal-header"><div class="modal-title">Add Assessment to Chapter</div><div class="modal-close" onclick="closeModal('newAssessment')">✕</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Assessment Title</label><input class="form-input" id="newAssessmentTitle" placeholder="e.g. Chapter 1 Quiz"/></div><div class="form-row"><div class="form-group"><label class="form-label">Type</label><select class="form-select" id="newAssessmentType"><option value="quiz">Quiz</option><option value="assignment">Assignment</option></select></div><div class="form-group"><label class="form-label">Passing Score (%)</label><input class="form-input" type="number" id="newAssessmentPassingScore" value="70"/></div></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newAssessment')">Cancel</button><button class="btn btn-primary" onclick="createAssessment()">Create Assessment</button></div></div></div>
-<div class="modal-overlay" id="modal-quizBuilder"><div class="modal qb-modal"><div class="modal-header"><div style="display:flex;align-items:center;gap:12px"><div class="qb-modal-icon">📝</div><div><div class="modal-title">Quiz Builder</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">Build a structured quiz with questions &amp; answers</div></div></div><div class="modal-close" onclick="closeModal('quizBuilder')">✕</div></div><div class="modal-body qb-body"><input type="hidden" id="qb-type" value="quiz"><input type="hidden" id="qb-passing-score" value="65"><div class="qb-section"><div class="qb-section-label"><span class="qb-section-dot" style="background:var(--blue-500)"></span>Assessment Details</div><div class="form-row"><div class="form-group" style="flex:2;margin-bottom:0"><label class="form-label">Assessment Title <span style="color:var(--red)">*</span></label><input class="form-input" id="qb-title" placeholder="e.g. JavaScript Basics Quiz" autocomplete="off"/></div><div class="form-group" style="margin-bottom:0"><label class="form-label">Type</label><div class="form-input qb-type-badge" aria-disabled="true"><span class="badge badge-blue" style="pointer-events:none">📝 Quiz</span></div></div></div></div><div class="qb-section"><div class="qb-section-label"><span class="qb-section-dot" style="background:var(--purple)"></span>Questions<span class="badge badge-purple" id="qb-q-count" style="margin-left:6px">1</span></div><div id="qb-questions-container"></div><button class="btn btn-ghost qb-add-btn" type="button" onclick="qbAddQuestion()" id="qb-add-btn"><span style="font-size:16px;line-height:1">＋</span>Add Another Question</button></div></div><div class="modal-footer"><div style="font-size:11px;color:var(--text-3);flex:1;display:flex;align-items:center;gap:4px"><span>💡</span> JSON payload is logged to console on save</div><button class="btn btn-ghost" type="button" onclick="closeModal('quizBuilder')">Cancel</button><button class="btn btn-primary" type="button" onclick="saveQuizAssessment()">💾 Save Assessment</button></div></div></div>
-<div class="toast-container" id="toastContainer"></div>>
+<!-- Modal: New Course -->
+<div class="modal-overlay" id="modal-newCourse">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Create New Course</div>
+      <div class="modal-close" onclick="closeModal('newCourse')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Course Title</label>
+        <input class="form-input" id="newCourseTitle" placeholder="e.g. Advanced JavaScript Concepts" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea" id="newCourseDescription" placeholder="Describe what students will learn..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Subdomain</label>
+        <select class="form-select" id="newCourseSubdomain">
+          <option value="">Loading subdomains...</option>
+        </select>
+      </div>
+      <!-- Thumbnail file upload -->
+      <div class="form-group">
+        <label class="form-label">Course Thumbnail (image)</label>
+        <input type="file" class="form-input" id="newCourseThumbnail" accept="image/jpeg,image/png,image/jpg,image/webp" />
+        <div style="font-size:11px;color:var(--text-3);margin-top:6px">Recommended size: 800x450px. JPG, PNG, WEBP.</div>
+        <div id="thumbnailPreview" style="margin-top: 10px; display: none;">
+          <img id="thumbnailPreviewImg" style="max-width: 100%; max-height: 150px; border-radius: 8px;" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Difficulty Level</label>
+          <select class="form-select" id="newCourseDifficulty">
+            <option>Beginner</option>
+            <option>Intermediate</option>
+            <option>Advanced</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newCourse')">Cancel</button>
+      <button class="btn btn-primary" id="createCourseBtn" onclick="createCourse()">Create Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: New Quiz / Assessment -->
+<div class="modal-overlay" id="modal-newQuiz">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header">
+      <div class="modal-title">📝 New Assessment</div>
+      <div class="modal-close" onclick="closeModal('newQuiz')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Assessment Title</label>
+        <input type="text" id="quiz_title_input" placeholder="e.g. JavaScript Basics Quiz">
+      </div>
+      <div class="form-group">
+        <label>Type</label>
+        <select id="quiz_type_input">
+          <option value="quiz">Quiz</option>
+          <option value="final_exam">Final Exam</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Passing Score (%)</label>
+        <input type="number" id="quiz_passing_score_input" value="65" min="1" max="100">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newQuiz')">Cancel</button>
+      <button class="btn btn-primary" onclick="proceedToQuizBuilder()">Next: Add Questions</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: New Chapter -->
+<div class="modal-overlay" id="modal-newChapter">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Create New Chapter</div>
+      <div class="modal-close" onclick="closeModal('newChapter')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Chapter Title</label>
+        <input class="form-input" id="newChapterTitle" placeholder="e.g. Introduction to Variables" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newChapter')">Cancel</button>
+      <button class="btn btn-primary" onclick="createChapter()">Create Chapter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: New Lesson -->
+<div class="modal-overlay" id="modal-newLesson">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New Lesson</div>
+      <div class="modal-close" onclick="closeModal('newLesson')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Lesson Title</label>
+        <input class="form-input" id="newLessonTitle" placeholder="e.g. What is JavaScript?" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Content Type</label>
+          <select class="form-select" id="newLessonContentType">
+            <option value="video">🎥 Video</option>
+            <option value="pdf">📄 PDF Document</option>
+            <option value="text">📝 Text / Article</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Duration (minutes)</label>
+          <input class="form-input" type="number" id="newLessonDuration" placeholder="e.g. 15" />
+        </div>
+      </div>
+      <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="newLessonFreePreview" style="width:16px; height:16px;" />
+        <label class="form-label" style="margin:0;">Make this lesson a Free Preview</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newLesson')">Cancel</button>
+      <button class="btn btn-primary" onclick="createLesson()">Create Lesson</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Upload Content -->
+<div class="modal-overlay" id="modal-uploadContent">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Upload Lesson Content</div>
+      <div class="modal-close" onclick="closeModal('uploadContent')">✕</div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="uploadCourseId">
+      <input type="hidden" id="uploadChapterId">
+      <input type="hidden" id="uploadLessonId">
+      <div class="form-group">
+        <label class="form-label">Select File (Video or PDF)</label>
+        <input type="file" class="form-input" id="lessonFileInput" accept="video/mp4,video/avi,video/mkv,application/pdf" style="padding: 10px;" />
+        <div style="font-size:11px;color:var(--text-3);margin-top:6px">Supported: MP4, AVI, PDF</div>
+      </div>
+      <p id="uploadStatusText" style="font-size: 14px; font-weight: 600; margin-top: 10px; text-align: center;"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('uploadContent')" id="cancelUploadBtn">Cancel</button>
+      <button class="btn btn-primary" onclick="submitContentUpload()" id="startUploadBtn">📤 Start Upload</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: New Assessment (to Chapter) -->
+<div class="modal-overlay" id="modal-newAssessment">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Assessment to Chapter</div>
+      <div class="modal-close" onclick="closeModal('newAssessment')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Assessment Title</label>
+        <input class="form-input" id="newAssessmentTitle" placeholder="e.g. Chapter 1 Quiz" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select class="form-select" id="newAssessmentType">
+            <option value="quiz">Quiz</option>
+            <option value="assignment">Assignment</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Passing Score (%)</label>
+          <input class="form-input" type="number" id="newAssessmentPassingScore" value="70" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newAssessment')">Cancel</button>
+      <button class="btn btn-primary" onclick="createAssessment()">Create Assessment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Quiz Builder -->
+<div class="modal-overlay" id="modal-quizBuilder">
+  <div class="modal qb-modal">
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="qb-modal-icon">📝</div>
+        <div>
+          <div class="modal-title">Quiz Builder</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:2px">Build a structured quiz with questions &amp; answers</div>
+        </div>
+      </div>
+      <div class="modal-close" onclick="closeModal('quizBuilder')">✕</div>
+    </div>
+    <div class="modal-body qb-body">
+      <input type="hidden" id="qb-type" value="quiz">
+      <input type="hidden" id="qb-passing-score" value="65">
+      <div class="qb-section">
+        <div class="qb-section-label">
+          <span class="qb-section-dot" style="background:var(--blue-500)"></span>
+          Assessment Details
+        </div>
+        <div class="form-row">
+          <div class="form-group" style="flex:2;margin-bottom:0">
+            <label class="form-label">Assessment Title <span style="color:var(--red)">*</span></label>
+            <input class="form-input" id="qb-title" placeholder="e.g. JavaScript Basics Quiz" autocomplete="off" />
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Type</label>
+            <div class="form-input qb-type-badge" aria-disabled="true">
+              <span class="badge badge-blue" style="pointer-events:none">📝 Quiz</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="qb-section">
+        <div class="qb-section-label">
+          <span class="qb-section-dot" style="background:var(--purple)"></span>
+          Questions
+          <span class="badge badge-purple" id="qb-q-count" style="margin-left:6px">1</span>
+        </div>
+        <div id="qb-questions-container"></div>
+        <button class="btn btn-ghost qb-add-btn" type="button" onclick="qbAddQuestion()" id="qb-add-btn">
+          <span style="font-size:16px;line-height:1">＋</span>
+          Add Another Question
+        </button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div style="font-size:11px;color:var(--text-3);flex:1;display:flex;align-items:center;gap:4px">
+        <span>💡</span> JSON payload is logged to console on save
+      </div>
+      <button class="btn btn-ghost" type="button" onclick="closeModal('quizBuilder')">Cancel</button>
+      <button class="btn btn-primary" type="button" onclick="saveQuizAssessment()">💾 Save Assessment</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Container (only one) -->
 <div class="toast-container" id="toastContainer"></div>
 
 <script src="js/teacher-common.js"></script>

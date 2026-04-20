@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="css/variables.css"/>
 </head>
 <body>
+  <!-- Sidebar overlay (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 <div class="app">
 
 <!-- SIDEBAR -->
@@ -34,6 +36,7 @@
 <!-- MAIN -->
 <div class="main" id="main">
   <header class="topbar">
+    <button class="hamburger" id="hamburgerBtn">☰</button>
     <div class="topbar-left"><div class="page-breadcrumb"><span>Dzire</span><span>›</span><span class="current" id="pageTitle">My Profile</span></div></div>
     <div class="topbar-right">
       <div class="search-box"><span style="color:var(--text-3);font-size:14px">🔍</span><input type="text" id="globalSearch" placeholder="Search students, courses..."/></div>
@@ -60,7 +63,7 @@
             <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="profileFullName" value="Khalil Khalfi" /></div>
             <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="profileEmail" value="khalil@dzire.dz" disabled readonly /></div>
           </div>
-          <div class="form-group"><label class="form-label">Professional Bio</label><textarea class="form-textarea" id="profileBio">Full-Stack Web Developer with 5+ years of experience in Node.js, React, and PostgreSQL. Passionate about teaching adaptive learning methods.</textarea></div>
+          <div class="form-group"><label class="form-label">Professional Bio</label><textarea class="form-textarea" id="profileBio"></textarea></div>
           <div class="form-row">
             <div class="form-group"><label class="form-label">Specialization</label><input class="form-input" id="profileSpecialization" value="Full-Stack Web Development" /></div>
             <div class="form-group"><label class="form-label">Experience (years)</label><input class="form-input" type="number" id="profileExperienceYears" value="5" /></div>

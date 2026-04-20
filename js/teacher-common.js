@@ -1,12 +1,26 @@
 /* ═════════════════════════════════════════════════════════════════
    teacher-common.js – Shared utilities for all teacher pages
-   (تمت إضافة دالة openCourseBuilder)
+   (Fixed: sidebar toggle, notifications rendering)
 ═════════════════════════════════════════════════════════════════ */
+
+// ======================== MOBILE SIDEBAR TOGGLE ========================
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  if (sidebar) sidebar.classList.toggle('mobile-open');
+  if (overlay) overlay.classList.toggle('active');
+}
+
+function closeSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  if (sidebar) sidebar.classList.remove('mobile-open');
+  if (overlay) overlay.classList.remove('active');
+}
+
+// ======================== API HELPERS ========================
 const API_BASE = 'http://localhost:3000/api';
 
-// ─────────────────────────────────────────────────────────────────
-// API Helpers
-// ─────────────────────────────────────────────────────────────────
 async function apiCall(method, endpoint, body = null) {
   try {
     const token = localStorage.getItem('token');
@@ -46,9 +60,7 @@ function getInitials(fullName) {
   return fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Toast
-// ─────────────────────────────────────────────────────────────────
+// ======================== TOAST ========================
 function showToast(msg, type = 'success') {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
@@ -63,9 +75,7 @@ function showToast(msg, type = 'success') {
   }, 3000);
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Modals
-// ─────────────────────────────────────────────────────────────────
+// ======================== MODALS ========================
 function openModal(id) {
   const modal = document.getElementById(`modal-${id}`);
   if (modal) modal.classList.add('open');
@@ -82,25 +92,7 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
 });
 
-// ─────────────────────────────────────────────────────────────────
-// Sidebar Toggle
-// ─────────────────────────────────────────────────────────────────
-const sidebar = document.getElementById('sidebar');
-const mainEl = document.getElementById('main');
-const toggleBtn = document.getElementById('sidebarToggle');
-let collapsed = false;
-if (toggleBtn) {
-  toggleBtn.addEventListener('click', () => {
-    collapsed = !collapsed;
-    sidebar.classList.toggle('collapsed', collapsed);
-    mainEl.classList.toggle('expanded', collapsed);
-    toggleBtn.textContent = collapsed ? '▶' : '◀';
-  });
-}
-
-// ─────────────────────────────────────────────────────────────────
-// Notifications (shared)
-// ─────────────────────────────────────────────────────────────────
+// ======================== NOTIFICATIONS ========================
 const NOTIFICATIONS = [
   { dot: 'var(--green)', msg: '<strong>Ahmed M.</strong> passed the Full-Stack Boss Exam', time: '2 min ago', unread: true },
   { dot: 'var(--red)', msg: '<strong>Lina K.</strong> has failed Async/Await 3 times — remedial needed', time: '14 min ago', unread: true },
@@ -131,37 +123,52 @@ function updateBadge() {
   badge.style.display = unread > 0 ? 'block' : 'none';
 }
 
-function markRead(el) {
+window.markRead = function(el) {
   el.classList.remove('unread');
   const idx = [...document.getElementById('notifList').children].indexOf(el);
   if (NOTIFICATIONS[idx]) NOTIFICATIONS[idx].unread = false;
   updateBadge();
-}
+};
 
-const clearBtn = document.getElementById('clearNotif');
-if (clearBtn) {
-  clearBtn.addEventListener('click', () => {
-    NOTIFICATIONS.forEach(n => n.unread = false);
-    document.querySelectorAll('.notif-item').forEach(el => el.classList.remove('unread'));
-    updateBadge();
+// ======================== SIDEBAR TOGGLE (Desktop) ========================
+function initSidebarToggle() {
+  const sidebar = document.getElementById('sidebar');
+  const mainEl = document.getElementById('main');
+  const toggleBtn = document.getElementById('sidebarToggle');
+  if (!sidebar || !mainEl || !toggleBtn) return;
+  let collapsed = false;
+  toggleBtn.addEventListener('click', () => {
+    collapsed = !collapsed;
+    sidebar.classList.toggle('collapsed', collapsed);
+    mainEl.classList.toggle('expanded', collapsed);
+    toggleBtn.textContent = collapsed ? '▶' : '◀';
   });
 }
 
-const notifBtn = document.getElementById('notifBtn');
-const notifPanel = document.getElementById('notifPanel');
-if (notifBtn && notifPanel) {
-  notifBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    notifPanel.classList.toggle('open');
-  });
-  document.addEventListener('click', (e) => {
-    if (!notifBtn.contains(e.target)) notifPanel.classList.remove('open');
-  });
+// ======================== NOTIFICATION PANEL BEHAVIOUR ========================
+function initNotificationPanel() {
+  const notifBtn = document.getElementById('notifBtn');
+  const notifPanel = document.getElementById('notifPanel');
+  const clearBtn = document.getElementById('clearNotif');
+  if (notifBtn && notifPanel) {
+    notifBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notifPanel.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      if (!notifBtn.contains(e.target)) notifPanel.classList.remove('open');
+    });
+  }
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      NOTIFICATIONS.forEach(n => n.unread = false);
+      document.querySelectorAll('.notif-item').forEach(el => el.classList.remove('unread'));
+      updateBadge();
+    });
+  }
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Chart helper
-// ─────────────────────────────────────────────────────────────────
+// ======================== CHART HELPER ========================
 function renderChart(containerId, values, labels) {
   const el = document.getElementById(containerId);
   if (!el) return;
@@ -176,9 +183,7 @@ function renderChart(containerId, values, labels) {
   `).join('');
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Subdomains (shared)
-// ─────────────────────────────────────────────────────────────────
+// ======================== SUBDOMAINS ========================
 let subdomainsList = [];
 async function fetchSubdomains() {
   try {
@@ -199,14 +204,32 @@ function populateSubdomainDropdown() {
   });
 }
 
-// ─────────────────────────────────────────────────────────────────
-// 🔧 دالة فتح بناء الكورس (مضافة هنا لتكون متاحة في كل الصفحات)
-// ─────────────────────────────────────────────────────────────────
+// ======================== OPEN COURSE BUILDER ========================
 async function openCourseBuilder(courseId) {
   if (!courseId) {
     showToast('Course ID is missing', 'error');
     return;
   }
-  // الانتقال إلى صفحة الباني مع تمرير معرف الكورس
   window.location.href = `teacher-course-builder.html?courseId=${courseId}`;
 }
+
+// ======================== INITIALISE EVERYTHING ON PAGE LOAD ========================
+document.addEventListener('DOMContentLoaded', function() {
+  // Mobile sidebar (hamburger)
+  const hamburger = document.getElementById('hamburgerBtn');
+  const overlay = document.getElementById('sidebarOverlay');
+  if (hamburger) hamburger.addEventListener('click', toggleSidebar);
+  if (overlay) overlay.addEventListener('click', closeSidebar);
+
+  // Desktop sidebar toggle
+  initSidebarToggle();
+
+  // Notifications
+  renderNotifications();
+  initNotificationPanel();
+
+  // Subdomains dropdown (if modal exists)
+  if (document.getElementById('newCourseSubdomain')) {
+    fetchSubdomains().then(() => populateSubdomainDropdown());
+  }
+});

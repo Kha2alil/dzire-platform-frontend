@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="css/variables.css"/>
 </head>
 <body>
+  <!-- Sidebar overlay (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 <div class="app">
 
 <!-- SIDEBAR -->
@@ -34,7 +36,9 @@
 <!-- MAIN -->
 <div class="main" id="main">
   <header class="topbar">
+    <button class="hamburger" id="hamburgerBtn">☰</button>
     <div class="topbar-left"><div class="page-breadcrumb"><span>Dzire</span><span>›</span><span class="current" id="pageTitle">Analytics</span></div></div>
+    <button class="hamburger" id="hamburgerBtn">☰</button>
     <div class="topbar-right">
       <div class="search-box"><span style="color:var(--text-3);font-size:14px">🔍</span><input type="text" id="globalSearch" placeholder="Search students, courses..."/></div>
       <div class="icon-btn" style="position:relative" id="notifBtn">🔔<div class="notif-badge" id="notifBadge"></div><div class="notif-panel" id="notifPanel"><div class="notif-head">Notifications<span class="notif-clear" id="clearNotif">Clear all</span></div><div class="notif-list" id="notifList"></div></div></div>

@@ -209,10 +209,8 @@ async function createChapter() {
     return;
   }
 
-  const chaptersCount = document.querySelectorAll('.chapter-card').length;
-  const order_index = chaptersCount + 1;
-
-  const data = await apiCall('POST', `/courses/${currentBuilderCourseId}/chapters`, { title, order_index });
+  // ✅ No longer calculate or send order_index
+  const data = await apiCall('POST', `/courses/${currentBuilderCourseId}/chapters`, { title });
   if (!data || !data.success) {
     showToast(data?.message || 'Failed to create chapter', 'error');
     return;
@@ -270,6 +268,8 @@ function openLessonModal(chapterId) {
   if (durationInput) durationInput.value = '';
   const freeCheckbox = document.getElementById('newLessonFreePreview');
   if (freeCheckbox) freeCheckbox.checked = false;
+  const xpInput = document.getElementById('newLessonXp');
+  if (xpInput) xpInput.value = '50';   // <-- default value
 }
 
 async function createLesson() {
@@ -283,18 +283,21 @@ async function createLesson() {
   const contentType = document.getElementById('newLessonContentType')?.value;
   const duration = parseInt(document.getElementById('newLessonDuration')?.value) || 0;
   const isFree = document.getElementById('newLessonFreePreview')?.checked || false;
+  const xpReward = parseInt(document.getElementById('newLessonXp')?.value) || 0;  // <-- new
 
   if (!title) {
     showToast('Lesson title is required', 'error');
     return;
   }
 
-  const lessonsCount = document.querySelectorAll(`.chapter-card[data-chapter-id="${chapterId}"] .lesson-item`).length;
-  const order_index = lessonsCount + 1;
-
   const data = await apiCall('POST', `/courses/${currentBuilderCourseId}/chapters/${chapterId}/lessons`, {
-    title, content_type: contentType, duration, is_free: isFree, order_index
+    title,
+    content_type: contentType,
+    duration,
+    is_free: isFree,
+    xp_reward: xpReward   // <-- add this
   });
+
   if (!data || !data.success) {
     showToast(data?.message || 'Failed to create lesson', 'error');
     return;
@@ -403,10 +406,9 @@ async function createAssessment() {
   }
 
   const assessmentsCount = document.querySelectorAll(`.chapter-card[data-chapter-id="${chapterId}"] .assessment-item`).length;
-  const order_index = assessmentsCount + 1;
 
   const data = await apiCall('POST', `/courses/${currentBuilderCourseId}/chapters/${chapterId}/assessments`, {
-    title, type, passing_score, order_index
+    title, type, passing_score
   });
   if (!data || !data.success) {
     showToast(data?.message || 'Failed to create assessment', 'error');

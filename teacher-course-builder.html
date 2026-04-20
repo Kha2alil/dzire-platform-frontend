@@ -9,6 +9,8 @@
 <link rel="stylesheet" href="css/variables.css"/>
 </head>
 <body>
+  <!-- Sidebar overlay (mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 <div class="app">
 
 <!-- SIDEBAR -->
@@ -34,6 +36,7 @@
 <!-- MAIN -->
 <div class="main" id="main">
   <header class="topbar">
+    <button class="hamburger" id="hamburgerBtn">☰</button>
     <div class="topbar-left"><div class="page-breadcrumb"><span>Dzire</span><span>›</span><span class="current" id="pageTitle">Course Builder</span></div></div>
     <div class="topbar-right">
       <div class="search-box"><span>🔍</span><input type="text" placeholder="Search..."/></div>
@@ -51,7 +54,6 @@
         <div class="section-subtitle" id="courseContentSubtitle"></div>
       </div>
       <div class="header-actions">
-        <button class="btn btn-ghost" type="button" onclick="showToast('Course settings saved','success')">⚙️ Settings</button>
         <button class="btn btn-primary" type="button" onclick="openModal('newChapter')">＋ New Chapter</button>
       </div>
     </div>
@@ -96,15 +98,136 @@
 </div>
 
 <!-- MODALS (نفس الأصل) -->
-<div class="modal-overlay" id="modal-newCourse"><div class="modal">...</div></div>
-<div class="modal-overlay" id="modal-newQuiz"><div class="modal">...</div></div>
-<div class="modal-overlay" id="modal-newChapter"><div class="modal"><div class="modal-header"><div class="modal-title">Create New Chapter</div><div class="modal-close" onclick="closeModal('newChapter')">✕</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Chapter Title</label><input class="form-input" id="newChapterTitle" placeholder="e.g. Introduction to Variables"/></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newChapter')">Cancel</button><button class="btn btn-primary" onclick="createChapter()">Create Chapter</button></div></div></div>
-<div class="modal-overlay" id="modal-newLesson"><div class="modal"><div class="modal-header"><div class="modal-title">Add New Lesson</div><div class="modal-close" onclick="closeModal('newLesson')">✕</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Lesson Title</label><input class="form-input" id="newLessonTitle" placeholder="e.g. What is JavaScript?"/></div><div class="form-row"><div class="form-group"><label class="form-label">Content Type</label><select class="form-select" id="newLessonContentType"><option value="video">🎥 Video</option><option value="pdf">📄 PDF Document</option><option value="text">📝 Text / Article</option></select></div><div class="form-group"><label class="form-label">Duration (minutes)</label><input class="form-input" type="number" id="newLessonDuration" placeholder="e.g. 15"/></div></div><div class="form-group"><input type="checkbox" id="newLessonFreePreview"/><label>Make this lesson a Free Preview</label></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newLesson')">Cancel</button><button class="btn btn-primary" onclick="createLesson()">Create Lesson</button></div></div></div>
-<div class="modal-overlay" id="modal-uploadContent"><div class="modal"><div class="modal-header"><div class="modal-title">Upload Lesson Content</div><div class="modal-close" onclick="closeModal('uploadContent')">✕</div></div><div class="modal-body"><input type="file" id="contentFileInput" accept="video/mp4,application/pdf"/></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('uploadContent')">Cancel</button><button class="btn btn-primary" onclick="submitContentUpload()">Upload</button></div></div></div>
-<div class="modal-overlay" id="modal-newAssessment"><div class="modal"><div class="modal-header"><div class="modal-title">Add Assessment to Chapter</div><div class="modal-close" onclick="closeModal('newAssessment')">✕</div></div><div class="modal-body"><div class="form-group"><label>Title</label><input id="newAssessmentTitle"/></div><div class="form-row"><div class="form-group"><label>Type</label><select id="newAssessmentType"><option>quiz</option><option>assignment</option></select></div><div class="form-group"><label>Passing Score</label><input id="newAssessmentPassingScore" value="70"/></div></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newAssessment')">Cancel</button><button class="btn btn-primary" onclick="createAssessment()">Create</button></div></div></div>
-<div class="modal-overlay" id="modal-quizBuilder">...</div>
-<div class="toast-container" id="toastContainer"></div>
+<!-- MODALS (نفس الأصل) -->
+<div class="modal-overlay" id="modal-newCourse">
+  <div class="modal">...</div>
+</div>
 
+<div class="modal-overlay" id="modal-newQuiz">
+  <div class="modal">...</div>
+</div>
+
+<!-- Modal: New Chapter -->
+<div class="modal-overlay" id="modal-newChapter">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Create New Chapter</div>
+      <div class="modal-close" onclick="closeModal('newChapter')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Chapter Title</label>
+        <input class="form-input" id="newChapterTitle" placeholder="e.g. Introduction to Variables" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newChapter')">Cancel</button>
+      <button class="btn btn-primary" onclick="createChapter()">Create Chapter</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: New Lesson (with XP Reward field) -->
+<div class="modal-overlay" id="modal-newLesson">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New Lesson</div>
+      <div class="modal-close" onclick="closeModal('newLesson')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Lesson Title</label>
+        <input class="form-input" id="newLessonTitle" placeholder="e.g. What is JavaScript?" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Content Type</label>
+          <select class="form-select" id="newLessonContentType">
+            <option value="video">🎥 Video</option>
+            <option value="pdf">📄 PDF Document</option>
+            <option value="text">📝 Text / Article</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Duration (minutes)</label>
+          <input class="form-input" type="number" id="newLessonDuration" placeholder="e.g. 15" />
+        </div>
+      </div>
+      <!-- XP Reward field -->
+      <div class="form-group">
+        <label class="form-label">XP Reward</label>
+        <input class="form-input" type="number" id="newLessonXp" value="50" min="0" step="10" />
+        <div style="font-size:11px;color:var(--text-3);margin-top:6px">Points students earn upon completing this lesson</div>
+      </div>
+      <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="newLessonFreePreview" style="width:16px; height:16px;" />
+        <label class="form-label" style="margin:0;">Make this lesson a Free Preview</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newLesson')">Cancel</button>
+      <button class="btn btn-primary" onclick="createLesson()">Create Lesson</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Upload Content -->
+<div class="modal-overlay" id="modal-uploadContent">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Upload Lesson Content</div>
+      <div class="modal-close" onclick="closeModal('uploadContent')">✕</div>
+    </div>
+    <div class="modal-body">
+      <input type="file" id="contentFileInput" accept="video/mp4,application/pdf" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('uploadContent')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitContentUpload()">Upload</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: New Assessment -->
+<div class="modal-overlay" id="modal-newAssessment">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Assessment to Chapter</div>
+      <div class="modal-close" onclick="closeModal('newAssessment')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Title</label>
+        <input id="newAssessmentTitle" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Type</label>
+          <select id="newAssessmentType">
+            <option>quiz</option>
+            <option>assignment</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Passing Score</label>
+          <input id="newAssessmentPassingScore" value="70" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('newAssessment')">Cancel</button>
+      <button class="btn btn-primary" onclick="createAssessment()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Quiz Builder -->
+<div class="modal-overlay" id="modal-quizBuilder">
+  <div class="modal qb-modal">...</div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="js/teacher-common.js"></script>
 <script src="js/teacher-course-builder.js"></script>
 </body>
