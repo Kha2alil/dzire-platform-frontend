@@ -1,5 +1,6 @@
 /* ═════════════════════════════════════════════════════════════════
-   teacher-course-builder.js – جميع دوال بناء الكورس (من الملف الأصلي)
+   teacher-course-builder.js – جميع دوال بناء الكورس
+   (مع إمكانية تغيير الدرس في وضع التعديل وحفظه)
 ═════════════════════════════════════════════════════════════════ */
 
 // ─────────────────────────────────────────────────────────────────
@@ -7,8 +8,10 @@
 // ─────────────────────────────────────────────────────────────────
 let currentBuilderCourseId = null;
 let currentChapterIdForQuiz = null;
+let currentLessonIdForQuiz = null;
 let currentQuizPassingScore = 65;
 let currentEditAssessmentId = null;
+let pendingEditAssessment = null;  // تخزين التقييم المراد تعديله مؤقتاً
 
 // ─────────────────────────────────────────────────────────────────
 // متغيرات المعاينة (Preview)
@@ -26,7 +29,6 @@ async function openCourseBuilder(courseId) {
   }
   currentBuilderCourseId = courseId;
 
-  // إخفاء كل الصفحات وإظهار صفحة الباني
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const builderPage = document.getElementById('page-courseContent');
   if (builderPage) builderPage.classList.add('active');
@@ -373,19 +375,151 @@ async function uploadContent(chapterId, lessonId, type) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// دوال التقييمات (Assessments)
+// دوال التقييمات (Assessments) – مع دعم ربط وتعديل الدرس
 // ─────────────────────────────────────────────────────────────────
-function openAssessmentModal(chapterId) {
-  window.currentAssessmentChapterId = chapterId;
-  openModal('newAssessment');
-  const titleInput = document.getElementById('newAssessmentTitle');
-  if (titleInput) titleInput.value = '';
-  const typeSelect = document.getElementById('newAssessmentType');
-  if (typeSelect) typeSelect.value = 'quiz';
-  const scoreInput = document.getElementById('newAssessmentPassingScore');
-  if (scoreInput) scoreInput.value = '70';
+
+// دالة مساعدة لملء قائمة الدروس (مع تحديد الدرس الحالي إن وجد)
+async function populateLessonSelectWithCurrent(select, chapterId, currentLessonId = null) {
+    if (!select) return;
+    select.innerHTML = '<option value="">-- None (Chapter level) --</option>';
+    try {
+        const data = await apiCall('GET', `/courses/chapters/${chapterId}/lessons`);
+        if (data && data.success) {
+            const lessons = data.data || [];
+            lessons.forEach(lesson => {
+                const option = document.createElement('option');
+                option.value = lesson.id;
+                option.textContent = lesson.title;
+                if (currentLessonId && lesson.id === currentLessonId) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        } else {
+            console.warn('No lessons found or API error');
+        }
+    } catch (err) {
+        console.error('Failed to load lessons:', err);
+        showToast('Could not load lessons for this chapter', 'error');
+    }
 }
 
+// فتح مودال إضافة تقييم
+function openAddQuizModal(chapterId, lessonId = null) {
+    currentChapterIdForQuiz = chapterId;
+    currentLessonIdForQuiz = lessonId;
+    currentEditAssessmentId = null;
+    pendingEditAssessment = null;
+
+    const lessonSelect = document.getElementById('quiz_lesson_select');
+    if (lessonSelect) {
+        populateLessonSelectWithCurrent(lessonSelect, chapterId, lessonId);
+    }
+
+    const titleInput = document.getElementById('quiz_title_input');
+    const typeInput = document.getElementById('quiz_type_input');
+    const scoreInput = document.getElementById('quiz_passing_score_input');
+
+    if (titleInput) titleInput.value = '';
+    if (typeInput) typeInput.value = 'quiz';
+    if (scoreInput) scoreInput.value = '70';
+
+    openModal('newQuiz');
+}
+
+// الانتقال من المودال الأول إلى مودال بناء الأسئلة
+function proceedToQuizBuilder() {
+    const title = document.getElementById('quiz_title_input')?.value.trim();
+    const type = document.getElementById('quiz_type_input')?.value || 'quiz';
+    const scoreInput = document.getElementById('quiz_passing_score_input')?.value;
+    const lessonSelect = document.getElementById('quiz_lesson_select');
+    const selectedLessonId = lessonSelect ? lessonSelect.value : null;
+
+    currentQuizPassingScore = parseInt(scoreInput) || 70;
+    if (!title) { showToast('Please enter an assessment title', 'error'); return; }
+    closeModal('newQuiz');
+
+    const isEdit = !!pendingEditAssessment;
+    openQuizBuilder(title, type, selectedLessonId, isEdit);
+}
+
+// فتح مودال بناء الأسئلة (يُستخدم للإضافة والتعديل)
+function openQuizBuilder(title = '', type = 'quiz', lessonId = null, isEdit = false) {
+    _qbCounter = 0;
+    _qbQuestionIds = [];
+    document.getElementById('qb-questions-container').innerHTML = '';
+    document.getElementById('qb-title').value = title;
+    const typeField = document.getElementById('qb-type');
+    if (typeField) typeField.value = type;
+    const scoreField = document.getElementById('qb-passing-score');
+    if (scoreField) scoreField.value = currentQuizPassingScore;
+    currentLessonIdForQuiz = lessonId;
+    console.log('openQuizBuilder - lessonId set to:', currentLessonIdForQuiz);
+
+    if (isEdit && pendingEditAssessment && pendingEditAssessment.questions) {
+        // تحميل الأسئلة الموجودة
+        pendingEditAssessment.questions.forEach((q) => {
+            const uid = qbAddQuestion();
+            setTimeout(() => {
+                const qInput = document.getElementById(`qb-q-${uid}-text`);
+                if (qInput) qInput.value = q.question_text || '';
+                let opts = q.options;
+                if (typeof opts === 'string') try { opts = JSON.parse(opts); } catch(e) { opts = []; }
+                if (Array.isArray(opts)) {
+                    const optContainer = document.getElementById(`qb-q-${uid}-options-list`);
+                    if (optContainer) optContainer.innerHTML = '';
+                    opts.forEach((optValue, idx) => {
+                        if (idx < 4) {
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = _qbOptionRowHTML(uid, idx);
+                            optContainer.appendChild(tempDiv.firstElementChild);
+                            document.getElementById(`qb-q-${uid}-opt-${idx}`).value = optValue;
+                            if (optValue === q.correct_answer && q.correct_answer !== "") {
+                                const radio = document.getElementById(`qb-q-${uid}-correct-input-${idx}`);
+                                if (radio) { radio.checked = true; _qbHandleRadioChange(`qb-q-${uid}`, idx); }
+                            }
+                        }
+                    });
+                }
+                if (document.getElementById(`qb-q-${uid}-hint`)) document.getElementById(`qb-q-${uid}-hint`).value = q.socratic_hint || '';
+                if (document.getElementById(`qb-q-${uid}-difficulty`)) document.getElementById(`qb-q-${uid}-difficulty`).value = q.difficulty_level || 'medium';
+                if (document.getElementById(`qb-q-${uid}-points`)) document.getElementById(`qb-q-${uid}-points`).value = q.points || 5;
+            }, 50);
+        });
+        pendingEditAssessment = null; // مسح بعد التحميل
+    } else {
+        qbAddQuestion();
+    }
+
+    openModal('quizBuilder');
+}
+
+// فتح مودال تعديل التقييم (يعرض المودال الأول لتعديل البيانات بما فيها الدرس)
+function openEditQuizModal(assessment, chapterId) {
+    // تخزين التقييم الحالي للاستخدام لاحقاً
+    pendingEditAssessment = assessment;
+    currentEditAssessmentId = assessment.id;
+    currentChapterIdForQuiz = chapterId;
+    currentLessonIdForQuiz = assessment.lesson_id || null;
+
+    // تعبئة الحقول في المودال الأول
+    const titleInput = document.getElementById('quiz_title_input');
+    const typeSelect = document.getElementById('quiz_type_input');
+    const scoreInput = document.getElementById('quiz_passing_score_input');
+    const lessonSelect = document.getElementById('quiz_lesson_select');
+
+    if (titleInput) titleInput.value = assessment.title;
+    if (typeSelect) typeSelect.value = assessment.type || 'quiz';
+    if (scoreInput) scoreInput.value = assessment.passing_score || 70;
+    if (lessonSelect) {
+        populateLessonSelectWithCurrent(lessonSelect, chapterId, assessment.lesson_id);
+    }
+
+    // فتح المودال الأول (الخاص بإدخال العنوان والنوع ودرجة النجاح واختيار الدرس)
+    openModal('newQuiz');
+}
+
+// إنشاء تقييم بسيط (دون استخدام الـ Builder)
 async function createAssessment() {
   const chapterId = window.currentAssessmentChapterId;
   if (!chapterId) {
@@ -451,7 +585,7 @@ async function deleteAssessment(chapterId, assessmentId) {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// Quiz Builder (كامل من الملف الأصلي)
+// Quiz Builder (كامل)
 // ─────────────────────────────────────────────────────────────────
 let _qbCounter = 0;
 let _qbQuestionIds = [];
@@ -654,6 +788,15 @@ async function saveQuizAssessment() {
     questions.push(result.data);
   }
   const payload = { title, type, passing_score, questions };
+  
+  // ✅ إرسال lesson_id إذا تم اختيار درس
+  if (currentLessonIdForQuiz) {
+    payload.lesson_id = currentLessonIdForQuiz;
+    console.log('Saving assessment with lesson_id:', currentLessonIdForQuiz);
+  } else {
+    console.log('Saving assessment without lesson_id');
+  }
+  
   let method = 'POST';
   let endpoint = `/courses/${currentBuilderCourseId}/chapters/${currentChapterIdForQuiz}/assessments`;
   if (currentEditAssessmentId) {
@@ -668,6 +811,8 @@ async function saveQuizAssessment() {
       _qbResetBuilder();
       showToast(`Assessment "${title}" ${currentEditAssessmentId ? "updated" : "saved"} successfully! ✅`, 'success');
       currentEditAssessmentId = null;
+      currentLessonIdForQuiz = null;
+      pendingEditAssessment = null;
       await openCourseBuilder(currentBuilderCourseId);
     } else showToast(data?.message || 'Failed to save assessment', 'error');
   } catch (err) { showToast("Server communication error", "error"); }
@@ -677,89 +822,13 @@ function _qbResetBuilder() {
   _qbCounter = 0;
   _qbQuestionIds = [];
   currentEditAssessmentId = null;
+  currentLessonIdForQuiz = null;
+  pendingEditAssessment = null;
   const container = document.getElementById('qb-questions-container');
   if (container) container.innerHTML = '';
   if (document.getElementById('qb-title')) document.getElementById('qb-title').value = '';
   if (document.getElementById('qb-type')) document.getElementById('qb-type').value = 'quiz';
   currentQuizPassingScore = 70;
-}
-
-function openAddQuizModal(chapterId) {
-  currentChapterIdForQuiz = chapterId;
-  const titleInput = document.getElementById('quiz_title_input');
-  const typeInput = document.getElementById('quiz_type_input');
-  const scoreInput = document.getElementById('quiz_passing_score_input');
-  if (titleInput) titleInput.value = '';
-  if (typeInput) typeInput.value = 'quiz';
-  if (scoreInput) scoreInput.value = '70';
-  openModal('newQuiz');
-}
-
-function proceedToQuizBuilder() {
-  const title = document.getElementById('quiz_title_input')?.value.trim();
-  const type = document.getElementById('quiz_type_input')?.value || 'quiz';
-  const scoreInput = document.getElementById('quiz_passing_score_input')?.value;
-  currentQuizPassingScore = parseInt(scoreInput) || 70;
-  if (!title) { showToast('Please enter an assessment title', 'error'); return; }
-  closeModal('newQuiz');
-  openQuizBuilder(title, type);
-}
-
-function openQuizBuilder(title = '', type = 'quiz', passingScore = '70') {
-  _qbCounter = 0;
-  _qbQuestionIds = [];
-  document.getElementById('qb-questions-container').innerHTML = '';
-  document.getElementById('qb-title').value = title;
-  const typeField = document.getElementById('qb-type');
-  if (typeField) typeField.value = type;
-  const scoreField = document.getElementById('qb-passing-score');
-  if (scoreField) scoreField.value = passingScore;
-  qbAddQuestion();
-  openModal('quizBuilder');
-}
-
-function openEditQuizModal(assessment, chapterId) {
-  _qbResetBuilder();
-  currentEditAssessmentId = assessment.id;
-  currentChapterIdForQuiz = chapterId;
-  const container = document.getElementById('qb-questions-container');
-  if (container) container.innerHTML = '';
-  _qbQuestionIds = [];
-  _qbCounter = 0;
-  try {
-    if (document.getElementById('qb-title')) document.getElementById('qb-title').value = assessment.title;
-    if (assessment.questions && assessment.questions.length > 0) {
-      assessment.questions.forEach((q) => {
-        const uid = qbAddQuestion();
-        setTimeout(() => {
-          const qInput = document.getElementById(`qb-q-${uid}-text`);
-          if (qInput) qInput.value = q.question_text || '';
-          let opts = q.options;
-          if (typeof opts === 'string') try { opts = JSON.parse(opts); } catch(e) { opts = []; }
-          if (Array.isArray(opts)) {
-            const optContainer = document.getElementById(`qb-q-${uid}-options-list`);
-            if (optContainer) optContainer.innerHTML = '';
-            opts.forEach((optValue, idx) => {
-              if (idx < 4) {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = _qbOptionRowHTML(uid, idx);
-                optContainer.appendChild(tempDiv.firstElementChild);
-                document.getElementById(`qb-q-${uid}-opt-${idx}`).value = optValue;
-                if (optValue === q.correct_answer && q.correct_answer !== "") {
-                  const radio = document.getElementById(`qb-q-${uid}-correct-input-${idx}`);
-                  if (radio) { radio.checked = true; _qbHandleRadioChange(`qb-q-${uid}`, idx); }
-                }
-              }
-            });
-          }
-          if (document.getElementById(`qb-q-${uid}-hint`)) document.getElementById(`qb-q-${uid}-hint`).value = q.socratic_hint || '';
-          if (document.getElementById(`qb-q-${uid}-difficulty`)) document.getElementById(`qb-q-${uid}-difficulty`).value = q.difficulty_level || 'medium';
-          if (document.getElementById(`qb-q-${uid}-points`)) document.getElementById(`qb-q-${uid}-points`).value = q.points || 5;
-        }, 50);
-      });
-    }
-    openModal('quizBuilder');
-  } catch(error) { console.error("Error:", error); }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -852,7 +921,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (createLessonBtn) createLessonBtn.onclick = createLesson;
   const createAssessmentBtn = document.querySelector('#modal-newAssessment .btn-primary');
   if (createAssessmentBtn) createAssessmentBtn.onclick = createAssessment;
-  // فتح الباني تلقائياً إذا وُجد courseId في الرابط
   const urlParams = new URLSearchParams(window.location.search);
   const courseId = urlParams.get('courseId');
   if (courseId) openCourseBuilder(courseId);

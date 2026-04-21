@@ -125,7 +125,7 @@
 
 <!-- ========== MODALS ========== -->
 
-<!-- New Quiz Modal (الخطوة الأولى) -->
+<!-- New Quiz Modal (الخطوة الأولى مع إضافة اختيار الدرس) -->
 <div class="modal-overlay" id="modal-newQuiz">
   <div class="modal" style="max-width: 450px;">
     <div class="modal-header">
@@ -147,6 +147,13 @@
       <div class="form-group">
         <label class="form-label">Passing Score (%)</label>
         <input type="number" id="quiz_passing_score_input" class="form-input" value="70" min="1" max="100">
+      </div>
+      <!-- ✅ حقل اختيار الدرس -->
+      <div class="form-group">
+        <label class="form-label">Link to Lesson (optional)</label>
+        <select id="quiz_lesson_select" class="form-select">
+          <option value="">-- None (Chapter level) --</option>
+        </select>
       </div>
     </div>
     <div class="modal-footer">
@@ -240,7 +247,7 @@
   </div>
 </div>
 
-<!-- New Assessment Modal (simple version) -->
+<!-- New Assessment Modal (simple version, for direct chapter-level assessment) -->
 <div class="modal-overlay" id="modal-newAssessment">
   <div class="modal">
     <div class="modal-header"><div class="modal-title">Add Assessment to Chapter</div><div class="modal-close" onclick="closeModal('newAssessment')">✕</div></div>
