@@ -779,6 +779,87 @@ tbody tr:hover td { background: rgba(59,130,246,0.04); }
   font-size: 9px;
 }
 
+/* Skill Tree Tier Dots */
+.skill-node-xp { display: flex; gap: 4px; margin-top: 4px; }
+.tier-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--border);
+}
+.tier-dot.tier-earned {
+    background: var(--green);
+    border-color: var(--green);
+}
+
+/* ─── SKILL DETAIL MODAL ─── */
+.modal-tier-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+}
+.modal-tier-row:last-child { border-bottom: none; }
+.tier-dot-big {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+.tier-earned-big {
+    background: var(--green);
+    border-color: var(--green);
+}
+.tier-info {
+    flex: 1;
+}
+.tier-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+}
+.tier-badges {
+    font-size: 11px;
+    color: var(--text-3);
+}
+.tier-status {
+    font-size: 16px;
+    color: var(--green);
+    font-weight: bold;
+}
+.tier-completed .tier-label,
+.tier-completed .tier-badges {
+    opacity: 0.7;
+}
+.skill-modal-tiers {
+    background: var(--bg-3);
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
+}
+
+.tier-chevron {
+    font-size: 10px;
+    color: var(--text-3);
+    margin-left: auto;
+    transition: transform 0.2s;
+}
+.tier-detail {
+    padding: 8px 14px 12px;
+    background: rgba(255,255,255,0.02);
+    border-radius: var(--radius-sm);
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: var(--text-2);
+    border-left: 3px solid var(--border-md);
+}
+.modal-tier-row {
+    cursor: pointer;
+  -webkit-user-select: none;
+    user-select: none;
+}
+
 /* ═══════════════════════════════════════
    LEADERBOARD PODIUM
 ═══════════════════════════════════════ */
@@ -862,6 +943,26 @@ tbody tr:hover td { background: rgba(59,130,246,0.04); }
 .badge-desc         { font-size: 11px; color: var(--text-3); line-height: 1.4; }
 .badge-earned-date  { font-size: 10px; color: var(--green); }
 .badge-not-earned   { font-size: 10px; color: var(--text-3); }
+
+.badge-rule-item {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    margin-bottom: 8px;
+}
+.rule-trigger {
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+.rule-condition {
+    font-size: 12px;
+    color: var(--blue-400);
+}
+.badge-rules-list {
+    margin-top: 12px;
+}
 
 /* ═══════════════════════════════════════
    LEARNING PATH

@@ -1,56 +1,226 @@
 // ==================== student-badges.js ====================
-// Renders the Badges & Achievements page
+const API_BASE = 'http://localhost:3000';
+const SKILL_CATEGORY_MAP = {
+    'Frontend Development': ['Frontend'],
+    'Backend Development': ['Backend'],
+    'Full-Stack Development': ['Frontend', 'Backend'],
+    'default': ['Frontend']
+};
 
-// BADGES_DATA – copied exactly from original student-app.js
-const BADGES_DATA = [
-    { name:'First Steps',       icon:'👶', desc:'Complete your first lesson',        color:'rgba(59,130,246,0.15)',  earned:true,  date:'Feb 10' },
-    { name:'Code Warrior',      icon:'⚔️', desc:'Complete 10 quests',                color:'rgba(239,68,68,0.15)',   earned:true,  date:'Feb 18' },
-    { name:'CSS Wizard',        icon:'🎨', desc:'Score 90%+ on a CSS quiz',          color:'rgba(167,139,250,0.15)', earned:true,  date:'Mar 1'  },
-    { name:'Streak Master',     icon:'🔥', desc:'Maintain a 14-day streak',          color:'rgba(245,158,11,0.15)',  earned:true,  date:'Feb 25' },
-    { name:'Quiz Champion',     icon:'🏆', desc:'Pass 5 quizzes in a row',           color:'rgba(16,185,129,0.15)',  earned:true,  date:'Mar 3'  },
-    { name:'OSS Contributor',   icon:'📦', desc:'Publish an npm package',            color:'rgba(34,211,238,0.12)',  earned:true,  date:'Mar 5'  },
-    { name:'Night Owl',         icon:'🦉', desc:'Study past midnight 3 times',       color:'rgba(99,102,241,0.15)',  earned:true,  date:'Feb 22' },
-    { name:'Speed Runner',      icon:'⚡', desc:'Complete a quiz in under 5 min',     color:'rgba(251,191,36,0.15)',  earned:true,  date:'Feb 28' },
-    { name:'Perfect Score',     icon:'💯', desc:'Score 100% on any assessment',      color:'rgba(16,185,129,0.15)',  earned:true,  date:'Mar 1'  },
-    { name:'Bookworm',          icon:'📚', desc:'Read 20 lessons in a week',         color:'rgba(59,130,246,0.15)',  earned:true,  date:'Feb 16' },
-    { name:'Team Player',       icon:'🤝', desc:'Help 3 students in forums',         color:'rgba(245,158,11,0.15)',  earned:true,  date:'Mar 4'  },
-    { name:'API Master',        icon:'🔗', desc:'Complete the REST API quest',       color:'rgba(167,139,250,0.15)', earned:false, date:null     },
-    { name:'Full-Stack Knight', icon:'🛡️', desc:'Pass the Full-Stack Boss Exam',     color:'rgba(239,68,68,0.15)',   earned:false, date:null     },
-    { name:'Security Guard',    icon:'🔐', desc:'Complete the Secure the API quest', color:'rgba(34,211,238,0.12)',  earned:false, date:null     },
-    { name:'DevOps Initiate',   icon:'🚀', desc:'Deploy an app to production',       color:'rgba(99,102,241,0.15)',  earned:false, date:null     },
-    { name:'React Master',      icon:'⚛️', desc:'Complete the React course 100%',    color:'rgba(34,211,238,0.12)',  earned:false, date:null     },
-];
+let allBadges = [];
+let earnedSet = new Set();
+let currentFilter = 'all';
 
-// Render badges grid – identical to original renderBadges()
+function getAuthToken() {
+    return localStorage.getItem('token')
+        || localStorage.getItem('dzire_token')
+        || localStorage.getItem('jwt')
+        || '';
+}
+
+async function fetchData(endpoint) {
+    const token = getAuthToken();
+    const res = await axios.get(endpoint, {
+        baseURL: API_BASE,
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.data;
+}
+
+function getBadgeIcon(name) {
+    const map = {
+        'First Steps': '👶', 'Code Warrior': '⚔️', 'Quiz Champion': '🏆', 'Perfect Score': '💯',
+        'Course Hunter': '🔍', 'Course Champion': '🏅',
+        'Sharp Mind': '🧠', 'Skill Unlocker': '🔓', 'Skill Evolver': '🧬', 'Mastery Achieved': '🏆',
+        'Multi-Skilled': '🔗', 'Boss Slayer': '🗡️', 'Comeback': '🔄', 'Completionist': '🏁',
+        'Elite': '👑', 'On Fire': '🔥', 'Streak Master': '🔥', 'Streak Legend': '🔥',
+        'Consistent': '📆', 'Marathon': '⏳', 'Night Owl': '🦉',
+        'Initiate': '🌱', 'Builder': '🛠️', 'Architect': '🏗️',
+        'Apprentice': '⚒️', 'Craftsman': '🪚', 'Master': '🎓',
+        'Expert': '⚡', 'Virtuoso': '🎻', 'Sage': '🧙'
+    };
+    for (const [key, icon] of Object.entries(map)) {
+        if (name.includes(key)) return icon;
+    }
+    return '🎖️';
+}
+
+function getBadgeColor(tier) {
+    const colors = [
+        'rgba(59,130,246,0.15)', 'rgba(16,185,129,0.15)', 'rgba(245,158,11,0.15)',
+        'rgba(167,139,250,0.15)', 'rgba(239,68,68,0.15)', 'rgba(34,211,238,0.12)'
+    ];
+    return colors[tier % colors.length] || colors[0];
+}
+
+function conditionToText(condition_json) {
+    if (!condition_json) return '';
+    const parts = [];
+    const fieldNames = {
+        total_xp: 'XP',
+        courses_completed: 'courses completed',
+        total_lessons_completed: 'lessons completed',
+        total_courses_completed: 'courses completed',
+        total_quizzes_passed: 'quizzes passed',
+        perfect_quiz_count: 'perfect scores',
+        courses_completed_in_skill: 'courses in this skill'
+    };
+    for (const [field, opObj] of Object.entries(condition_json)) {
+        const operator = Object.keys(opObj)[0];
+        const value = opObj[operator];
+        const readableField = fieldNames[field] || field;
+        parts.push(`${readableField} ${operator} ${value}`);
+    }
+    return parts.join(', ');
+}
+
+function showBadgeDetail(badge) {
+    const earned = earnedSet.has(badge.id);
+    const rulesHTML = badge.rules && badge.rules.length > 0
+        ? badge.rules.map(r => `
+            <div class="badge-rule-item">
+                <div class="rule-trigger">Trigger: <strong>${r.trigger_event}</strong></div>
+                <div class="rule-condition">${conditionToText(r.condition_json)}</div>
+            </div>
+        `).join('')
+        : '<p style="color:var(--text-3)">No detailed requirements available.</p>';
+
+    const modalHTML = `
+        <div class="modal-overlay open" id="badgeModal">
+            <div class="modal" style="max-width:400px">
+                <div class="modal-header">
+                    <div class="modal-title">${badge.name}</div>
+                    <div class="modal-close" onclick="closeBadgeModal()">✕</div>
+                </div>
+                <div class="modal-body">
+                    <div style="font-size:40px;text-align:center;margin-bottom:12px">${getBadgeIcon(badge.name)}</div>
+                    <p style="color:var(--text-2);font-size:14px;line-height:1.6;margin-bottom:16px;text-align:center">${badge.description}</p>
+                    <div class="badge-rules-list">${rulesHTML}</div>
+                    <div style="text-align:center;margin-top:12px">
+                        ${earned 
+                            ? '<span style="color:var(--green);font-weight:600">✓ Earned</span>'
+                            : '<span style="color:var(--text-3)">🔒 Not yet earned</span>'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    const old = document.getElementById('badgeModal');
+    if (old) old.remove();
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeBadgeModal() {
+    const modal = document.getElementById('badgeModal');
+    if (modal) modal.remove();
+}
+
 function renderBadges() {
     const container = document.getElementById('badgeGrid');
     if (!container) return;
 
-    const earnedCount = BADGES_DATA.filter(b => b.earned).length;
-    const totalCount = BADGES_DATA.length;
-    const progressPercent = Math.round((earnedCount / totalCount) * 100);
+    let filtered = allBadges;
+    if (currentFilter === 'earned') filtered = allBadges.filter(b => earnedSet.has(b.id));
+    else if (currentFilter === 'locked') filtered = allBadges.filter(b => !earnedSet.has(b.id));
 
-    // Update progress text and bar
-    const progressCountSpan = document.getElementById('badgeProgressCount');
-    if (progressCountSpan) {
-        progressCountSpan.textContent = `${earnedCount} / ${totalCount} badges`;
-    }
-    const progressFill = document.getElementById('badgeProgressFill');
-    if (progressFill) {
-        progressFill.style.width = `${progressPercent}%`;
-    }
+    const earnedCount = allBadges.filter(b => earnedSet.has(b.id)).length;
+    const totalCount = allBadges.length;
+    const progressPercent = totalCount === 0 ? 0 : Math.round((earnedCount / totalCount) * 100);
 
-    container.innerHTML = BADGES_DATA.map(b => `
-        <div class="badge-card ${b.earned ? '' : 'badge-locked'}">
-            <div class="badge-icon" style="background:${b.color}">${b.icon}</div>
-            <div class="badge-name">${b.name}</div>
-            <div class="badge-desc">${b.desc}</div>
-            ${b.earned ? `<div class="badge-earned-date">✓ Earned ${b.date}</div>` : '<div class="badge-not-earned">Not earned yet</div>'}
-        </div>
-    `).join('');
+    document.getElementById('badgeProgressCount').textContent = `${earnedCount} / ${totalCount} badges`;
+    document.getElementById('badgeProgressFill').style.width = `${progressPercent}%`;
+    document.querySelector('.section-subtitle').textContent = `${earnedCount} earned · ${totalCount - earnedCount} more to unlock`;
+
+    container.innerHTML = filtered.map(badge => {
+        const earned = earnedSet.has(badge.id);
+        return `
+            <div class="badge-card ${earned ? '' : 'badge-locked'}" onclick="showBadgeDetail(${JSON.stringify(badge).replace(/"/g, '&quot;')})">
+                <div class="badge-icon" style="background:${getBadgeColor(badge.tier)}">${getBadgeIcon(badge.name)}</div>
+                <div class="badge-name">${badge.name}</div>
+                <div class="badge-desc">${badge.description}</div>
+                ${earned ? '<div class="badge-earned-date">✓ Earned</div>' : '<div class="badge-not-earned">Not earned yet</div>'}
+            </div>
+        `;
+    }).join('');
 }
 
-// Initialisation
-document.addEventListener('DOMContentLoaded', () => {
-    renderBadges();
+// Tabs filtering
+function setupTabs() {
+    const tabsContainer = document.getElementById('badgeTabs');
+    if (!tabsContainer) return;
+    tabsContainer.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabsContainer.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            currentFilter = tab.dataset.filter;
+            renderBadges();
+        });
+    });
+}
+
+async function initBadgesPage() {
+    try {
+        // Placement categories
+        let allowedCategories = SKILL_CATEGORY_MAP.default;
+        try {
+            const placementData = await fetchData('/api/onboarding/status');
+            if (placementData.onboardingDone) {
+                const subdomainName = placementData.result.subdomain_name;
+                if (SKILL_CATEGORY_MAP[subdomainName]) {
+                    allowedCategories = SKILL_CATEGORY_MAP[subdomainName];
+                }
+            }
+        } catch (e) { console.warn('Placement fetch failed.'); }
+
+        // Skills for category mapping
+        let skillCategoryMap = {};
+        try {
+            const skillsData = await fetchData('/api/skills');
+            (skillsData.skills || []).forEach(s => { skillCategoryMap[s.id] = s.category; });
+        } catch (e) { console.warn('Skills fetch failed.'); }
+
+        // All badges (with rules)
+        const badgesData = await fetchData('/api/badges');
+        allBadges = (badgesData.badges || []).filter(badge => {
+            if (badge.category === 'achievement') return true;
+            if (badge.skill_id && skillCategoryMap[badge.skill_id]) {
+                return allowedCategories.includes(skillCategoryMap[badge.skill_id]);
+            }
+            return false;
+        });
+
+        // Earned badges
+        try {
+            const earnedData = await fetchData('/api/badges/me');
+            earnedSet = new Set((earnedData.badges || []).map(b => b.id));
+        } catch (e) { console.warn('Earned badges fetch failed.'); }
+
+        // Insert tabs HTML dynamically
+        const header = document.querySelector('.section-header');
+        if (header) {
+            const tabsDiv = document.createElement('div');
+            tabsDiv.className = 'tabs';
+            tabsDiv.id = 'badgeTabs';
+            tabsDiv.innerHTML = `
+                <div class="tab active" data-filter="all">All</div>
+                <div class="tab" data-filter="earned">Earned</div>
+                <div class="tab" data-filter="locked">Not Earned</div>
+            `;
+            header.after(tabsDiv);
+        }
+
+        setupTabs();
+        renderBadges();
+    } catch (error) {
+        console.error('Failed to load badges:', error);
+        const container = document.getElementById('badgeGrid');
+        if (container) container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-title">Unable to load badges</div></div>';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', initBadgesPage);
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal-overlay') && e.target.id === 'badgeModal') {
+        closeBadgeModal();
+    }
 });
