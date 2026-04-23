@@ -10,11 +10,13 @@ if (token) {
 
 let courseData = { title: "", chapters: [] };
 let currentLesson = null;
+let currentAssessment = null;      // التقييم الحالي الذي يعرضه الطالب
+let assessmentsList = [];          // قائمة بجميع تقييمات الكورس
 
 // ========== DATA FETCHING ==========
 
 /**
- * جلب تفاصيل الكورس بالكامل (الفصول والدروس)
+ * جلب تفاصيل الكورس بالكامل (الفصول والدروس والتقييمات)
  */
 async function fetchCourseDetails(shouldLoadFirst = false) {
     if (!courseId) {
@@ -24,11 +26,11 @@ async function fetchCourseDetails(shouldLoadFirst = false) {
     }
 
     try {
-        // 1. جلب قائمة الفصول (هنا عرفنا resChapters)
+        // 1. جلب الفصول
         const resChapters = await axios.get(`${API_BASE}/${courseId}/chapters`);
         const chapters = resChapters.data.data || resChapters.data;
 
-        // 2. جلب الدروس لكل فصل بالتوازي
+        // 2. جلب الدروس لكل فصل
         const chaptersWithLessons = await Promise.all(chapters.map(async (chapter) => {
             try {
                 const resLessons = await axios.get(`${API_BASE}/${courseId}/chapters/${chapter.id}/lessons`);
@@ -41,13 +43,12 @@ async function fetchCourseDetails(shouldLoadFirst = false) {
                 return { ...chapter, lessons: [] };
             }
         }));
-
-        // 3. تحديث مخزن البيانات العالمي
         courseData.chapters = chaptersWithLessons;
 
-        // --- الجزء المهم والمعدل هنا ---
-        // 4. جلب التقدم الخاص بالطالب (last_completed_order)
-        // ملاحظة: يجب أن يكون لديك API يعيد تفاصيل التسجيل أو التقدم
+        // 3. جلب التقييمات الخاصة بالكورس (مع الأسئلة)
+        await fetchAssessments();
+
+        // 4. جلب التقدم (last_completed_order)
         try {
             const resProgress = await axios.get(`${API_BASE}/enrolled`);
             const enrolledCourses = resProgress.data.data.courses || [];
@@ -58,12 +59,11 @@ async function fetchCourseDetails(shouldLoadFirst = false) {
             console.warn("تعذر جلب التقدم، سيتم ضبطه على 0", progErr);
             courseData.last_completed_order = 0;
         }
-        // ------------------------------
 
         const pageTitleElem = document.getElementById('pageTitle');
         if (pageTitleElem) pageTitleElem.innerText = "Dzire - Learning Space";
 
-        // 5. منطق التحميل التلقائي
+        // 5. تحميل أول درس تلقائياً إذا طُلب
         if (shouldLoadFirst && courseData.chapters.length > 0) {
             const firstChapter = courseData.chapters[0];
             if (firstChapter.lessons && firstChapter.lessons.length > 0) {
@@ -80,22 +80,56 @@ async function fetchCourseDetails(shouldLoadFirst = false) {
     }
 }
 
+/**
+ * جلب جميع التقييمات الخاصة بالكورس
+ */
+async function fetchAssessments() {
+    try {
+        const res = await axios.get(`${API_BASE}/${courseId}/assessments`);
+        if (res.data.success) {
+            assessmentsList = res.data.data || [];
+            console.log("📝 Assessments loaded:", assessmentsList);
+        } else {
+            console.warn("No assessments found or API error");
+            assessmentsList = [];
+        }
+    } catch (err) {
+        console.error("Failed to fetch assessments:", err);
+        assessmentsList = [];
+    }
+}
+
 async function loadLessonDetails(lessonId, chapterId) {
     try {
         const res = await axios.get(`${API_BASE}/${courseId}/lessons/${lessonId}`);
         const lessonData = res.data.data || res.data;
 
-        // إصلاح الربط: ندمج المعرفات يدوياً لأن السيرفر يعيد بيانات المحتوى فقط
         currentLesson = {
             ...lessonData,
             id: lessonId,
             chapterId: chapterId
         };
-
+        currentAssessment = null;  // إخفاء أي تقييم كان مفتوحاً
         updateLessonDisplay();
         renderSidebar();
     } catch (err) {
         console.error("فشل جلب تفاصيل الدرس:", err);
+    }
+}
+
+async function loadAssessment(assessmentId) {
+    try {
+        const res = await axios.get(`${API_BASE}/${courseId}/assessments/${assessmentId}`);
+        if (res.data.success) {
+            currentAssessment = res.data.data;
+            currentLesson = null;
+            displayAssessmentModal();
+        } else {
+            showToast("فشل تحميل التقييم", "error");
+        }
+    } catch (err) {
+        console.error("Failed to load assessment:", err);
+        showToast("خطأ في تحميل التقييم", "error");
     }
 }
 
@@ -106,58 +140,60 @@ function renderSidebar() {
     if (!sidebar) return;
 
     let html = '';
-    
-    // تأكد من جلب التقدم، إذا لم ينجح نعتبره 0
     const maxProgress = Number(courseData.last_completed_order || 0);
-    
-    console.log("--- فحص السايدبار ---");
-    console.log("تقدم الطالب الحالي (Max Progress):", maxProgress);
 
     courseData.chapters.forEach(chapter => {
-        html += `
-            <div class="chapter-block">
-                <div class="chapter-title" style="color: #60A5FA; font-weight: bold; margin: 10px 0;">${chapter.title}</div>
-                <div class="lessons-list">`;
-
+        // عرض الدروس
+        html += `<div class="chapter-block"><div class="chapter-title">${escapeHtml(chapter.title)}</div><div class="lessons-list">`;
         if (chapter.lessons) {
             chapter.lessons.forEach(lesson => {
-                // الفحص الجوهري: تأكد من اسم الحقل القادم من السيرفر
-                // جرب تغيير order_index إلى التسمية التي تظهر في الـ Network (مثلاً: order)
                 const lessonOrder = Number(lesson.order_index || 0);
-
-                // طباعة فحص لكل درس في الكونسول لتعرف لماذا هو مغلق
-                console.log(`درس: ${lesson.title} | ترتيبه: ${lessonOrder} | هل هو أكبر من ${maxProgress + 1}؟`);
-
-                // القاعدة الذهبية: الدرس الأول (1) يفتح دائماً. 
-                // بقية الدروس تفتح إذا كان ترتيبها أقل أو يساوي (تقدم الطالب + 1)
                 const isLocked = (lessonOrder > 1) && (lessonOrder > (maxProgress + 1));
                 const isDone = (lessonOrder <= maxProgress) && maxProgress > 0;
-                
                 const isActive = (currentLesson && String(currentLesson.id) === String(lesson.id));
 
                 html += `
-                    <div class="lesson-item ${isLocked ? 'locked' : ''} ${isActive ? 'active' : ''}" 
-                         style="padding: 10px; cursor: ${isLocked ? 'not-allowed' : 'pointer'}; border-radius: 8px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; 
-                                opacity: ${isLocked ? '0.5' : '1'};
-                                background: ${isActive ? 'rgba(59,130,246,0.2)' : 'transparent'};"
-                         onclick="window.handleLessonClick('${lesson.id}', '${chapter.id}', ${isLocked})">
-                        
+                    <div class="lesson-item ${isLocked ? 'locked' : ''} ${isActive ? 'active' : ''}"
+                         onclick="${isLocked ? '' : `window.handleLessonClick('${lesson.id}', '${chapter.id}', false)`}"
+                         style="cursor: ${isLocked ? 'not-allowed' : 'pointer'}; opacity: ${isLocked ? '0.5' : '1'};">
                         <span>${isLocked ? '🔒' : (isDone ? '✅' : (isActive ? '▶️' : '📄'))}</span>
-                        
-                        <span style="flex: 1;">${lesson.title}</span>
+                        <span style="flex:1">${escapeHtml(lesson.title)}</span>
                     </div>`;
             });
         }
-        html += `</div></div>`;
+        html += `</div>`;
+
+        // عرض التقييمات المرتبطة بهذا الفصل (إن وجدت)
+        const chapterAssessments = assessmentsList.filter(a => a.chapter_id === chapter.id);
+        if (chapterAssessments.length) {
+            html += `<div class="assessments-list" style="margin-top: 12px; padding-left: 20px;">`;
+            chapterAssessments.forEach(ass => {
+                html += `
+                    <div class="assessment-item" onclick="window.loadAssessment('${ass.id}')" style="cursor: pointer; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                        <span>📝</span>
+                        <span>${escapeHtml(ass.title)}</span>
+                        <span class="badge badge-purple">${ass.type === 'quiz' ? 'Quiz' : 'Exam'}</span>
+                    </div>`;
+            });
+            html += `</div>`;
+        }
+
+        html += `</div>`;
     });
+
     sidebar.innerHTML = html;
 }
-window.handleLessonClick = async function (lessonId, chapterId, isLocked) {
+
+window.handleLessonClick = async function(lessonId, chapterId, isLocked) {
     if (isLocked) {
         alert("🔒 هذا الدرس مغلق حالياً.");
         return;
     }
     await loadLessonDetails(lessonId, chapterId);
+};
+
+window.loadAssessment = async function(assessmentId) {
+    await loadAssessment(assessmentId);
 };
 
 function updateLessonDisplay() {
@@ -167,10 +203,8 @@ function updateLessonDisplay() {
     document.getElementById('lessonDesc').innerText = currentLesson.description || "لا يوجد وصف للدرس.";
     document.getElementById('xpReward').innerText = currentLesson.xp || 0;
 
-    // تحديث الفيديو
     const videoPlayer = document.getElementById('mainVideoPlayer');
     const videoSource = document.getElementById('videoSource');
-
     if (videoPlayer && videoSource && currentLesson.video) {
         let vUrl = currentLesson.video;
         if (vUrl.startsWith('/') && !vUrl.startsWith('http')) vUrl = `http://localhost:3000${vUrl}`;
@@ -178,7 +212,6 @@ function updateLessonDisplay() {
         videoPlayer.load();
     }
 
-    // تحديث الـ PDF
     const pdfFrame = document.getElementById('mainPdfFrame');
     if (pdfFrame) {
         let pUrl = currentLesson.pdf || "";
@@ -188,25 +221,22 @@ function updateLessonDisplay() {
 
     const completeBtn = document.getElementById('completeLessonBtn');
     if (completeBtn) {
-        // نفحص هل الدرس الحالي مكتمل من خلال بيانات الكورس
         const isCompleted = checkIfLessonDone(currentLesson.id);
-
         if (isCompleted) {
             completeBtn.innerText = "COMPLETED";
             completeBtn.disabled = true;
-            completeBtn.style.background = "#10B981"; // اللون الأخضر
+            completeBtn.style.background = "#10B981";
         } else {
             completeBtn.innerText = "MARK AS COMPLETED";
             completeBtn.disabled = false;
-            completeBtn.style.background = ""; // يعود للون الأصلي (مثلاً الأزرق)
+            completeBtn.style.background = "";
         }
     }
 
-    // الوضع الافتراضي عند التحميل هو الفيديو
     setStudyMode('video');
 }
+
 function checkIfLessonDone(lessonId) {
-    // 1. استخراج ترتيب الدرس الحالي من بيانات الكورس
     let currentOrder = 0;
     for (const chapter of courseData.chapters) {
         const lesson = chapter.lessons.find(l => String(l.id) === String(lessonId));
@@ -215,15 +245,10 @@ function checkIfLessonDone(lessonId) {
             break;
         }
     }
-
-    // 2. المقارنة مع أقصى تقدم مسجل للطالب (القادم من السيرفر)
     const maxProgress = courseData.last_completed_order || 0;
-    
-    // إذا كان ترتيب الدرس الحالي أقل أو يساوي ما تم إنجازه سابقاً
     return Number(currentOrder) <= Number(maxProgress);
 }
 
-// دالة تغيير نمط الدراسة (مستقلة)
 function setStudyMode(mode) {
     const vContent = document.getElementById('videoContent');
     const pContent = document.getElementById('pdfContent');
@@ -247,16 +272,13 @@ function setStudyMode(mode) {
     }
 }
 
-// ربط أزرار النمط بالدالة
+// ربط أزرار النمط
 document.getElementById('modeVideoBtn').onclick = () => setStudyMode('video');
 document.getElementById('modePdfBtn').onclick = () => setStudyMode('pdf');
 
-// ========== MARK AS COMPLETE LOGIC ==========
-
+// ========== MARK AS COMPLETE ==========
 const completeBtn = document.getElementById('completeLessonBtn');
-
 completeBtn.onclick = async () => {
-    // التأكد من أن البيانات محقونة وجاهزة
     const cId = courseId;
     const chapId = currentLesson?.chapterId;
     const lesId = currentLesson?.id;
@@ -281,8 +303,7 @@ completeBtn.onclick = async () => {
         completeBtn.innerText = "COMPLETED";
         completeBtn.style.background = "#10B981";
 
-        // تحديث الواجهة لجلب الدروس الجديدة التي قد تكون فتحت
-        await fetchCourseDetails();
+        await fetchCourseDetails(); // تحديث التقدم والقائمة الجانبية
 
     } catch (err) {
         console.error("خطأ في الربط:", err);
@@ -291,4 +312,122 @@ completeBtn.onclick = async () => {
         completeBtn.disabled = false;
     }
 };
+
+// ========== ASSESSMENT MODAL ==========
+function displayAssessmentModal() {
+    if (!currentAssessment) return;
+
+    // إنشاء مودال التقييم إذا لم يكن موجوداً
+    let modal = document.getElementById('assessmentModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'assessmentModal';
+        modal.className = 'modal-overlay';
+        modal.innerHTML = `
+            <div class="modal" style="max-width: 700px;">
+                <div class="modal-header">
+                    <div class="modal-title" id="assessmentModalTitle">Assessment</div>
+                    <div class="modal-close" onclick="closeAssessmentModal()">✕</div>
+                </div>
+                <div class="modal-body" id="assessmentModalBody"></div>
+                <div class="modal-footer">
+                    <button class="btn btn-ghost" onclick="closeAssessmentModal()">Close</button>
+                    <button class="btn btn-primary" id="submitAssessmentBtn">Submit</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    document.getElementById('assessmentModalTitle').innerText = currentAssessment.title;
+    const body = document.getElementById('assessmentModalBody');
+    body.innerHTML = generateAssessmentHTML(currentAssessment);
+    modal.classList.add('open');
+
+    // ربط زر الإرسال
+    document.getElementById('submitAssessmentBtn').onclick = () => submitAssessment();
+}
+
+function generateAssessmentHTML(assessment) {
+    let html = `<p><strong>Passing Score:</strong> ${assessment.passing_score}%</p><div class="assessment-questions">`;
+    assessment.questions.forEach((q, idx) => {
+        html += `
+            <div class="assessment-question" style="margin-bottom: 20px; padding: 15px; background: var(--bg-2); border-radius: 8px;">
+                <p><strong>Q${idx+1}:</strong> ${escapeHtml(q.question_text)}</p>
+                <div class="options">`;
+        q.options.forEach((opt, optIdx) => {
+            html += `
+                <label style="display: block; margin: 8px 0;">
+                    <input type="radio" name="q_${q.id}" value="${escapeAttr(opt)}"> 
+                    ${escapeHtml(opt)}
+                </label>`;
+        });
+        html += `</div></div>`;
+    });
+    html += `</div>`;
+    return html;
+}
+
+async function submitAssessment() {
+    const answers = [];
+    currentAssessment.questions.forEach(q => {
+        const selected = document.querySelector(`input[name="q_${q.id}"]:checked`);
+        if (selected) {
+            answers.push({
+                questionId: q.id,
+                answer: selected.value
+            });
+        } else {
+            answers.push({
+                questionId: q.id,
+                answer: null
+            });
+        }
+    });
+
+    try {
+        const res = await axios.post(`${API_BASE}/${courseId}/assessments/${currentAssessment.id}/submit`, { answers });
+        if (res.data.success) {
+            const score = res.data.score;
+            const passed = res.data.passed;
+            showToast(`Score: ${score}% - ${passed ? 'Passed ✅' : 'Failed ❌'}`, passed ? 'success' : 'error');
+            closeAssessmentModal();
+            // يمكن تحديث التقدم أو إعادة فتح التقييم إذا رسب
+        } else {
+            showToast(res.data.message || 'Submission failed', 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        showToast('Error submitting assessment', 'error');
+    }
+}
+
+function closeAssessmentModal() {
+    const modal = document.getElementById('assessmentModal');
+    if (modal) modal.classList.remove('open');
+    currentAssessment = null;
+}
+
+function showToast(msg, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span class="toast-icon">${type === 'success' ? '✅' : '❌'}</span><span class="toast-msg">${msg}</span>`;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+}
+function escapeAttr(str) {
+    return String(str).replace(/"/g, '&quot;');
+}
+
+// بدء التحميل
 fetchCourseDetails(true);
