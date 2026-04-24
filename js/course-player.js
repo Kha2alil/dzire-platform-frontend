@@ -143,8 +143,27 @@ function renderSidebar() {
     const maxProgress = Number(courseData.last_completed_order || 0);
 
     courseData.chapters.forEach(chapter => {
-        // عرض الدروس
-        html += `<div class="chapter-block"><div class="chapter-title">${escapeHtml(chapter.title)}</div><div class="lessons-list">`;
+        // Determine chapter status for visual indicator
+        let chapterStatusClass = '';
+        const hasActiveLesson = chapter.lessons?.some(l => currentLesson && String(l.id) === String(currentLesson.id));
+        const allDone = chapter.lessons?.every(l => Number(l.order_index) <= maxProgress);
+        if (allDone && chapter.lessons?.length > 0) {
+            chapterStatusClass = 'ch-done';
+        } else if (hasActiveLesson) {
+            chapterStatusClass = 'ch-current';
+        }
+
+        html += `<div class="chapter-block ${chapterStatusClass}">`;
+
+        // Chapter title
+        const completedCount = chapter.lessons?.filter(l => Number(l.order_index) <= maxProgress).length || 0;
+        const totalLessons = chapter.lessons?.length || 0;
+        html += `<div class="chapter-title">${escapeHtml(chapter.title)} <span style="font-size:9px;opacity:0.6;font-family:'DM Sans';">${completedCount}/${totalLessons}</span></div>`;
+
+        // Lessons list with progress line class
+        const hasAnyDone = completedCount > 0;
+        html += `<div class="lessons-list ${hasAnyDone ? 'has-done' : ''}">`;
+
         if (chapter.lessons) {
             chapter.lessons.forEach(lesson => {
                 const lessonOrder = Number(lesson.order_index || 0);
@@ -152,33 +171,37 @@ function renderSidebar() {
                 const isDone = (lessonOrder <= maxProgress) && maxProgress > 0;
                 const isActive = (currentLesson && String(currentLesson.id) === String(lesson.id));
 
+                let statusClass = '';
+                if (isLocked) statusClass = 'locked';
+                else if (isDone) statusClass = 'done';
+                else if (isActive) statusClass = 'active';
+
                 html += `
-                    <div class="lesson-item ${isLocked ? 'locked' : ''} ${isActive ? 'active' : ''}"
+                    <div class="lesson-item ${statusClass}"
                          onclick="${isLocked ? '' : `window.handleLessonClick('${lesson.id}', '${chapter.id}', false)`}"
-                         style="cursor: ${isLocked ? 'not-allowed' : 'pointer'}; opacity: ${isLocked ? '0.5' : '1'};">
-                        <span>${isLocked ? '🔒' : (isDone ? '✅' : (isActive ? '▶️' : '📄'))}</span>
-                        <span style="flex:1">${escapeHtml(lesson.title)}</span>
+                         style="cursor: ${isLocked ? 'not-allowed' : 'pointer'};">
+                        <span class="lesson-label">${escapeHtml(lesson.title)}</span>
                     </div>`;
             });
         }
-        html += `</div>`;
+        html += `</div>`; // close lessons-list
 
-        // عرض التقييمات المرتبطة بهذا الفصل (إن وجدت)
+        // Assessments
         const chapterAssessments = assessmentsList.filter(a => a.chapter_id === chapter.id);
         if (chapterAssessments.length) {
-            html += `<div class="assessments-list" style="margin-top: 12px; padding-left: 20px;">`;
+            html += `<div class="assessments-list">`;
             chapterAssessments.forEach(ass => {
                 html += `
-                    <div class="assessment-item" onclick="window.loadAssessment('${ass.id}')" style="cursor: pointer; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-                        <span>📝</span>
-                        <span>${escapeHtml(ass.title)}</span>
-                        <span class="badge badge-purple">${ass.type === 'quiz' ? 'Quiz' : 'Exam'}</span>
+                    <div class="assessment-item" onclick="window.loadAssessment('${ass.id}')">
+                        <span class="ass-icon">✎</span>
+                        <span class="ass-label">${escapeHtml(ass.title)}</span>
+                        <span class="ass-badge">${ass.type === 'quiz' ? 'Quiz' : 'Exam'}</span>
                     </div>`;
             });
             html += `</div>`;
         }
 
-        html += `</div>`;
+        html += `</div>`; // close chapter-block
     });
 
     sidebar.innerHTML = html;
