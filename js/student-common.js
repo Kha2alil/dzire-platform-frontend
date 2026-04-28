@@ -125,69 +125,221 @@ window.setAvatarImage = function(url) {
     }
 };
 
-// ─────────────────────────────────────────────────────────────
-// Notifications panel
-let notificationsData = [
-    { dot:'var(--amber)',    msg:'Your streak is at <strong>28 days</strong>! Keep it up 🔥',             time:'1 hr ago',   unread:true  },
-    { dot:'var(--green)',    msg:'You earned the <strong>Quiz Champion</strong> badge!',                  time:'2 hr ago',   unread:true  },
-    { dot:'var(--blue-400)', msg:'New lesson: <strong>JWT Authentication with Node.js</strong>',          time:'5 hr ago',   unread:true  },
-    { dot:'var(--purple)',   msg:'<strong>Khalil K.</strong> posted feedback on your REST API quest',     time:'Yesterday',  unread:false },
-    { dot:'var(--red)',      msg:'Boss Exam <strong>Full-Stack Lv.3</strong> unlocks in 2 more quests',   time:'2 days ago', unread:false },
-];
+// ─── NOTIFICATION POLLING + BADGE CELEBRATION POPUP (runs on every student page) ───
+// ─── NOTIFICATION POLLING + BADGE CELEBRATION POPUP (timestamp‑based) ───
+(function () {
+    const API_BASE = 'http://localhost:3000';
+    const TS_KEY = 'lastSeenNotificationTimestamp';   // we store the latest created_at
+    let lastSeenTs = localStorage.getItem(TS_KEY) || '1970-01-01T00:00:00.000Z';
 
-function updateNotifBadge() {
-    const badge = document.getElementById('notifBadge');
-    if (badge) badge.style.display = notificationsData.some(n => n.unread) ? 'block' : 'none';
-}
-
-function renderNotifications() {
-    const list = document.getElementById('notifList');
-    if (!list) return;
-    list.innerHTML = notificationsData.map((n, idx) => `
-        <div class="notif-item ${n.unread ? 'unread' : ''}" data-idx="${idx}">
-            <div class="notif-dot-small" style="background:${n.dot}"></div>
-            <div class="notif-content">
-                <div class="notif-msg">${n.msg}</div>
-                <div class="notif-ts">${n.time}</div>
-            </div>
-        </div>
-    `).join('');
-    document.querySelectorAll('.notif-item').forEach(el => {
-        el.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const idx = parseInt(el.dataset.idx);
-            if (!isNaN(idx) && notificationsData[idx]) {
-                notificationsData[idx].unread = false;
-                el.classList.remove('unread');
-                updateNotifBadge();
-            }
-        });
-    });
-    updateNotifBadge();
-}
-
-function initNotifications() {
-    renderNotifications();
-    const clearBtn = document.getElementById('clearNotif');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-            notificationsData.forEach(n => n.unread = false);
-            document.querySelectorAll('.notif-item').forEach(el => el.classList.remove('unread'));
-            updateNotifBadge();
-        });
+    function getToken() {
+        return localStorage.getItem('token') || localStorage.getItem('dzire_token') || '';
     }
-    const notifBtn = document.getElementById('notifBtn');
-    const panel = document.getElementById('notifPanel');
-    if (notifBtn && panel) {
+
+    // ── Bell‑specific DOM (may be null on pages without the bell) ──
+    const notifBtn   = document.getElementById('notifBtn');
+    const notifPanel = document.getElementById('notifPanel');
+    const notifBadge = document.getElementById('notifBadge');
+    const notifList  = document.getElementById('notifList');
+    const clearBtn   = document.getElementById('clearNotif');
+
+    // ── Bell interactions – only attach if the bell exists ──
+    if (notifBtn && notifPanel) {
         notifBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            panel.classList.toggle('open');
+            notifPanel.classList.toggle('open');
+            if (notifPanel.classList.contains('open')) loadNotifications();
         });
+
         document.addEventListener('click', (e) => {
-            if (!notifBtn.contains(e.target)) panel.classList.remove('open');
+            if (!notifPanel.contains(e.target) && e.target !== notifBtn && !notifBtn.contains(e.target)) {
+                notifPanel.classList.remove('open');
+            }
         });
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', async () => {
+                try {
+                    await axios.patch(`${API_BASE}/api/notifications/read-all`, {}, {
+                        headers: { Authorization: `Bearer ${getToken()}` }
+                    });
+                    loadNotifications();
+                } catch (err) {
+                    console.error('Mark all read failed:', err);
+                }
+            });
+        }
     }
-}
+
+    // ── Load notifications into the bell panel (if present) ──
+    async function loadNotifications() {
+        try {
+            const res = await axios.get(`${API_BASE}/api/notifications?limit=20`, {
+                headers: { Authorization: `Bearer ${getToken()}` }
+            });
+            const notifications = res.data.notifications || [];
+            const unreadCount = notifications.filter(n => !n.is_read).length;
+            updateBadge(unreadCount);
+
+            if (notifList) {
+                if (notifications.length === 0) {
+                    notifList.innerHTML = '<div class="notif-item"><span style="color:var(--text-3)">No notifications</span></div>';
+                } else {
+                    notifList.innerHTML = notifications.map(n => `
+                        <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}">
+                            <div class="notif-content" onclick="window.markNotifRead('${n.id}'); if('${n.link}') location.href='${n.link}'">
+                                <strong>${escapeHtml(n.title)}</strong><br>${escapeHtml(n.message)}
+                            </div>
+                            <div class="notif-ts">${timeAgo(n.created_at)}</div>
+                        </div>`).join('');
+                }
+            }
+
+            // 🎯 Show badge popup for any unread badge notification newer than lastSeenTs
+            const unreadBadgeNotifications = notifications.filter(
+                n => !n.is_read && n.title && n.title.includes('New Badge')
+            );
+
+            for (const n of unreadBadgeNotifications) {
+                if (n.created_at > lastSeenTs) {
+                    showBadgeCelebration(n);
+                }
+            }
+
+            // Update the stored timestamp to the newest found
+            if (notifications.length > 0) {
+                const newestTs = notifications[0].created_at;   // sorted by created_at DESC
+                if (newestTs > lastSeenTs) {
+                    lastSeenTs = newestTs;
+                    localStorage.setItem(TS_KEY, lastSeenTs);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to load notifications:', err);
+        }
+    }
+
+    // Expose globally so course-player.js can call it after completion
+    window.loadNotifications = loadNotifications;
+
+    // ── Polling for new notifications (runs everywhere) ──
+    setInterval(async () => {
+        try {
+            const res = await axios.get(`${API_BASE}/api/notifications?limit=5`, {
+                headers: { Authorization: `Bearer ${getToken()}` }
+            });
+            const notifications = res.data.notifications || [];
+            if (notifications.length === 0) return;
+
+            // Find notifications newer than lastSeenTs
+            const newNotifications = notifications.filter(n => n.created_at > lastSeenTs);
+            if (!newNotifications.length) return;
+
+            // Update lastSeenTs
+            lastSeenTs = notifications[0].created_at;
+            localStorage.setItem(TS_KEY, lastSeenTs);
+
+            for (const n of newNotifications) {
+                if (n.title && n.title.includes('New Badge')) {
+                    showBadgeCelebration(n);
+                } else {
+                    window.showToast(`${n.title} – ${n.message}`, 'success');
+                }
+                const unreadCount = notifications.filter(x => !x.is_read).length;
+                updateBadge(unreadCount);
+                if (notifPanel && notifPanel.classList.contains('open')) {
+                    loadNotifications();
+                }
+            }
+        } catch (err) {
+            // Silently ignore polling errors
+        }
+    }, 30000);
+
+    // ── Badge Celebration Popup ──
+    function showBadgeCelebration(notification) {
+        const old = document.querySelector('.badge-celebrate-overlay');
+        if (old) old.remove();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'badge-celebrate-overlay';
+
+        const badgeName = notification.title.replace('🏅 New Badge: ', '').replace('New Badge: ', '');
+        const badgeDesc = notification.message;
+
+        overlay.innerHTML = `
+            <div class="badge-celebrate-card">
+                <div class="badge-celebrate-close" id="badgeCelebrateClose">✕</div>
+                <div class="badge-celebrate-icon">🎖️</div>
+                <div class="badge-celebrate-name">${escapeHtml(badgeName)}</div>
+                <div class="badge-celebrate-desc">${escapeHtml(badgeDesc)}</div>
+                <button class="badge-celebrate-btn" onclick="location.href='student-badges.html'">View My Badges</button>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        const closeBtn = overlay.querySelector('#badgeCelebrateClose');
+        closeBtn.addEventListener('click', () => overlay.remove());
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.remove();
+        });
+
+        setTimeout(() => {
+            if (document.body.contains(overlay)) overlay.remove();
+        }, 8000);
+    }
+
+    // ── TEST FUNCTION (call window.testBadgePopup() in console) ──
+    window.testBadgePopup = function() {
+        showBadgeCelebration({
+            title: '🏅 New Badge: Code Warrior',
+            message: 'You earned the "Code Warrior" badge!',
+            created_at: new Date().toISOString()
+        });
+    };
+
+    function updateBadge(count) {
+        if (notifBadge) {
+            notifBadge.style.display = count > 0 ? 'block' : 'none';
+            notifBadge.textContent = count;
+        }
+    }
+
+    window.markNotifRead = async function (id) {
+        try {
+            await axios.patch(`${API_BASE}/api/notifications/${id}/read`, {}, {
+                headers: { Authorization: `Bearer ${getToken()}` }
+            });
+        } catch (err) {
+            console.error('Mark read failed:', err);
+        }
+    };
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+    }
+
+    function timeAgo(dateStr) {
+        if (!dateStr) return '';
+        const now = new Date();
+        const then = new Date(dateStr);
+        const diffMs = now - then;
+        const diffMins = Math.floor(diffMs / 60000);
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins}m ago`;
+        const diffHrs = Math.floor(diffMins / 60);
+        if (diffHrs < 24) return `${diffHrs}h ago`;
+        const diffDays = Math.floor(diffHrs / 24);
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays}d ago`;
+        return then.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    // 🔥 Run immediately on page load
+    loadNotifications();
+})();
 
 // ─────────────────────────────────────────────────────────────
 // Sidebar toggle
@@ -232,9 +384,30 @@ window.loadSharedUserData = async function() {
             const avatarEl = document.querySelector('.sidebar-profile .profile-avatar');
             if (avatarEl) avatarEl.textContent = initials;
 
+            // ── Welcome title with placement badge ──
             const welcomeSpan = document.querySelector('.welcome-title span');
             if (welcomeSpan) welcomeSpan.textContent = firstName;
 
+            // Insert placement badge right inside the welcome-title line
+            try {
+                const onboarding = JSON.parse(localStorage.getItem('onboarding'));
+                if (onboarding && onboarding.level) {
+                    const placementLevel = onboarding.level.charAt(0).toUpperCase() + onboarding.level.slice(1);
+                    const welcomeTitle = document.querySelector('.welcome-title');
+                    if (welcomeTitle) {
+                        let badge = welcomeTitle.querySelector('.placement-badge');
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.className = 'badge badge-amber placement-badge';
+                            badge.style.marginLeft = '10px';
+                            welcomeTitle.appendChild(badge);
+                        }
+                        badge.textContent = placementLevel;
+                    }
+                }
+            } catch(e) {}
+
+            // Profile inputs (if on profile page)
             const fullNameInput = document.querySelector('#page-profile input[data-field="full_name"]');
             if (fullNameInput) fullNameInput.value = fullName;
             const usernameInput = document.querySelector('#page-profile input[data-field="username"]');
@@ -248,17 +421,32 @@ window.loadSharedUserData = async function() {
         const statsRes = await window.apiCall('GET', '/gamification/me');
         if (statsRes && statsRes.success) {
             const s = statsRes.stats;
-            const XP_PER_LEVEL = 3000;               // Keep consistent with backend
+            const XP_PER_LEVEL = 3000;
             const xpInLevel = s.total_xp % XP_PER_LEVEL;
             const xpToNext = XP_PER_LEVEL - xpInLevel;
             const pct = Math.round((xpInLevel / XP_PER_LEVEL) * 100);
             const rankTitle = window.getRankTitle(s.current_level);
 
-            // 1. Sidebar role
+            // ── Sidebar role (clean, no duplicate words) ──
             const roleEl = document.querySelector('.sidebar-profile .profile-role');
-            if (roleEl) roleEl.textContent = `Level ${s.current_level} · ${rankTitle}`;
+            if (roleEl) {
+                let roleText = `Level ${s.current_level} · ${rankTitle}`;
 
-            // 2. Topbar XP display
+                // Only add placement level if it's different from the current rank title
+                try {
+                    const onboarding = JSON.parse(localStorage.getItem('onboarding'));
+                    if (onboarding && onboarding.level) {
+                        const placementLevel = onboarding.level.charAt(0).toUpperCase() + onboarding.level.slice(1);
+                        if (!rankTitle.toLowerCase().includes(onboarding.level.toLowerCase())) {
+                            roleText += ` · ${placementLevel}`;
+                        }
+                    }
+                } catch(e) {}
+
+                roleEl.textContent = roleText;
+            }
+
+            // ── Topbar XP bar ──
             const xpStrong = document.querySelector('.xp-label strong');
             if (xpStrong) xpStrong.textContent = s.total_xp.toLocaleString();
 
@@ -268,7 +456,7 @@ window.loadSharedUserData = async function() {
             const xpLevel = document.querySelector('.xp-level');
             if (xpLevel) xpLevel.textContent = `Lv.${s.current_level}`;
 
-            // 3. Dashboard welcome banner (level ring & info)
+            // ── Dashboard level ring (gamification only, correct as is) ──
             const levelNum = document.querySelector('.level-num');
             if (levelNum) levelNum.textContent = s.current_level;
 
@@ -281,7 +469,6 @@ window.loadSharedUserData = async function() {
             const levelTitle = document.querySelector('.level-title');
             if (levelTitle) levelTitle.textContent = `${rankTitle} 🗡️`;
 
-            // 4. SVG ring (circumference = 2 * π * 34 ≈ 213.6)
             const ring = document.querySelector('.level-ring circle:last-child');
             if (ring) {
                 const circumference = 213.6;
@@ -289,19 +476,10 @@ window.loadSharedUserData = async function() {
                 ring.setAttribute('stroke-dashoffset', offset.toFixed(1));
             }
 
-            // 5. Streak in welcome banner
-            if (s.current_streak !== undefined) {
-                const streakSub = document.querySelector('.welcome-sub');
-                if (streakSub) {
-                    streakSub.innerHTML = `You're on a <strong>${s.current_streak}-day streak</strong>! Keep it up — you're crushing it.`;
-                }
-            }
-
-            // 6. Big avatar level (profile page)
+            // ── Profile page stats (if present) ──
             const bigLevel = document.querySelector('.big-avatar-level');
             if (bigLevel) bigLevel.textContent = s.current_level;
 
-            // 7. Profile page stats – prefer IDs over indices (more robust)
             const totalXpEl = document.getElementById('statTotalXp');
             if (totalXpEl) totalXpEl.textContent = s.total_xp.toLocaleString();
 
@@ -311,7 +489,6 @@ window.loadSharedUserData = async function() {
             const streakEl = document.getElementById('statStreak');
             if (streakEl) streakEl.textContent = s.current_streak ?? '—';
 
-            // Fallback for older profile pages that still use .profile-stat-val indices
             const statVals = document.querySelectorAll('.profile-stat-val');
             if (statVals.length >= 5) {
                 if (!document.getElementById('statTotalXp')) statVals[0].textContent = s.total_xp.toLocaleString();
@@ -333,18 +510,15 @@ window.loadSharedUserData = async function() {
 };
 
 // ─────────────────────────────────────────────────────────────
-// Initialisation to be called on every student page
+// Initialisation
 window.initStudentCommon = async function() {
     window.initSidebarToggle();
-    initNotifications();
     window.initGlobalSearch();
     await window.loadSharedUserData();
 };
 
-// Auto-run when DOM is ready (optional, but we can let each page call it explicitly)
-// For pages that don't call it, we can run it automatically.
+// Auto-run when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    // If the page hasn't already called initStudentCommon, do it now.
     if (typeof window._studentCommonInitialized === 'undefined') {
         window.initStudentCommon();
         window._studentCommonInitialized = true;

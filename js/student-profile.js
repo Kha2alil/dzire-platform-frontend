@@ -1,16 +1,17 @@
 // ==================== student-profile.js ====================
-// Handles profile page interactions: save profile, change password, upload avatar, update track
+// Handles profile page: save profile, change password, upload avatar,
+// and display live stats (XP, level, badges, quests placeholder).
 
 // Helper: get input by data-field
 function profileInput(field) {
     return document.querySelector(`#page-profile input[data-field="${field}"]`);
 }
 
-// Save profile (full_name, username, bio)
+// ── Save profile (full_name, username, bio) ────────────────
 async function saveProfile() {
     const full_name = profileInput('full_name')?.value?.trim();
-    const username = profileInput('username')?.value?.trim();
-    const bio = document.getElementById('profileBio')?.value?.trim();
+    const username  = profileInput('username')?.value?.trim();
+    const bio       = document.getElementById('profileBio')?.value?.trim();
 
     if (!full_name && !username && !bio) {
         showToast('Nothing to save!', 'error');
@@ -19,20 +20,18 @@ async function saveProfile() {
 
     const body = {};
     if (full_name) body.full_name = full_name;
-    if (username) body.username = username;
-    if (bio) body.bio = bio;
+    if (username)  body.username  = username;
+    if (bio)       body.bio       = bio;
 
     const res = await apiCall('PATCH', '/profile/me', body);
 
     if (res && res.success) {
         showToast('Profile saved! ✅', 'success');
         if (full_name) {
-            // Update sidebar name and avatar initials
             const nameEl = document.querySelector('.sidebar-profile .profile-name');
             if (nameEl) nameEl.textContent = full_name;
             const avatarEl = document.querySelector('.sidebar-profile .profile-avatar');
             if (avatarEl) avatarEl.textContent = getInitials(full_name);
-            // Update welcome banner (if present on dashboard)
             const welcomeSpan = document.querySelector('.welcome-title span');
             if (welcomeSpan) welcomeSpan.textContent = full_name.split(' ')[0];
         }
@@ -41,7 +40,7 @@ async function saveProfile() {
     }
 }
 
-// Change password
+// ── Change password ────────────────────────────────────────
 async function changePassword() {
     const current = document.getElementById('currentPassword')?.value.trim();
     const newPass = document.getElementById('newPassword')?.value.trim();
@@ -72,12 +71,12 @@ async function changePassword() {
     }
 }
 
-// Upload avatar
+// ── Avatar upload ──────────────────────────────────────────
 async function uploadAvatar(file) {
     if (!file) return;
     const formData = new FormData();
     formData.append('avatar', file);
-    showToast('Uploading photo...', 'success');
+    showToast('Uploading photo…', 'success');
     const res = await apiUpload('/profile/avatar', formData);
     if (res && res.success) {
         showToast('Photo updated! 📷', 'success');
@@ -89,7 +88,6 @@ async function uploadAvatar(file) {
     }
 }
 
-// Trigger file input for avatar
 function triggerAvatarUpload() {
     const input = document.createElement('input');
     input.type = 'file';
@@ -98,81 +96,67 @@ function triggerAvatarUpload() {
     input.click();
 }
 
-// Update track (domain/subdomain) – just shows toast for now (can be extended)
+// ── Update track (domain/subdomain) – placeholder ──────────
 function updateTrack() {
-    const domain = document.getElementById('profileDomain')?.value;
+    const domain    = document.getElementById('profileDomain')?.value;
     const subdomain = document.getElementById('profileSubdomain')?.value;
     showToast(`Track updated to ${domain} › ${subdomain}`, 'success');
-    // In the future, call API to save student's domain/subdomain preferences
 }
 
-// Fetch total quests completed
-async function fetchQuestsCompleted() {
+// ── Fetch live profile statistics ──────────────────────────
+async function loadProfileStats() {
     try {
-        const res = await apiCall('GET', '/gamification/me');
-        if (res && res.success && res.stats.quests_completed !== undefined) {
-            document.getElementById('statQuestsDone').textContent = res.stats.quests_completed;
-        } else {
-            // Fallback: try another endpoint if needed
-            const questRes = await apiCall('GET', '/students/me/quests/completed');
-            if (questRes && questRes.success) {
-                document.getElementById('statQuestsDone').textContent = questRes.count;
-            }
+        const [gamifRes, badgesRes] = await Promise.all([
+            apiCall('GET', '/gamification/me'),
+            apiCall('GET', '/badges/me'),
+        ]);
+
+        // 1. Quests completed – not yet tracked, show placeholder
+        const questsEl = document.getElementById('statQuestsDone');
+        if (questsEl) questsEl.textContent = '—';
+
+        // 2. Badges earned count (all returned badges are earned)
+        const badgesCountEl = document.getElementById('statBadgesEarned');
+        if (badgesCountEl && badgesRes && badgesRes.success) {
+            const badgeCount = badgesRes.badges ? badgesRes.badges.length : 0;
+            badgesCountEl.textContent = badgeCount;
+        }
+
+        // 3. Leaderboard rank – no dedicated endpoint yet
+        const rankEl = document.getElementById('statLeaderboardRank');
+        if (rankEl) rankEl.textContent = 'N/A';
+
+        // 4. Gamification stats (XP / Level) – already displayed by student-common.js,
+        //    but we also have profile page specific elements if they exist.
+        if (gamifRes && gamifRes.success) {
+            const stats = gamifRes.stats;
+            const levelEl = document.getElementById('statCurrentLevel');
+            if (levelEl) levelEl.textContent = stats.current_level;
+            const xpEl = document.getElementById('statTotalXp');
+            if (xpEl) xpEl.textContent = stats.total_xp.toLocaleString();
+            const streakEl = document.getElementById('statStreak');
+            if (streakEl) streakEl.textContent = stats.current_streak ?? '—';
         }
     } catch (err) {
-        console.error('Failed to load quests completed:', err);
+        console.error('Failed to load profile stats:', err);
     }
 }
 
-// Fetch badges earned count
-async function fetchBadgesCount() {
-    try {
-        const res = await apiCall('GET', '/badges/me');
-        if (res && res.success) {
-            const earnedCount = res.badges.filter(b => b.earned).length;
-            document.getElementById('statBadgesEarned').textContent = earnedCount;
-        }
-    } catch (err) {
-        console.error('Failed to load badges count:', err);
-    }
-}
-
-// Fetch leaderboard rank
-async function fetchLeaderboardRank() {
-    try {
-        const res = await apiCall('GET', '/leaderboard/me');
-        if (res && res.success) {
-            const rank = res.rank;
-            document.getElementById('statLeaderboardRank').textContent = `#${rank}`;
-        }
-    } catch (err) {
-        console.error('Failed to load leaderboard rank:', err);
-    }
-}
-
-// Initialisation: load existing profile data (already handled by student-common.js loadSharedUserData)
-// But we also need to wire up event listeners after DOM is ready.
+// ── Initialisation ─────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    // Save profile button
+    // Wire up buttons (identical to original)
     const saveBtn = document.getElementById('saveProfileBtn');
     if (saveBtn) saveBtn.addEventListener('click', saveProfile);
 
-    // Change photo button
     const photoBtn = document.getElementById('changePhotoBtn');
     if (photoBtn) photoBtn.addEventListener('click', triggerAvatarUpload);
 
-    // Update password button
     const passBtn = document.getElementById('updatePasswordBtn');
     if (passBtn) passBtn.addEventListener('click', changePassword);
 
-    // Update track button
     const trackBtn = document.getElementById('updateTrackBtn');
     if (trackBtn) trackBtn.addEventListener('click', updateTrack);
 
-    // to be safe, wait a short moment or use setTimeout
-    setTimeout(() => {
-        fetchQuestsCompleted();
-        fetchBadgesCount();
-        fetchLeaderboardRank();
-    }, 500);
+    // Load profile stats after a short delay to ensure common data is ready
+    setTimeout(loadProfileStats, 300);
 });

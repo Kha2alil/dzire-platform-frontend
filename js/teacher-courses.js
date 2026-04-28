@@ -132,15 +132,39 @@ async function toggleCoursePublish(courseId, currentStatus) {
   } else showToast(data?.message || 'Failed', 'error');
 }
 
+// ─── LOAD SKILLS INTO COURSE BUILDER ──────────────────────
+async function loadSkillsForCourseBuilder() {
+  try {
+    const token = localStorage.getItem('token');
+    const res = await axios.get('http://localhost:3000/api/skills', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const skills = res.data.skills || [];
+    const select = document.getElementById('newCourseSkill');
+    if (!select) return;
+    select.innerHTML = '<option value="">-- Select a Skill --</option>';
+    skills.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = `${s.name} (${s.category || 'General'})`;
+      select.appendChild(opt);
+    });
+  } catch (err) {
+    console.error('Failed to load skills:', err);
+  }
+}
+
+// ─── COURSE CREATION ─────────────────────────────────────
 async function createCourse() {
   const title = document.getElementById('newCourseTitle')?.value?.trim();
   const description = document.getElementById('newCourseDescription')?.value?.trim();
   const subdomainId = document.getElementById('newCourseSubdomain')?.value;
   const difficultyLevel = document.getElementById('newCourseDifficulty')?.value;
   const thumbnailFile = selectedThumbnailFile;
+  const skillId = document.getElementById('newCourseSkill')?.value;   // ✅ added
 
-  if (!title || !description || !subdomainId || !difficultyLevel) {
-    showToast('Please fill all fields', 'error');
+  if (!title || !description || !subdomainId || !difficultyLevel || !skillId) {
+    showToast('Please fill all fields (Skill is required)', 'error');
     return;
   }
 
@@ -150,12 +174,13 @@ async function createCourse() {
   createBtn.innerHTML = 'Creating... ⏳';
 
   try {
-    // Step 1: Create the course
+    // Step 1: Create the course (now includes skill_id)
     const courseRes = await apiCall('POST', '/courses', {
       title,
       description,
       subdomain_id: subdomainId,
-      difficulty_level: difficultyLevel
+      difficulty_level: difficultyLevel,
+      skill_id: skillId                 // ✅ added
     });
 
     console.log('Course creation response:', courseRes);
@@ -164,58 +189,44 @@ async function createCourse() {
       throw new Error(courseRes?.message || 'Failed to create course');
     }
 
-    // Try to get ID from response
     let newCourseId = null;
     if (courseRes.data?.course?.id) newCourseId = courseRes.data.course.id;
     else if (courseRes.data?.id) newCourseId = courseRes.data.id;
     else if (courseRes.course?.id) newCourseId = courseRes.course.id;
     else if (courseRes.id) newCourseId = courseRes.id;
 
-    // If still null, fetch all courses and find the newest one (by created_at)
     if (!newCourseId) {
-      console.log('Response missing ID, fetching courses to find the newest...');
-      // Wait a short moment for the database to commit
       await new Promise(resolve => setTimeout(resolve, 500));
       const coursesRes = await apiCall('GET', '/courses');
       if (coursesRes && coursesRes.success) {
         const courses = coursesRes.data.courses || [];
-        // Sort by created_at descending, take the first
         const sorted = [...courses].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         const newest = sorted[0];
         if (newest && newest.title === title) {
           newCourseId = newest.id;
-          console.log('Found newest course with matching title:', newCourseId);
         } else if (newest) {
-          // If title doesn't match, maybe the newest is still correct? Use it.
           newCourseId = newest.id;
-          console.log('Using newest course ID:', newCourseId);
         }
       }
     }
 
     if (!newCourseId) {
-      throw new Error('Could not extract course ID from response or courses list');
+      throw new Error('Could not extract course ID from response');
     }
-
-    console.log('Extracted Course ID:', newCourseId);
 
     // Step 2: Upload thumbnail if a file was selected
     if (thumbnailFile) {
       const formData = new FormData();
       formData.append('thumbnail', thumbnailFile);
-
       console.log(`Uploading thumbnail to: /courses/${newCourseId}/thumbnail`);
       const uploadRes = await apiUpload(`/courses/${newCourseId}/thumbnail`, formData);
       console.log('Thumbnail upload response:', uploadRes);
-
       if (uploadRes && uploadRes.success) {
         showToast('Thumbnail uploaded successfully', 'success');
       } else {
         console.error('Upload failed:', uploadRes);
         showToast('Course created but thumbnail upload failed: ' + (uploadRes?.message || 'Unknown error'), 'warning');
       }
-    } else {
-      console.log('No thumbnail selected');
     }
 
     closeModal('newCourse');
@@ -227,6 +238,7 @@ async function createCourse() {
     document.getElementById('newCourseDescription').value = '';
     document.getElementById('newCourseSubdomain').value = '';
     document.getElementById('newCourseDifficulty').value = 'Beginner';
+    document.getElementById('newCourseSkill').value = '';   // ✅ clear skill
     document.getElementById('newCourseThumbnail').value = '';
     const previewDiv = document.getElementById('thumbnailPreview');
     if (previewDiv) previewDiv.style.display = 'none';
@@ -248,7 +260,7 @@ const thumbnailInput = document.getElementById('newCourseThumbnail');
 if (thumbnailInput) {
   thumbnailInput.addEventListener('change', function(e) {
     const file = e.target.files[0];
-    selectedThumbnailFile = file; // Store globally
+    selectedThumbnailFile = file;
     const previewDiv = document.getElementById('thumbnailPreview');
     const previewImg = document.getElementById('thumbnailPreviewImg');
     if (file && (file.type.startsWith('image/'))) {
@@ -265,9 +277,11 @@ if (thumbnailInput) {
   });
 }
 
+// ─── INITIALISATION ─────────────────────────────────────
 async function initCourses() {
   await fetchSubdomains();
   await fetchCourses();
+  await loadSkillsForCourseBuilder();   // ✅ load skills
   renderNotifications();
 }
 initCourses();

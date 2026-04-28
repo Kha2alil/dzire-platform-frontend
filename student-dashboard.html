@@ -9,7 +9,6 @@
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body data-required-role="student">
-<script src="js/student-common.js"></script>
 <script src="js/auth-guard.js"></script>
 <div class="app">
 
@@ -224,5 +223,26 @@
 
 <script src="js/student-common.js"></script>
 <script src="js/student-dashboard.js"></script>
+<script>
+(async () => {
+  // Prevent redirect loop – run only once per session
+  if (sessionStorage.getItem('onboard-guard-ran')) return;
+  sessionStorage.setItem('onboard-guard-ran', '1');
+
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  try {
+    const res = await fetch('http://localhost:3000/api/onboarding/status', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (data.success && data.onboardingDone === false) {
+      window.location.href = 'onboarding.html';
+    }
+  } catch (e) {
+    console.warn('Onboarding guard check failed:', e);
+  }
+})();
+</script>
 </body>
 </html>

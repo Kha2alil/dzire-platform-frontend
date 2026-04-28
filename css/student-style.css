@@ -1359,6 +1359,103 @@ tbody tr:hover td { background: rgba(59,130,246,0.04); }
   border-color: var(--blue-500);
   box-shadow: 0 10px 20px rgba(0,0,0,0.2);
 }
+/* Badge Celebration Popup */
+.badge-celebrate-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.badge-celebrate-card {
+  background: var(--bg-card);
+  border: 2px solid rgba(251,191,36,0.5);
+  border-radius: var(--radius);
+  padding: 36px 28px 24px;
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  box-shadow: 0 0 50px rgba(251,191,36,0.3), 0 12px 40px rgba(0,0,0,0.6);
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+
+.badge-celebrate-icon {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: rgba(251,191,36,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  margin: 0 auto 16px;
+  animation: bounceIn 0.6s ease both;
+}
+
+.badge-celebrate-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.badge-celebrate-desc {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.badge-celebrate-btn {
+  display: inline-block;
+  padding: 10px 22px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--blue-600), var(--blue-800));
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  text-decoration: none;
+  font-size: 14px;
+}
+.badge-celebrate-btn:hover { transform: translateY(-1px); box-shadow: var(--glow-blue); }
+
+.badge-celebrate-close {
+  position: absolute;
+  top: 10px; right: 12px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: var(--text-3);
+  font-size: 13px;
+  transition: all 0.2s;
+}
+.badge-celebrate-close:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+
+/* Animations */
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.7) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes bounceIn {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.2); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}
 
 /* ═══════════════════════════════════════
    RESPONSIVE MEDIA QUERIES (mobile-first)

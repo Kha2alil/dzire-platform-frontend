@@ -10,14 +10,11 @@ if (token) {
 
 let courseData = { title: "", chapters: [] };
 let currentLesson = null;
-let currentAssessment = null;      // التقييم الحالي الذي يعرضه الطالب
-let assessmentsList = [];          // قائمة بجميع تقييمات الكورس
+let currentAssessment = null;
+let assessmentsList = [];
 
 // ========== DATA FETCHING ==========
 
-/**
- * جلب تفاصيل الكورس بالكامل (الفصول والدروس والتقييمات)
- */
 async function fetchCourseDetails(shouldLoadFirst = false) {
     if (!courseId) {
         alert("Course ID not found");
@@ -26,11 +23,9 @@ async function fetchCourseDetails(shouldLoadFirst = false) {
     }
 
     try {
-        // 1. جلب الفصول
         const resChapters = await axios.get(`${API_BASE}/${courseId}/chapters`);
         const chapters = resChapters.data.data || resChapters.data;
 
-        // 2. جلب الدروس لكل فصل
         const chaptersWithLessons = await Promise.all(chapters.map(async (chapter) => {
             try {
                 const resLessons = await axios.get(`${API_BASE}/${courseId}/chapters/${chapter.id}/lessons`);
@@ -39,31 +34,27 @@ async function fetchCourseDetails(shouldLoadFirst = false) {
                     lessons: resLessons.data.data || resLessons.data
                 };
             } catch (err) {
-                console.error(`خطأ في جلب دروس الفصل ${chapter.id}:`, err);
+                console.error(`Error fetching lessons for chapter ${chapter.id}:`, err);
                 return { ...chapter, lessons: [] };
             }
         }));
         courseData.chapters = chaptersWithLessons;
 
-        // 3. جلب التقييمات الخاصة بالكورس (مع الأسئلة)
         await fetchAssessments();
 
-        // 4. جلب التقدم (last_completed_order)
         try {
             const resProgress = await axios.get(`${API_BASE}/enrolled`);
             const enrolledCourses = resProgress.data.data.courses || [];
             const currentCourse = enrolledCourses.find(c => String(c.id) === String(courseId));
             courseData.last_completed_order = currentCourse ? Number(currentCourse.last_completed_order) : 0;
-            console.log("📈 Student Progress (last_completed_order):", courseData.last_completed_order);
         } catch (progErr) {
-            console.warn("تعذر جلب التقدم، سيتم ضبطه على 0", progErr);
+            console.warn("Could not fetch progress, defaulting to 0", progErr);
             courseData.last_completed_order = 0;
         }
 
         const pageTitleElem = document.getElementById('pageTitle');
         if (pageTitleElem) pageTitleElem.innerText = "Dzire - Learning Space";
 
-        // 5. تحميل أول درس تلقائياً إذا طُلب
         if (shouldLoadFirst && courseData.chapters.length > 0) {
             const firstChapter = courseData.chapters[0];
             if (firstChapter.lessons && firstChapter.lessons.length > 0) {
@@ -72,7 +63,6 @@ async function fetchCourseDetails(shouldLoadFirst = false) {
             }
         }
 
-        // 6. تحديث القائمة الجانبية
         renderSidebar();
 
     } catch (err) {
@@ -80,17 +70,12 @@ async function fetchCourseDetails(shouldLoadFirst = false) {
     }
 }
 
-/**
- * جلب جميع التقييمات الخاصة بالكورس
- */
 async function fetchAssessments() {
     try {
         const res = await axios.get(`${API_BASE}/${courseId}/assessments`);
         if (res.data.success) {
             assessmentsList = res.data.data || [];
-            console.log("📝 Assessments loaded:", assessmentsList);
         } else {
-            console.warn("No assessments found or API error");
             assessmentsList = [];
         }
     } catch (err) {
@@ -109,11 +94,11 @@ async function loadLessonDetails(lessonId, chapterId) {
             id: lessonId,
             chapterId: chapterId
         };
-        currentAssessment = null;  // إخفاء أي تقييم كان مفتوحاً
+        currentAssessment = null;
         updateLessonDisplay();
         renderSidebar();
     } catch (err) {
-        console.error("فشل جلب تفاصيل الدرس:", err);
+        console.error("Failed to load lesson details:", err);
     }
 }
 
@@ -125,11 +110,11 @@ async function loadAssessment(assessmentId) {
             currentLesson = null;
             displayAssessmentModal();
         } else {
-            showToast("فشل تحميل التقييم", "error");
+            showToast("Failed to load assessment", "error");
         }
     } catch (err) {
         console.error("Failed to load assessment:", err);
-        showToast("خطأ في تحميل التقييم", "error");
+        showToast("Error loading assessment", "error");
     }
 }
 
@@ -143,7 +128,6 @@ function renderSidebar() {
     const maxProgress = Number(courseData.last_completed_order || 0);
 
     courseData.chapters.forEach(chapter => {
-        // Determine chapter status for visual indicator
         let chapterStatusClass = '';
         const hasActiveLesson = chapter.lessons?.some(l => currentLesson && String(l.id) === String(currentLesson.id));
         const allDone = chapter.lessons?.every(l => Number(l.order_index) <= maxProgress);
@@ -155,12 +139,10 @@ function renderSidebar() {
 
         html += `<div class="chapter-block ${chapterStatusClass}">`;
 
-        // Chapter title
         const completedCount = chapter.lessons?.filter(l => Number(l.order_index) <= maxProgress).length || 0;
         const totalLessons = chapter.lessons?.length || 0;
         html += `<div class="chapter-title">${escapeHtml(chapter.title)} <span style="font-size:9px;opacity:0.6;font-family:'DM Sans';">${completedCount}/${totalLessons}</span></div>`;
 
-        // Lessons list with progress line class
         const hasAnyDone = completedCount > 0;
         html += `<div class="lessons-list ${hasAnyDone ? 'has-done' : ''}">`;
 
@@ -184,9 +166,8 @@ function renderSidebar() {
                     </div>`;
             });
         }
-        html += `</div>`; // close lessons-list
+        html += `</div>`;
 
-        // Assessments
         const chapterAssessments = assessmentsList.filter(a => a.chapter_id === chapter.id);
         if (chapterAssessments.length) {
             html += `<div class="assessments-list">`;
@@ -201,7 +182,7 @@ function renderSidebar() {
             html += `</div>`;
         }
 
-        html += `</div>`; // close chapter-block
+        html += `</div>`;
     });
 
     sidebar.innerHTML = html;
@@ -209,7 +190,7 @@ function renderSidebar() {
 
 window.handleLessonClick = async function(lessonId, chapterId, isLocked) {
     if (isLocked) {
-        alert("🔒 هذا الدرس مغلق حالياً.");
+        alert("🔒 This lesson is locked.");
         return;
     }
     await loadLessonDetails(lessonId, chapterId);
@@ -222,8 +203,8 @@ window.loadAssessment = async function(assessmentId) {
 function updateLessonDisplay() {
     if (!currentLesson) return;
 
-    document.getElementById('lessonTitle').innerText = currentLesson.title || "بدون عنوان";
-    document.getElementById('lessonDesc').innerText = currentLesson.description || "لا يوجد وصف للدرس.";
+    document.getElementById('lessonTitle').innerText = currentLesson.title || "No Title";
+    document.getElementById('lessonDesc').innerText = currentLesson.description || "No description.";
     document.getElementById('xpReward').innerText = currentLesson.xp || 0;
 
     const videoPlayer = document.getElementById('mainVideoPlayer');
@@ -285,7 +266,7 @@ function setStudyMode(mode) {
         if(pBtn) pBtn.classList.remove('active');
     } else {
         if (!currentLesson || !currentLesson.pdf) {
-            alert("⚠️ لا يوجد ملف PDF متاح لهذا الدرس.");
+            alert("⚠️ No PDF available for this lesson.");
             return;
         }
         if(vContent) vContent.style.display = 'none';
@@ -295,7 +276,6 @@ function setStudyMode(mode) {
     }
 }
 
-// ربط أزرار النمط
 document.getElementById('modeVideoBtn').onclick = () => setStudyMode('video');
 document.getElementById('modePdfBtn').onclick = () => setStudyMode('pdf');
 
@@ -307,7 +287,7 @@ completeBtn.onclick = async () => {
     const lesId = currentLesson?.id;
 
     if (!lesId || !cId || !chapId) {
-        alert("بيانات الدرس غير مكتملة في المتصفح، جرب إعادة تحميل الصفحة.");
+        alert("Incomplete lesson data. Please reload the page.");
         return;
     }
 
@@ -322,15 +302,18 @@ completeBtn.onclick = async () => {
             xp_reward: Number(currentLesson.xp || 0)
         });
 
-        alert("🎉 أحسنت! تم حفظ تقدمك وزيادة نقاط الخبرة.");
+        alert("🎉 Great! Progress saved and XP awarded.");
         completeBtn.innerText = "COMPLETED";
         completeBtn.style.background = "#10B981";
 
-        await fetchCourseDetails(); // تحديث التقدم والقائمة الجانبية
+        await fetchCourseDetails(); // Update progress and sidebar
+
+        // ✅ Trigger notification check → badge popup
+        if (window.loadNotifications) window.loadNotifications();
 
     } catch (err) {
-        console.error("خطأ في الربط:", err);
-        alert("فشل حفظ التقدم، تأكد من اتصالك بالشبكة.");
+        console.error("Error completing lesson:", err);
+        alert("Failed to save progress. Check your connection.");
         completeBtn.innerText = "MARK AS COMPLETED";
         completeBtn.disabled = false;
     }
@@ -340,7 +323,6 @@ completeBtn.onclick = async () => {
 function displayAssessmentModal() {
     if (!currentAssessment) return;
 
-    // إنشاء مودال التقييم إذا لم يكن موجوداً
     let modal = document.getElementById('assessmentModal');
     if (!modal) {
         modal = document.createElement('div');
@@ -367,7 +349,6 @@ function displayAssessmentModal() {
     body.innerHTML = generateAssessmentHTML(currentAssessment);
     modal.classList.add('open');
 
-    // ربط زر الإرسال
     document.getElementById('submitAssessmentBtn').onclick = () => submitAssessment();
 }
 
@@ -415,7 +396,6 @@ async function submitAssessment() {
             const passed = res.data.passed;
             showToast(`Score: ${score}% - ${passed ? 'Passed ✅' : 'Failed ❌'}`, passed ? 'success' : 'error');
             closeAssessmentModal();
-            // يمكن تحديث التقدم أو إعادة فتح التقييم إذا رسب
         } else {
             showToast(res.data.message || 'Submission failed', 'error');
         }
