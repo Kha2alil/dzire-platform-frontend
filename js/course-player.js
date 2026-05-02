@@ -104,7 +104,6 @@ async function fetchCourseDetails(shouldLoadFirst = false) {
   try {
     await fetchCourseSubdomain();
 
-    // 🔥 تحديث الشريط العلوي فور تحميل الصفحة (بدون انتظار أي حدث)
     await fetchAndUpdateGamificationStats();
 
     const resChapters = await axios.get(`${API_COURSES}/${courseId}/chapters`);
@@ -302,7 +301,7 @@ function checkIfLessonDone(lessonId) {
   return Number(currentOrder) <= Number(maxProgress);
 }
 
-// ========== زر إكمال الدرس (مع تحديث XP وجلب الإحصائيات) ==========
+// ========== زر إكمال الدرس ==========
 const completeBtn = document.getElementById('completeLessonBtn');
 if (completeBtn) {
   completeBtn.onclick = async () => {
@@ -312,7 +311,6 @@ if (completeBtn) {
       btn.innerText = "SAVING...";
       btn.disabled = true;
 
-      // 1. حفظ تقدم الدرس (قد يفشل لكن لا نوقف)
       try {
         await axios.post(`${API_COURSES}/complete-lesson`, {
           courseId, chapterId: currentLesson.chapterId, lessonId: currentLesson.id,
@@ -322,10 +320,8 @@ if (completeBtn) {
         console.warn("complete-lesson failed, but XP update will continue", e);
       }
 
-      // 2. إرسال طلب إضافة XP
       await callUpdateProgress(Number(currentLesson.xp || 0));
 
-      // 3. انتظار قليل ثم جلب أحدث الإحصائيات (للتأكد من تحديث الخادم)
       await new Promise(r => setTimeout(r, 500));
       await fetchAndUpdateGamificationStats();
 
@@ -334,7 +330,6 @@ if (completeBtn) {
       btn.style.background = "#10B981";
       btn.disabled = true;
 
-      // 4. إعادة تحميل القائمة الجانبية والتقدم
       await fetchCourseDetails();
     } catch (err) {
       console.error("Error completing lesson:", err);
@@ -408,22 +403,45 @@ function displayAssessmentInline(assessment) {
   }
 }
 
+// ========== إرسال إجابات التقييم (تم التصحيح الكامل هنا) ==========
 async function submitAssessmentInline(assessment) {
+  if (!assessment.questions || assessment.questions.length === 0) {
+    showToast("No questions found in this assessment", "error");
+    return;
+  }
+
   const answers = [];
-  assessment.questions.forEach(q => {
+  let hasAnyAnswer = false;
+
+  for (const q of assessment.questions) {
     const isMultiple = q.correct_answer && q.correct_answer.includes(',');
     let selectedValue = null;
+
     if (isMultiple) {
       const selected = Array.from(document.querySelectorAll(`input[name="q_${q.id}_multi"]:checked`)).map(cb => cb.value);
-      selectedValue = selected;
+      if (selected.length > 0) {
+        // تنظيف كل إجابة من المسافات الزائدة
+        const cleaned = selected.map(s => s.trim());
+        // تحويل المصفوفة إلى نص مفصول بفواصل (لأن الـ Backend يتوقع نصًا وليس مصفوفة)
+        selectedValue = cleaned.join(',');
+        hasAnyAnswer = true;
+      }
     } else {
       const selected = document.querySelector(`input[name="q_${q.id}"]:checked`);
-      selectedValue = selected ? selected.value : null;
+      if (selected) {
+        selectedValue = selected.value.trim();
+        hasAnyAnswer = true;
+      }
     }
     answers.push({ questionId: q.id, answer: selectedValue });
-  });
+  }
 
-  console.log("📤 Sending answers:", JSON.stringify(answers, null, 2));
+  if (!hasAnyAnswer) {
+    showToast("Please select at least one answer before submitting", "error");
+    return;
+  }
+
+  console.log("📤 Sending answers (cleaned & formatted):", JSON.stringify(answers, null, 2));
 
   try {
     const res = await axios.post(`${API_COURSES}/assessments/${assessment.id}/submit`, { answers });
