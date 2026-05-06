@@ -215,6 +215,26 @@ async function openCourseBuilder(courseId) {
   window.location.href = `teacher-course-builder.html?courseId=${courseId}`;
 }
 
+function renderFpListFromData(data, containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (!data.length) {
+        el.innerHTML = '<div class="empty-state">No data yet</div>';
+        return;
+    }
+    const rankColors = ['var(--red)', 'var(--amber)', 'var(--blue-500)'];
+    el.innerHTML = data.map((fp, idx) => `
+        <div class="fp-item">
+            <div class="fp-rank ${idx < 3 ? 'r'+(idx+1) : ''}">#${idx+1}</div>
+            <div class="fp-info">
+                <div class="fp-topic">${escapeHtml(fp.assessment_title)} (${escapeHtml(fp.course_title)})</div>
+                <div class="fp-bar"><div class="fp-fill" style="width:${fp.failure_rate}%;background:${idx < 3 ? rankColors[idx] : 'var(--text-3)'}"></div></div>
+            </div>
+            <div class="fp-pct" style="color:${idx < 3 ? rankColors[idx] : 'var(--text-3)'}">${fp.failure_rate}%</div>
+        </div>
+    `).join('');
+}
+
 // ======================== INITIALISE EVERYTHING ON PAGE LOAD ========================
 document.addEventListener('DOMContentLoaded', function() {
   // Mobile sidebar (hamburger)

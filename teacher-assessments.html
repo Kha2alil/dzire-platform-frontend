@@ -60,7 +60,17 @@
     <div class="card">
       <div class="table-wrap">
         <table>
-          <thead>...</thead>
+          <thead>
+              <tr>
+                <th>Assessment</th>
+                <th>Course</th>
+                <th>Type</th>
+                <th>Questions</th>
+                <th>Avg Score</th>
+                <th>Students</th>
+                <th>Pass Score</th>
+              </tr>
+          </thead>
           <tbody id="assessmentTable"></tbody>
         </table>
       </div>
@@ -70,7 +80,18 @@
 
 <!-- MODALS -->
 <div class="modal-overlay" id="modal-newCourse"><div class="modal"><div class="modal-header"><div class="modal-title">Create New Course</div><div class="modal-close" onclick="closeModal('newCourse')">✕</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Course Title</label><input class="form-input" id="newCourseTitle" placeholder="e.g. Advanced JavaScript Concepts"/></div><div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="newCourseDescription" placeholder="Describe what students will learn..."></textarea></div><div class="form-group"><label class="form-label">Subdomain</label><select class="form-select" id="newCourseSubdomain"><option value="">Loading subdomains...</option></select></div><div class="form-row"><div class="form-group"><label class="form-label">Difficulty Level</label><select class="form-select" id="newCourseDifficulty"><option>Beginner</option><option>Intermediate</option><option>Advanced</option></select></div></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newCourse')">Cancel</button><button class="btn btn-primary" onclick="createCourse()">Create Course</button></div></div></div>
-<div class="modal-overlay" id="modal-newQuiz"><div class="modal" style="max-width:400px"><div class="modal-header"><div class="modal-title">📝 New Assessment</div><div class="modal-close" onclick="closeModal('newQuiz')">✕</div></div><div class="modal-body"><div class="form-group"><label>Assessment Title</label><input type="text" id="quiz_title_input" placeholder="e.g. JavaScript Basics Quiz"></div><div class="form-group"><label>Type</label><select id="quiz_type_input"><option value="quiz">Quiz</option><option value="final_exam">Final Exam</option></select></div><div class="form-group"><label>Passing Score (%)</label><input type="number" id="quiz_passing_score_input" value="65" min="1" max="100"></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newQuiz')">Cancel</button><button class="btn btn-primary" onclick="proceedToQuizBuilder()">Next: Add Questions</button></div></div></div>
+<div class="modal-overlay" id="modal-newQuiz"><div class="modal" style="max-width:400px"><div class="modal-header"><div class="modal-title">📝 New Assessment</div><div class="modal-close" onclick="closeModal('newQuiz')">✕</div></div><div class="modal-body">
+  <div class="form-group">
+    <label>Assessment Title</label>
+    <input type="text" id="quiz_title_input" placeholder="e.g. JavaScript Basics Quiz">
+  </div>
+  <div class="form-group">
+    <label class="form-label">XP Reward</label>
+    <input type="number" class="form-input" id="qb-xp-reward" value="0" min="0" step="10" />
+    <div style="font-size:11px;color:var(--text-3);margin-top:6px">XP students earn upon passing this assessment</div>
+  </div>
+  
+  <div class="form-group"><label>Type</label><select id="quiz_type_input"><option value="quiz">Quiz</option><option value="final_exam">Final Exam</option></select></div><div class="form-group"><label>Passing Score (%)</label><input type="number" id="quiz_passing_score_input" value="65" min="1" max="100"></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newQuiz')">Cancel</button><button class="btn btn-primary" onclick="proceedToQuizBuilder()">Next: Add Questions</button></div></div></div>
 <div class="modal-overlay" id="modal-newChapter"><div class="modal"><div class="modal-header"><div class="modal-title">Create New Chapter</div><div class="modal-close" onclick="closeModal('newChapter')">✕</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Chapter Title</label><input class="form-input" id="newChapterTitle" placeholder="e.g. Introduction to Variables"/></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newChapter')">Cancel</button><button class="btn btn-primary" onclick="createChapter()">Create Chapter</button></div></div></div>
 <div class="modal-overlay" id="modal-newLesson"><div class="modal"><div class="modal-header"><div class="modal-title">Add New Lesson</div><div class="modal-close" onclick="closeModal('newLesson')">✕</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Lesson Title</label><input class="form-input" id="newLessonTitle" placeholder="e.g. What is JavaScript?"/></div><div class="form-row"><div class="form-group"><label class="form-label">Content Type</label><select class="form-select" id="newLessonContentType"><option value="video">🎥 Video</option><option value="pdf">📄 PDF Document</option><option value="text">📝 Text / Article</option></select></div><div class="form-group"><label class="form-label">Duration (minutes)</label><input class="form-input" type="number" id="newLessonDuration" placeholder="e.g. 15"/></div></div><div class="form-group" style="display: flex; align-items: center; gap: 8px;"><input type="checkbox" id="newLessonFreePreview" style="width:16px; height:16px;"/><label class="form-label" style="margin:0;">Make this lesson a Free Preview</label></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newLesson')">Cancel</button><button class="btn btn-primary" onclick="createLesson()">Create Lesson</button></div></div></div>
 <div class="modal-overlay" id="modal-uploadContent"><div class="modal"><div class="modal-header"><div class="modal-title">Upload Lesson Content</div><div class="modal-close" onclick="closeModal('uploadContent')">✕</div></div><div class="modal-body"><input type="hidden" id="uploadCourseId"><input type="hidden" id="uploadChapterId"><input type="hidden" id="uploadLessonId"><div class="form-group"><label class="form-label">Select File (Video or PDF)</label><input type="file" class="form-input" id="lessonFileInput" accept="video/mp4,video/avi,video/mkv,application/pdf" style="padding: 10px;" /><div style="font-size:11px;color:var(--text-3);margin-top:6px">Supported: MP4, AVI, PDF</div></div><p id="uploadStatusText" style="font-size: 14px; font-weight: 600; margin-top: 10px; text-align: center;"></p></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('uploadContent')" id="cancelUploadBtn">Cancel</button><button class="btn btn-primary" onclick="submitContentUpload()" id="startUploadBtn">📤 Start Upload</button></div></div></div>

@@ -1,8 +1,54 @@
 // ==================== student-common.js ====================
-// Shared utilities for all student pages (plain script, no modules)
+// Shared utilities for all student pages
 
 const API = 'http://localhost:3000/api';
 const SERVER_URL = 'http://localhost:3000';
+
+// ─── XP Level Configuration ──────────────────────────────
+const GENERAL_LEVEL_THRESHOLDS = [
+  0,    // Level 1
+  100,  // Level 2
+  220,  // Level 3
+  364,  // Level 4
+  537,  // Level 5
+  744,  // Level 6
+  993,  // Level 7
+  1292, // Level 8
+  1650, // Level 9
+  2080, // Level 10
+  2596, // Level 11
+  3215, // Level 12
+  3958, // Level 13
+  4850, // Level 14
+  5920, // Level 15
+  7204, // Level 16
+  8745, // Level 17
+  10594,// Level 18
+  12813,// Level 19
+  15476,// Level 20
+  18671,// Level 21
+  22505,// Level 22
+  27106,// Level 23
+  32627,// Level 24
+  39252,// Level 25
+  47202,// Level 26
+  56742,// Level 27
+  68190,// Level 28
+  81928,// Level 29
+  98314 // Level 30
+];
+
+function calculateGlobalLevel(totalXP) {
+  let level = 1;
+  for (let i = 0; i < GENERAL_LEVEL_THRESHOLDS.length; i++) {
+    if (totalXP >= GENERAL_LEVEL_THRESHOLDS[i]) {
+      level = i + 1;
+    } else {
+      break;
+    }
+  }
+  return level;
+}
 
 // ─────────────────────────────────────────────────────────────
 // Auth helpers
@@ -85,13 +131,19 @@ window.closeModal = function(id) {
 
 // ─────────────────────────────────────────────────────────────
 // Helper: rank title from level
-window.getRankTitle = function(level) {
-    if (level >= 10) return 'Master';
-    if (level >= 8)  return 'Code Warrior';
-    if (level >= 6)  return 'Developer';
-    if (level >= 4)  return 'Apprentice';
-    return 'Beginner';
-};
+function getRankTitle(level) {
+  if (level >= 30) return 'Grand Master';
+  if (level >= 27) return 'Sage';
+  if (level >= 24) return 'Architect';
+  if (level >= 21) return 'Virtuoso';
+  if (level >= 18) return 'Expert';
+  if (level >= 15) return 'Master';
+  if (level >= 12) return 'Craftsman';
+  if (level >= 9)  return 'Builder';
+  if (level >= 6)  return 'Apprentice';
+  if (level >= 3)  return 'Initiate';
+  return 'Beginner';
+}
 
 // Helper: initials from full name
 window.getInitials = function(fullName) {
@@ -125,25 +177,22 @@ window.setAvatarImage = function(url) {
     }
 };
 
-// ─── NOTIFICATION POLLING + BADGE CELEBRATION POPUP (runs on every student page) ───
 // ─── NOTIFICATION POLLING + BADGE CELEBRATION POPUP (timestamp‑based) ───
 (function () {
     const API_BASE = 'http://localhost:3000';
-    const TS_KEY = 'lastSeenNotificationTimestamp';   // we store the latest created_at
+    const TS_KEY = 'lastSeenNotificationTimestamp';
     let lastSeenTs = localStorage.getItem(TS_KEY) || '1970-01-01T00:00:00.000Z';
 
     function getToken() {
         return localStorage.getItem('token') || localStorage.getItem('dzire_token') || '';
     }
 
-    // ── Bell‑specific DOM (may be null on pages without the bell) ──
     const notifBtn   = document.getElementById('notifBtn');
     const notifPanel = document.getElementById('notifPanel');
     const notifBadge = document.getElementById('notifBadge');
     const notifList  = document.getElementById('notifList');
     const clearBtn   = document.getElementById('clearNotif');
 
-    // ── Bell interactions – only attach if the bell exists ──
     if (notifBtn && notifPanel) {
         notifBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -171,7 +220,6 @@ window.setAvatarImage = function(url) {
         }
     }
 
-    // ── Load notifications into the bell panel (if present) ──
     async function loadNotifications() {
         try {
             const res = await axios.get(`${API_BASE}/api/notifications?limit=20`, {
@@ -195,7 +243,6 @@ window.setAvatarImage = function(url) {
                 }
             }
 
-            // 🎯 Show badge popup for any unread badge notification newer than lastSeenTs
             const unreadBadgeNotifications = notifications.filter(
                 n => !n.is_read && n.title && n.title.includes('New Badge')
             );
@@ -206,9 +253,8 @@ window.setAvatarImage = function(url) {
                 }
             }
 
-            // Update the stored timestamp to the newest found
             if (notifications.length > 0) {
-                const newestTs = notifications[0].created_at;   // sorted by created_at DESC
+                const newestTs = notifications[0].created_at;
                 if (newestTs > lastSeenTs) {
                     lastSeenTs = newestTs;
                     localStorage.setItem(TS_KEY, lastSeenTs);
@@ -219,10 +265,8 @@ window.setAvatarImage = function(url) {
         }
     }
 
-    // Expose globally so course-player.js can call it after completion
     window.loadNotifications = loadNotifications;
 
-    // ── Polling for new notifications (runs everywhere) ──
     setInterval(async () => {
         try {
             const res = await axios.get(`${API_BASE}/api/notifications?limit=5`, {
@@ -231,11 +275,9 @@ window.setAvatarImage = function(url) {
             const notifications = res.data.notifications || [];
             if (notifications.length === 0) return;
 
-            // Find notifications newer than lastSeenTs
             const newNotifications = notifications.filter(n => n.created_at > lastSeenTs);
             if (!newNotifications.length) return;
 
-            // Update lastSeenTs
             lastSeenTs = notifications[0].created_at;
             localStorage.setItem(TS_KEY, lastSeenTs);
 
@@ -256,7 +298,6 @@ window.setAvatarImage = function(url) {
         }
     }, 30000);
 
-    // ── Badge Celebration Popup ──
     function showBadgeCelebration(notification) {
         const old = document.querySelector('.badge-celebrate-overlay');
         if (old) old.remove();
@@ -290,7 +331,6 @@ window.setAvatarImage = function(url) {
         }, 8000);
     }
 
-    // ── TEST FUNCTION (call window.testBadgePopup() in console) ──
     window.testBadgePopup = function() {
         showBadgeCelebration({
             title: '🏅 New Badge: Code Warrior',
@@ -337,7 +377,6 @@ window.setAvatarImage = function(url) {
         return then.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
-    // 🔥 Run immediately on page load
     loadNotifications();
 })();
 
@@ -370,7 +409,7 @@ window.initGlobalSearch = function() {
 
 // ─────────────────────────────────────────────────────────────
 // Load user data (profile, gamification) into sidebar and topbar
-window.loadSharedUserData = async function() {
+window.loadSharedUserData = async function () {
     try {
         const meRes = await window.apiCall('GET', '/auth/me');
         if (meRes && meRes.success) {
@@ -384,30 +423,51 @@ window.loadSharedUserData = async function() {
             const avatarEl = document.querySelector('.sidebar-profile .profile-avatar');
             if (avatarEl) avatarEl.textContent = initials;
 
-            // ── Welcome title with placement badge ──
             const welcomeSpan = document.querySelector('.welcome-title span');
             if (welcomeSpan) welcomeSpan.textContent = firstName;
 
-            // Insert placement badge right inside the welcome-title line
+            // ── Placement badge (sub‑domain level) ──
             try {
                 const onboarding = JSON.parse(localStorage.getItem('onboarding'));
-                if (onboarding && onboarding.level) {
+                const welcomeTitle = document.querySelector('.welcome-title');
+                if (welcomeTitle && onboarding && onboarding.level) {
                     const placementLevel = onboarding.level.charAt(0).toUpperCase() + onboarding.level.slice(1);
-                    const welcomeTitle = document.querySelector('.welcome-title');
-                    if (welcomeTitle) {
+                    let badge = welcomeTitle.querySelector('.placement-badge');
+                    if (!badge) {
+                        badge = document.createElement('span');
+                        badge.className = 'badge badge-amber placement-badge';
+                        badge.style.marginLeft = '10px';
+                        badge.style.fontSize = '13px';
+                        welcomeTitle.appendChild(badge);
+                    }
+                    badge.textContent = `📚 Course Level: ${placementLevel}`;
+                } else if (welcomeTitle && (!onboarding || !onboarding.level)) {
+                    // If onboarding data is missing, fetch from API
+                    const statusRes = await window.apiCall('GET', '/onboarding/status');
+                    if (statusRes && statusRes.success && statusRes.onboardingDone) {
+                        const level = statusRes.result.level || 'beginner';
+                        const placementLevel = level.charAt(0).toUpperCase() + level.slice(1);
                         let badge = welcomeTitle.querySelector('.placement-badge');
                         if (!badge) {
                             badge = document.createElement('span');
                             badge.className = 'badge badge-amber placement-badge';
                             badge.style.marginLeft = '10px';
+                            badge.style.fontSize = '13px';
                             welcomeTitle.appendChild(badge);
                         }
-                        badge.textContent = placementLevel;
+                        badge.textContent = `📚 Course Level: ${placementLevel}`;
+                        // Save to localStorage for next time
+                        localStorage.setItem('onboarding', JSON.stringify({
+                            level: level,
+                            subdomain_id: statusRes.result.subdomain_id,
+                            domain_id: statusRes.result.domain_id
+                        }));
                     }
                 }
-            } catch(e) {}
+            } catch (e) {
+                console.warn('Placement badge update failed:', e);
+            }
 
-            // Profile inputs (if on profile page)
             const fullNameInput = document.querySelector('#page-profile input[data-field="full_name"]');
             if (fullNameInput) fullNameInput.value = fullName;
             const usernameInput = document.querySelector('#page-profile input[data-field="username"]');
@@ -421,18 +481,24 @@ window.loadSharedUserData = async function() {
         const statsRes = await window.apiCall('GET', '/gamification/me');
         if (statsRes && statsRes.success) {
             const s = statsRes.stats;
-            const XP_PER_LEVEL = 3000;
-            const xpInLevel = s.total_xp % XP_PER_LEVEL;
-            const xpToNext = XP_PER_LEVEL - xpInLevel;
-            const pct = Math.round((xpInLevel / XP_PER_LEVEL) * 100);
-            const rankTitle = window.getRankTitle(s.current_level);
+            const totalXP = s.total_xp;
+            const level = calculateGlobalLevel(totalXP);
 
-            // ── Sidebar role (clean, no duplicate words) ──
+            // XP bracket for progress bar
+            const currentBracketLow = GENERAL_LEVEL_THRESHOLDS[level - 1];
+            const nextThreshold = level < GENERAL_LEVEL_THRESHOLDS.length
+                ? GENERAL_LEVEL_THRESHOLDS[level]
+                : GENERAL_LEVEL_THRESHOLDS[GENERAL_LEVEL_THRESHOLDS.length - 1];
+            const bracketXP = nextThreshold - currentBracketLow;
+            const xpGainedInBracket = totalXP - currentBracketLow;
+            const pct = bracketXP > 0 ? Math.round((xpGainedInBracket / bracketXP) * 100) : 0;
+            const xpToNext = nextThreshold - totalXP;
+            const rankTitle = getRankTitle(level);
+
+            // ── Sidebar role ──
             const roleEl = document.querySelector('.sidebar-profile .profile-role');
             if (roleEl) {
-                let roleText = `Level ${s.current_level} · ${rankTitle}`;
-
-                // Only add placement level if it's different from the current rank title
+                let roleText = `Level ${level} · ${rankTitle}`;
                 try {
                     const onboarding = JSON.parse(localStorage.getItem('onboarding'));
                     if (onboarding && onboarding.level) {
@@ -441,34 +507,27 @@ window.loadSharedUserData = async function() {
                             roleText += ` · ${placementLevel}`;
                         }
                     }
-                } catch(e) {}
-
+                } catch (e) { }
                 roleEl.textContent = roleText;
             }
 
             // ── Topbar XP bar ──
             const xpStrong = document.querySelector('.xp-label strong');
-            if (xpStrong) xpStrong.textContent = s.total_xp.toLocaleString();
-
+            if (xpStrong) xpStrong.textContent = totalXP.toLocaleString();
             const xpFill = document.querySelector('.xp-fill');
             if (xpFill) xpFill.style.width = `${pct}%`;
-
             const xpLevel = document.querySelector('.xp-level');
-            if (xpLevel) xpLevel.textContent = `Lv.${s.current_level}`;
+            if (xpLevel) xpLevel.textContent = `Lv.${level}`;
 
-            // ── Dashboard level ring (gamification only, correct as is) ──
+            // ── Dashboard level ring ──
             const levelNum = document.querySelector('.level-num');
-            if (levelNum) levelNum.textContent = s.current_level;
-
+            if (levelNum) levelNum.textContent = level;
             const levelXp = document.querySelector('.level-xp');
-            if (levelXp) levelXp.textContent = `${s.total_xp.toLocaleString()} XP`;
-
+            if (levelXp) levelXp.textContent = `${totalXP.toLocaleString()} / ${nextThreshold.toLocaleString()} XP`;
             const levelNext = document.querySelector('.level-next');
-            if (levelNext) levelNext.textContent = `${xpToNext} XP to Level ${s.current_level + 1}`;
-
+            if (levelNext) levelNext.textContent = `${xpToNext.toLocaleString()} XP to Level ${level + 1}`;
             const levelTitle = document.querySelector('.level-title');
             if (levelTitle) levelTitle.textContent = `${rankTitle} 🗡️`;
-
             const ring = document.querySelector('.level-ring circle:last-child');
             if (ring) {
                 const circumference = 213.6;
@@ -476,23 +535,19 @@ window.loadSharedUserData = async function() {
                 ring.setAttribute('stroke-dashoffset', offset.toFixed(1));
             }
 
-            // ── Profile page stats (if present) ──
+            // ── Profile page stats ──
             const bigLevel = document.querySelector('.big-avatar-level');
-            if (bigLevel) bigLevel.textContent = s.current_level;
-
+            if (bigLevel) bigLevel.textContent = level;
             const totalXpEl = document.getElementById('statTotalXp');
-            if (totalXpEl) totalXpEl.textContent = s.total_xp.toLocaleString();
-
+            if (totalXpEl) totalXpEl.textContent = totalXP.toLocaleString();
             const levelEl = document.getElementById('statCurrentLevel');
-            if (levelEl) levelEl.textContent = s.current_level;
-
+            if (levelEl) levelEl.textContent = level;
             const streakEl = document.getElementById('statStreak');
             if (streakEl) streakEl.textContent = s.current_streak ?? '—';
-
             const statVals = document.querySelectorAll('.profile-stat-val');
             if (statVals.length >= 5) {
-                if (!document.getElementById('statTotalXp')) statVals[0].textContent = s.total_xp.toLocaleString();
-                if (!document.getElementById('statCurrentLevel')) statVals[1].textContent = s.current_level;
+                if (!document.getElementById('statTotalXp')) statVals[0].textContent = totalXP.toLocaleString();
+                if (!document.getElementById('statCurrentLevel')) statVals[1].textContent = level;
                 if (!document.getElementById('statStreak')) statVals[4].textContent = s.current_streak ?? '—';
             }
         }

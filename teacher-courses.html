@@ -285,10 +285,16 @@
           <span class="qb-section-dot" style="background:var(--blue-500)"></span>
           Assessment Details
         </div>
+        modal-quizBuilder
         <div class="form-row">
           <div class="form-group" style="flex:2;margin-bottom:0">
             <label class="form-label">Assessment Title <span style="color:var(--red)">*</span></label>
             <input class="form-input" id="qb-title" placeholder="e.g. JavaScript Basics Quiz" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">XP Reward</label>
+            <input type="number" class="form-input" id="qb-xp-reward" value="0" min="0" step="10" />
+            <div style="font-size:11px;color:var(--text-3);margin-top:6px">XP students earn upon passing this assessment</div>
           </div>
           <div class="form-group" style="margin-bottom:0">
             <label class="form-label">Type</label>

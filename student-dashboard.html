@@ -224,6 +224,7 @@
 <script src="js/student-common.js"></script>
 <script src="js/student-dashboard.js"></script>
 <script>
+
 (async () => {
   // Prevent redirect loop – run only once per session
   if (sessionStorage.getItem('onboard-guard-ran')) return;
@@ -243,6 +244,7 @@
     console.warn('Onboarding guard check failed:', e);
   }
 })();
+
 </script>
 <link rel="stylesheet" href="css/chat-widget.css">
 <script src="js/chat-widget.js"></script>

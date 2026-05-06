@@ -1,24 +1,29 @@
-/* teacher-dashboard.js */
+/* ═══════════════════════════════════════════════════════════════
+   teacher-dashboard.js – Real Stats & Top Failure Points
+   ═══════════════════════════════════════════════════════════════ */
+
 let allCourses = [];
 
+// ─────────────────────────────────────────────────────────────
+// 1. Fetch courses (used everywhere)
+// ─────────────────────────────────────────────────────────────
 async function fetchCourses() {
   try {
     const data = await apiCall('GET', '/courses');
     if (data && data.success) {
       allCourses = data.data.courses || [];
-      updateDashboardStats();
-      renderDashCourses();
       return allCourses;
     } else return [];
   } catch (err) { return []; }
 }
 
+// ─────────────────────────────────────────────────────────────
+// 2. Fetch total students
+// ─────────────────────────────────────────────────────────────
 async function fetchTotalStudents() {
   try {
-    // افترض أن المسار هو /api/teacher/stats (يمكنك تغييره حسب الـ route الخاص بك)
     const response = await apiCall('GET', '/courses/student-count');
     if (response && response.success && response.data) {
-      // إذا كان الـ data يحتوي على totalStudents مباشرة
       return response.data.totalStudents || response.data.studentCount || 0;
     }
     return null;
@@ -28,17 +33,41 @@ async function fetchTotalStudents() {
   }
 }
 
-function updateDashboardStats(totalStudentsFromApi = null) {
+// ─────────────────────────────────────────────────────────────
+// 3. Fetch total failure points count (real number)
+// ─────────────────────────────────────────────────────────────
+async function fetchFailurePointsCount() {
+  try {
+    const res = await apiCall('GET', '/teacher/failure-points/count');
+    if (res && res.success) {
+      return res.count;
+    }
+  } catch (err) { /* ignore */ }
+  return 0;
+}
+
+// ─────────────────────────────────────────────────────────────
+// 4. Dashboard Stats Updater (real data)
+// ─────────────────────────────────────────────────────────────
+function updateDashboardStats(totalStudentsFromApi = null, failurePointsCount = 0) {
   const activeCourses = allCourses.filter(c => c.is_published === 1).length;
-  const totalStudents = (totalStudentsFromApi !== null) ? totalStudentsFromApi : allCourses.reduce((sum, c) => sum + (c.students_count || 0), 0);
-  const avgRating = allCourses.length ? (allCourses.reduce((sum, c) => sum + (c.rating || 4.5), 0) / allCourses.length).toFixed(1) : 4.8;
+  const totalStudents = (totalStudentsFromApi !== null)
+    ? totalStudentsFromApi
+    : allCourses.reduce((sum, c) => sum + (c.students_count || 0), 0);
+  const avgRating = allCourses.length
+    ? (allCourses.reduce((sum, c) => sum + (c.rating || 4.5), 0) / allCourses.length).toFixed(1)
+    : '4.8';
+
   const statValues = document.querySelectorAll('.stat-value');
   if (statValues[0]) statValues[0].textContent = activeCourses;
   if (statValues[1]) statValues[1].textContent = totalStudents;
   if (statValues[2]) statValues[2].textContent = avgRating;
-  if (statValues[3]) statValues[3].textContent = 67;
+  if (statValues[3]) statValues[3].textContent = failurePointsCount;
 }
 
+// ─────────────────────────────────────────────────────────────
+// 5. Render course list in dashboard (compact)
+// ─────────────────────────────────────────────────────────────
 function renderDashCourses() {
   const el = document.getElementById('dashCourseList');
   if (!el) return;
@@ -82,6 +111,9 @@ function getCourseColor(level) {
   return 'rgba(59,130,246,0.15)';
 }
 
+// ─────────────────────────────────────────────────────────────
+// 6. Static fallback failure points & activity
+// ─────────────────────────────────────────────────────────────
 const FAILURE_POINTS = [
   { rank:1, topic:'Async / Await Logic', pct:88, color:'var(--red)' },
   { rank:2, topic:'REST API Design Patterns', pct:71, color:'var(--amber)' },
@@ -125,20 +157,38 @@ function renderActivity(containerId) {
   `).join('');
 }
 
+// ─────────────────────────────────────────────────────────────
+// 7. Initialisation – Real Dashboard Stats & Widgets
+// ─────────────────────────────────────────────────────────────
 async function initDashboard() {
   await fetchSubdomains();
   await fetchCourses();
-  
+
   const totalStudentsCount = await fetchTotalStudents();
-  if (totalStudentsCount !== null) {
-    updateDashboardStats(totalStudentsCount);
-  } else {
-    updateDashboardStats();
+  const failurePointsTotal = await fetchFailurePointsCount();  // real total
+
+  // Top 4 failure points for widget
+  try {
+    const fpData = await apiCall('GET', '/teacher/failure-points?limit=4');
+    if (fpData && fpData.success && fpData.data.length > 0) {
+      if (typeof renderFpListFromData === 'function') {
+        renderFpListFromData(fpData.data, 'dashFpList');
+      } else {
+        renderFpList('dashFpList', 4);
+      }
+    } else {
+      renderFpList('dashFpList', 4);
+    }
+  } catch (err) {
+    renderFpList('dashFpList', 4);
   }
-  
-  renderFpList('dashFpList', 4);
+
+  updateDashboardStats(totalStudentsCount, failurePointsTotal);
+
+  renderDashCourses();
   renderActivity('dashActivity');
   renderChart('weekChart', [42,68,55,91,73,28,18], ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']);
   renderNotifications();
 }
+
 initDashboard();

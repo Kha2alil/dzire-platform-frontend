@@ -82,7 +82,7 @@
             <div class="xp-level">Lv.8</div>
           </div>
           <div class="search-box"><span>🔍</span><input type="text" placeholder="Search..."></div>
-          <button class="icon-btn" id="notifBtn"><i class="fa-solid fa-bell"></i></button>
+          <button class="icon-btn" id="notifBtn" aria-label="Notifications" title="Notifications"><i class="fa-solid fa-bell"></i></button>
           <a href="student-quests.html" class="btn btn-primary"><i class="fa-solid fa-sword"></i> Continue Quest</a>
         </div>
       </header>
@@ -94,6 +94,7 @@
             <div class="study-mode-toggle">
               <button class="mode-btn active" id="modeVideoBtn"><i class="fa-solid fa-video"></i> Video Lesson</button>
               <button class="mode-btn" id="modePdfBtn"><i class="fa-solid fa-file-pdf"></i> PDF Material</button>
+              <button class="mode-btn" id="modeTextBtn" onclick="setActiveTab('text')">📝 Text</button>
             </div>
 
             <div id="contentContainer">
@@ -112,6 +113,11 @@
                 <div class="pdf-wrapper">
                   <iframe id="mainPdfFrame" src="" title="PDF viewer"></iframe>
                 </div>
+              </div>
+
+              <!-- Text content tab -->
+              <div id="textContent" style="display:none;">
+                <div style="padding:28px; white-space:pre-wrap; line-height:1.8; color:var(--text-2); font-size:15px;" id="textLessonBody"></div>
               </div>
 
               <!-- Assessment panel (inline) -->

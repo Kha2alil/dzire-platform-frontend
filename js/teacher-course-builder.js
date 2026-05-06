@@ -140,30 +140,46 @@ function renderChapters(chapters) {
 
 function renderLessonItem(lesson, chapterId) {
   const hasVideo = !!lesson.video_url;
-  const hasPdf = !!lesson.pdf_url;
-  const hasSummary = !!lesson.summary_text;
+  const hasPdf   = !!lesson.pdf_url;
+  const hasText  = !!lesson.summary_text;
+
+  // Badges
+  let metaHtml = '';
+  if (hasVideo) metaHtml += '<span class="badge badge-blue">🎥 Video</span>';
+  if (hasPdf)   metaHtml += '<span class="badge badge-purple">📄 PDF</span>';
+  if (hasText)  metaHtml += '<span class="badge badge-cyan">📝 Text</span>';
+  if (!hasVideo && !hasPdf && !hasText) metaHtml += '<span class="badge" style="background:var(--bg-3);color:var(--text-3);">No Content</span>';
+
+  // All action buttons — always visible, text opens modal
+  const actions = `
+    <button class="btn btn-ghost" style="padding:6px 10px;font-size:12px;" onclick="uploadContent('${chapterId}', '${lesson.id}', 'video')" title="Upload Video">📤 Video</button>
+    
+    <button class="btn btn-ghost" style="padding:6px 10px;font-size:12px;" onclick="uploadContent('${chapterId}', '${lesson.id}', 'pdf')" title="Upload PDF">📤 PDF</button>
+    
+    <button class="btn btn-ghost" style="padding:6px 10px;font-size:12px;"
+    data-lesson-id="${lesson.id}" data-chapter-id="${chapterId}"
+    data-text-content="${encodeURIComponent(lesson.summary_text || '')}"
+    onclick="editTextLesson(this)">📝 Text</button>
+
+    <div style="width:1px;height:20px;background:var(--border);margin:0 4px;"></div>
+    
+    <button class="icon-btn-sm" onclick="editLesson('${chapterId}', '${lesson.id}')" title="Edit Title">✎</button>
+    
+    <button class="icon-btn-sm" style="color:var(--red);border-color:rgba(239,68,68,0.2);" onclick="deleteLesson('${chapterId}', '${lesson.id}')" title="Delete Lesson">🗑️</button>
+  `;
 
   return `
     <div class="lesson-item" data-lesson-id="${lesson.id}">
       <div class="lesson-info">
         <div class="lesson-drag-icon">⋮⋮</div>
-        <div class="lesson-icon" style="background: rgba(59,130,246,0.12);">📚</div>
+        <div class="lesson-icon" style="background:rgba(59,130,246,0.12);">📚</div>
         <div class="lesson-details">
-          <div class="lesson-title" style="font-weight: 600; font-size: 14px; color: var(--text-1);">${escapeHtml(lesson.title)}</div>
-          <div class="lesson-meta" style="display: flex; gap: 6px; margin-top: 4px;">
-             ${hasVideo ? '<span class="badge badge-blue">🎥 Video</span>' : ''}
-             ${hasPdf ? '<span class="badge badge-purple">📄 PDF</span>' : ''}
-             ${hasSummary ? '<span class="badge badge-green">📝 Text</span>' : ''}
-             ${!hasVideo && !hasPdf && !hasSummary ? '<span class="badge" style="background: var(--bg-3); color: var(--text-3);">No Content</span>' : ''}
-          </div>
+          <div class="lesson-title" style="font-weight:600;font-size:14px;color:var(--text-1);">${escapeHtml(lesson.title)}</div>
+          <div class="lesson-meta" style="display:flex;gap:6px;margin-top:4px;">${metaHtml}</div>
         </div>
       </div>
-      <div class="lesson-actions" style="display: flex; align-items: center; gap: 8px;">
-        <button class="btn btn-ghost" style="padding: 6px 10px; font-size: 12px;" onclick="uploadContent('${chapterId}', '${lesson.id}', 'video')" title="Upload Video">📤 Video</button>
-        <button class="btn btn-ghost" style="padding: 6px 10px; font-size: 12px;" onclick="uploadContent('${chapterId}', '${lesson.id}', 'pdf')" title="Upload PDF">📤 PDF</button>
-        <div style="width: 1px; height: 20px; background: var(--border); margin: 0 4px;"></div>
-        <button class="icon-btn-sm" onclick="editLesson('${chapterId}', '${lesson.id}')" title="Edit Title">✎</button>
-        <button class="icon-btn-sm" style="color: var(--red); border-color: rgba(239,68,68,0.2);" onclick="deleteLesson('${chapterId}', '${lesson.id}')" title="Delete Lesson">🗑️</button>
+      <div class="lesson-actions" style="display:flex;align-items:center;gap:8px;">
+        ${actions}
       </div>
     </div>
   `;
@@ -260,18 +276,19 @@ async function editChapter(chapterId) {
 // دوال الدروس (Lessons)
 // ─────────────────────────────────────────────────────────────────
 function openLessonModal(chapterId) {
-  window.currentLessonChapterId = chapterId;
-  openModal('newLesson');
-  const titleInput = document.getElementById('newLessonTitle');
-  if (titleInput) titleInput.value = '';
-  const contentTypeSelect = document.getElementById('newLessonContentType');
-  if (contentTypeSelect) contentTypeSelect.value = 'video';
-  const durationInput = document.getElementById('newLessonDuration');
-  if (durationInput) durationInput.value = '';
-  const freeCheckbox = document.getElementById('newLessonFreePreview');
-  if (freeCheckbox) freeCheckbox.checked = false;
-  const xpInput = document.getElementById('newLessonXp');
-  if (xpInput) xpInput.value = '50';   // <-- default value
+    window.currentLessonChapterId = chapterId;
+    openModal('newLesson');
+    document.getElementById('newLessonTitle').value = '';
+    document.getElementById('newLessonContentType').value = 'video';
+    document.getElementById('newLessonDuration').value = '';
+    document.getElementById('newLessonXp').value = '50';
+    document.getElementById('newLessonFreePreview').checked = false;
+    
+    // Reset text-specific fields
+    const textGroup = document.getElementById('textContentGroup');
+    if (textGroup) textGroup.style.display = 'none';
+    const summary = document.getElementById('newLessonSummary');
+    if (summary) summary.value = '';
 }
 
 async function createLesson() {
@@ -285,7 +302,8 @@ async function createLesson() {
   const contentType = document.getElementById('newLessonContentType')?.value;
   const duration = parseInt(document.getElementById('newLessonDuration')?.value) || 0;
   const isFree = document.getElementById('newLessonFreePreview')?.checked || false;
-  const xpReward = parseInt(document.getElementById('newLessonXp')?.value) || 0;  // <-- new
+  const xpReward = parseInt(document.getElementById('newLessonXp')?.value) || 0;
+  const summaryText = document.getElementById('newLessonSummary')?.value.trim() || ''; 
 
   if (!title) {
     showToast('Lesson title is required', 'error');
@@ -297,9 +315,9 @@ async function createLesson() {
     content_type: contentType,
     duration,
     is_free: isFree,
-    xp_reward: xpReward   // <-- add this
+    xp_reward: xpReward,
+    summary_text: summaryText
   });
-
   if (!data || !data.success) {
     showToast(data?.message || 'Failed to create lesson', 'error');
     return;
@@ -780,33 +798,47 @@ async function saveQuizAssessment() {
   const title = (document.getElementById('qb-title')?.value || '').trim();
   const type = document.getElementById('qb-type')?.value || 'quiz';
   const passing_score = currentQuizPassingScore;
+  const xpReward = parseInt(document.getElementById('qb-xp-reward')?.value) || 0;
+
   if (!title) { showToast('Please enter an assessment title.', 'error'); return; }
   if (_qbQuestionIds.length === 0) { showToast('Add at least one question before saving.', 'error'); return; }
+
   const questions = [];
   for (let i = 0; i < _qbQuestionIds.length; i++) {
     const uid = _qbQuestionIds[i];
-    const result = _qbReadQuestion(uid, i+1);
+    const result = _qbReadQuestion(uid, i + 1);
     if (result.error) { showToast(result.error, 'error'); return; }
     questions.push(result.data);
   }
-  const payload = { title, type, passing_score, questions };
-  
-  // ✅ إرسال lesson_id إذا تم اختيار درس
+
+  const payload = {
+    title,
+    type,
+    passing_score,
+    xp_reward: xpReward,
+    questions,
+  };
+
+  // Include lesson_id if selected
   if (currentLessonIdForQuiz) {
     payload.lesson_id = currentLessonIdForQuiz;
     console.log('Saving assessment with lesson_id:', currentLessonIdForQuiz);
   } else {
     console.log('Saving assessment without lesson_id');
   }
-  
+
   let method = 'POST';
   let endpoint = `/courses/${currentBuilderCourseId}/chapters/${currentChapterIdForQuiz}/assessments`;
   if (currentEditAssessmentId) {
     method = 'PATCH';
     endpoint = `${endpoint}/${currentEditAssessmentId}`;
   }
+
   try {
-    if (!currentBuilderCourseId || !currentChapterIdForQuiz) { showToast("Missing Course or Chapter ID", "error"); return; }
+    if (!currentBuilderCourseId || !currentChapterIdForQuiz) {
+      showToast("Missing Course or Chapter ID", "error");
+      return;
+    }
     const data = await apiCall(method, endpoint, payload);
     if (data && data.success) {
       closeModal('quizBuilder');
@@ -816,8 +848,12 @@ async function saveQuizAssessment() {
       currentLessonIdForQuiz = null;
       pendingEditAssessment = null;
       await openCourseBuilder(currentBuilderCourseId);
-    } else showToast(data?.message || 'Failed to save assessment', 'error');
-  } catch (err) { showToast("Server communication error", "error"); }
+    } else {
+      showToast(data?.message || 'Failed to save assessment', 'error');
+    }
+  } catch (err) {
+    showToast("Server communication error", "error");
+  }
 }
 
 function _qbResetBuilder() {
@@ -911,6 +947,49 @@ function updatePreviewNav() {
   nextBtn.disabled = currentPreviewIndex === previewLessonsList.length - 1;
   prevBtn.onclick = () => { if (currentPreviewIndex > 0) { currentPreviewIndex--; loadPreviewContent(currentPreviewIndex); } };
   nextBtn.onclick = () => { if (currentPreviewIndex < previewLessonsList.length - 1) { currentPreviewIndex++; loadPreviewContent(currentPreviewIndex); } };
+}
+
+document.getElementById('newLessonContentType').addEventListener('change', function () {
+    const isText = this.value === 'text';
+    const textGroup = document.getElementById('textContentGroup');
+    if (textGroup) textGroup.style.display = isText ? 'block' : 'none';
+});
+
+// ═══════════════════════════════════════════════════════
+//  TEXT LESSON EDITING (NEW)
+// ═══════════════════════════════════════════════════════
+
+function editTextLesson(btn) {
+  const lessonId = btn.dataset.lessonId;
+  const chapterId = btn.dataset.chapterId;
+  const currentText = decodeURIComponent(btn.dataset.textContent || '');
+  window.currentLessonChapterId = chapterId;
+  document.getElementById('editTextLessonId').value = lessonId;
+  document.getElementById('editTextContent').value = currentText;
+  openModal('editTextLesson');
+}
+
+async function saveTextLesson() {
+  const lessonId = document.getElementById('editTextLessonId').value;
+  const content = document.getElementById('editTextContent').value;
+  if (!lessonId || !window.currentLessonChapterId) {
+    showToast('Missing lesson or chapter ID', 'error');
+    return;
+  }
+
+  const data = await apiCall(
+    'PATCH',
+    `/courses/${currentBuilderCourseId}/chapters/${window.currentLessonChapterId}/lessons/${lessonId}`,
+    { summary_text: content, content_type: 'text' }
+  );
+
+  if (data && data.success) {
+    closeModal('editTextLesson');
+    showToast('Text updated!', 'success');
+    await openCourseBuilder(currentBuilderCourseId);
+  } else {
+    showToast(data?.message || 'Failed to update text', 'error');
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────

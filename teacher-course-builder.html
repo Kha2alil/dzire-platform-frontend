@@ -181,14 +181,23 @@
       <input type="hidden" id="qb-passing-score" value="70">
 
       <div class="qb-section">
+        
         <div class="qb-section-label">
           <span class="qb-section-dot" style="background: var(--blue-500);"></span>
           Assessment Details
         </div>
+        
         <div class="form-group">
           <label class="form-label">Assessment Title *</label>
           <input type="text" id="qb-title" class="form-input" placeholder="e.g. JavaScript Basics Quiz">
         </div>
+        
+        <div class="form-group">
+          <label class="form-label">XP Reward</label>
+          <input type="number" class="form-input" id="qb-xp-reward" value="0" min="0" step="10" />
+          <div style="font-size:11px;color:var(--text-3);margin-top:6px">XP students earn upon passing this assessment</div>
+        </div>
+
       </div>
 
       <div class="qb-section">
@@ -247,15 +256,21 @@
         <div class="form-group">
           <label class="form-label">Content Type</label>
           <select class="form-select" id="newLessonContentType">
-            <option value="video">🎥 Video</option>
-            <option value="pdf">📄 PDF Document</option>
-            <option value="text">📝 Text / Article</option>
+              <option value="video">🎥 Video</option>
+              <option value="pdf">📄 PDF Document</option>
+              <option value="text">📝 Text / Article</option>
           </select>
         </div>
         <div class="form-group">
           <label class="form-label">Duration (minutes)</label>
           <input class="form-input" type="number" id="newLessonDuration" placeholder="e.g. 15"/>
         </div>
+      </div>
+      <!-- Text Content Area (shown only when text is selected) -->
+      <div class="form-group">
+        <label class="form-label">Lesson Summary / Text Content (optional)</label>
+        <textarea class="form-textarea" id="newLessonSummary" placeholder="Write the full lesson text here… (optional)" rows="8"></textarea>
+        <div style="font-size:11px;color:var(--text-3);margin-top:6px">This text will appear as a text tab in the course player. Leave blank if not needed.</div>
       </div>
       <div class="form-group">
         <label class="form-label">XP Reward</label>
@@ -320,6 +335,27 @@
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="closeModal('newAssessment')">Cancel</button>
       <button class="btn btn-primary" onclick="createAssessment()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== NEW: Edit Text Lesson Modal ========== -->
+<div class="modal-overlay" id="modal-editTextLesson">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Edit Text Lesson</div>
+      <div class="modal-close" onclick="closeModal('editTextLesson')">✕</div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editTextLessonId" />
+      <div class="form-group">
+        <label class="form-label">Lesson Content (plain text)</label>
+        <textarea class="form-textarea" id="editTextContent" rows="10" placeholder="Write your lesson content…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('editTextLesson')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTextLesson()">💾 Save</button>
     </div>
   </div>
 </div>
