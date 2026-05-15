@@ -7,9 +7,27 @@
   <meta name="description" content="Dzire Course Player – video, PDF, and assessments under each lesson">
   <title>Dzire – Course Player</title>
 
-  <link
-    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
-    rel="stylesheet">
+  <!-- CodeMirror base + dark theme -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/dracula.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/show-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/xml-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/html-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/css-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/hint/javascript-hint.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/emmet/emmet.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/addon/edit/closetag.min.js"></script>
+
+  <!-- Language modes -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/css/css.min.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="css/student-style.css">
   <link rel="stylesheet" href="css/course-player.css">
@@ -121,16 +139,37 @@
               </div>
 
               <!-- Assessment panel (inline) -->
-              <div id="assessmentContent" style="display: none;">
-                <div class="quiz-wrapper">
-                  <div class="quiz-header">
-                    <h2 class="quiz-title" id="quizTitle">Assessment</h2>
-                    <div class="quiz-meta">
-                      <span class="passing-info" id="quizPassing"></span>
+              <div id="assessmentContent" style="display:none;">
+                <!-- Standard quiz content (unchanged) -->
+                <div id="quizContent">
+                  <div class="quiz-wrapper">
+                    <div class="quiz-header">
+                      <h2 class="quiz-title" id="quizTitle">Quiz</h2>
+                      <div class="quiz-meta"><span class="passing-info" id="quizPassing"></span></div>
                     </div>
+                    <div class="quiz-questions-container" id="quizQuestions"></div>
+                    <button id="submitQuizBtn" class="btn btn-primary">Submit Answers</button>
                   </div>
-                  <div id="quizQuestions" class="quiz-questions-container"></div>
-                  <button class="" id="submitQuizBtn" style="margin-top: 20px;">✅ Submit Assessment</button>
+                </div>
+
+                <!-- Boss Exam content (new) -->
+                <div id="bossExamContent" style="display:none;">
+                  <div style="padding:20px;">
+                    <h2 id="bossExamTitle">Boss Exam</h2>
+                    <p id="bossExamDescription" style="white-space:pre-wrap;color:var(--text-2);"></p>
+                    <div style="margin-top:12px;">
+                      <span class="badge badge-blue" id="bossLanguageBadge"></span>
+                      <span class="badge badge-amber" id="bossPassingBadge"></span>
+                    </div>
+                    <div id="codeEditorContainer" style="border:1px solid var(--border); margin-top:16px; border-radius:8px; overflow:hidden;">
+                      <!-- CodeMirror will be attached here -->
+                    </div>
+                    <div style="display:flex; gap:12px; margin-top:16px;">
+                      <button class="btn btn-ghost" id="runSampleBtn" onclick="runSampleTests()">▶ Run Sample Tests</button>
+                      <button class="btn btn-primary" id="submitBossBtn" onclick="submitBossExam()">🚀 Submit Final</button>
+                    </div>
+                    <div id="bossResults" style="margin-top:20px;"></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -141,12 +180,15 @@
             </div>
             <p class="lesson-description" id="lessonDesc"></p>
             <button class="glow-button" id="completeLessonBtn"><i class="fa-solid fa-circle-check"></i> Mark as
-              Complete</button>
+              Complete
+            </button>
           </div>
         </section>
 
         <!-- RIGHT: Sidebar (curriculum + assessments under each lesson) -->
-        <aside class="player-sidebar" id="playerSidebar" aria-label="Course curriculum"></aside>
+        <aside class="player-sidebar" id="playerSidebar" aria-label="Course curriculum">
+          
+        </aside>
       </main>
     </div>
   </div>
