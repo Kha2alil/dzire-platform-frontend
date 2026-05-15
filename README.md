@@ -1,3 +1,92 @@
+# Dzire
+
+> An AI-powered gamified e-learning platform focused on web development.
+> Multi-role interface (student, teacher, admin) with real-time interactions, gamification elements, and a built-in code editor for coding challenges.
+
+---
+
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Key Features](#key-features)
+- [How to Test](#how-to-test)
+- [Troubleshooting](#troubleshooting)
+- [Related Repositories](#related-repositories)
+- [Authors](#authors)
+- [License](#license)
+
+---
+
+## Quick Start
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/Kha2alil/dzire-platform-frontend.git
+cd dzire-platform-frontend
+```
+
+### 2. Open the project
+
+Simply open any `.html` file in your browser, or serve the folder with a lightweight server:
+
+```bash
+npx serve .
+```
+
+### 3. Connect to the backend
+
+Ensure the backend is running on `http://localhost:3000`.
+See [Dzire Backend](#related-repositories) for setup instructions.
+
+---
+
+## Tech Stack
+
+| Technology | Purpose |
+|---|---|
+| **HTML5** | Semantic, accessible markup |
+| **CSS3** | Custom properties, responsive design (`student-style.css`, `teacher-style.css`, etc.) |
+| **Vanilla JavaScript** | Modular, zero-dependency scripts |
+| **Axios** | HTTP client for API communication |
+| **CodeMirror** | Embeddable code editor with autocomplete & Emmet (for boss exams) |
+| **Font Awesome** | Icons across the platform |
+
+---
+
+## Project Structure
+dzire-landing/
+├── index.html                    # Landing page
+├── login.html                    # Login page
+├── signup.html                   # Signup page
+├── onboarding.html               # Onboarding / placement test
+│
+├── student-.html                # Student dashboard, courses, assessments, etc.
+├── teacher-.html                # Teacher dashboard, course builder, analytics, etc.
+├── admin-dashboard.html          # Admin panel
+│
+├── css/
+│   ├── student-style.css
+│   ├── teacher-style.css
+│   ├── admin-dashboard.css
+│   ├── course-player.css
+│   ├── chat-widget.css
+│   └── ...
+│
+├── js/
+│   ├── student-common.js         # Shared student utilities (XP bar, notifications, etc.)
+│   ├── teacher-common.js         # Shared teacher utilities
+│   ├── course-player.js          # Course consumption (videos, PDFs, text, quizzes, boss exams)
+│   ├── teacher-course-builder.js
+│   ├── teacher-dashboard.js
+│   ├── student-assessments.js
+│   └── ...
+│
+└── assets/
+└── images/                   # Static images
+
 ---
 
 ## Key Features
@@ -72,6 +161,7 @@ Optimised for desktop and tablet experiences.
 ## Authors
 
 - **Khalil Khalfi** – Full-stack developer & architect — [GitHub](https://github.com/Kha2alil)
+- **Boudersa Zineddine** – Full-stack developer & architect — [GitHub](https://github.com/Kha2alil)
 
 ---
 
