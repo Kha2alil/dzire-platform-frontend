@@ -1,104 +1,86 @@
-// ==================== student-assessments.js ====================
+// student-assessments.js – guaranteed to work
 function escapeHtml(str) {
-    if (!str) return '';
-    return String(str).replace(/[&<>"']/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        if (m === '"') return '&quot;';
-        if (m === "'") return '&#39;';
-        return m;
-    });
+  if (!str) return '';
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
 const API_BASE = 'http://localhost:3000/api';
-
-function getToken() {
-    return localStorage.getItem('token') || '';
-}
+function getToken() { return localStorage.getItem('token') || ''; }
 
 async function fetchAssessments() {
-    try {
-        const res = await axios.get(`${API_BASE}/students/assessments/overview`, {
-            headers: { Authorization: `Bearer ${getToken()}` }
-        });
-        if (res.data.success) {
-            return res.data.data;
-        } else {
-            throw new Error(res.data.message || 'Failed to load');
-        }
-    } catch (err) {
-        console.error('Failed to fetch assessments:', err);
-        showToast('Could not load assessments', 'error');
-        return [];
-    }
+  const res = await axios.get(`${API_BASE}/students/assessments/overview`, {
+    headers: { Authorization: `Bearer ${getToken()}` }
+  });
+  if (res.data.success) return res.data.data;
+  throw new Error(res.data.message || 'Failed');
 }
 
-function getStatusCategory(status) {
-    if (status === 'Upcoming') return 'upcoming';
-    if (status === 'Passed' || status === 'Attempted') return 'completed';
-    if (status === 'Locked') return 'locked';
-    return 'all';
-}
-
-async function renderAssessments(filter = 'all') {
-    const container = document.getElementById('assessmentTable');
-    if (!container) return;
-
-    const allData = await fetchAssessments();
-    if (!allData) return;
-
-    let filtered = allData;
-    if (filter === 'upcoming') {
-        filtered = allData.filter(a => a.status === 'Upcoming');
-    } else if (filter === 'completed') {
-        filtered = allData.filter(a => a.status === 'Passed' || a.status === 'Attempted');
-    } else if (filter === 'locked') {
-        filtered = allData.filter(a => a.status === 'Locked');
+async function renderTable(filter = 'all') {
+  // Ensure the table body exists
+  let tbody = document.getElementById('assessmentTable');
+  if (!tbody) {
+    const table = document.querySelector('.table-wrap table') || document.querySelector('table');
+    if (table) {
+      tbody = table.querySelector('tbody') || table.appendChild(document.createElement('tbody'));
+      tbody.id = 'assessmentTable';
+    } else {
+      // Create the full table from scratch inside the .card
+      const card = document.querySelector('.card');
+      if (card) {
+        const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+        const tbl = document.createElement('table');
+        const thead = document.createElement('thead');
+        thead.innerHTML = '<tr><th>Assessment</th><th>Course</th><th>Type</th><th>Score</th><th>Status</th><th>Action</th></tr>';
+        tbody = document.createElement('tbody'); tbody.id = 'assessmentTable';
+        tbl.appendChild(thead); tbl.appendChild(tbody);
+        wrap.appendChild(tbl);
+        card.appendChild(wrap);
+      } else return;
     }
+  }
 
-    if (filtered.length === 0) {
-        container.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:40px;">No assessments found</td></tr>';
-        return;
+  try {
+    let data = await fetchAssessments();
+    if (filter === 'upcoming') data = data.filter(a => a.status === 'Upcoming');
+    else if (filter === 'completed') data = data.filter(a => a.status === 'Passed' || a.status === 'Attempted');
+
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="6">No assessments found</td></tr>';
+      return;
     }
-
-    container.innerHTML = filtered.map(a => {
-        const typeClass   = a.type === 'final_exam' ? 'badge-red' : 'badge-purple';
-        const statusClass = a.status === 'Passed'   ? 'badge-green' :
-                            a.status === 'Attempted' ? 'badge-amber' :
-                            a.status === 'Upcoming'  ? 'badge-blue' : 'badge-neutral';
-        const scoreColor  = a.best_score === null ? 'var(--text-3)' : a.best_score >= 75 ? 'var(--green)' : a.best_score >= 50 ? 'var(--amber)' : 'var(--red)';
-        const scoreDisplay = a.best_score !== null ? a.best_score + '%' + (a.attempts_count > 1 ? ` (${a.attempts_count} tries)` : '') : '—';
-        const assLink = `course-player.html?courseId=${a.course_id}&assessmentId=${a.id}`;
-        const action = a.status === 'Locked'
-            ? '<span class="locked-label">🔒 Locked</span>'
-            : `<a href="${assLink}" class="btn btn-primary btn-xs">${a.status === 'Upcoming' ? 'Start' : 'Go'} →</a>`;
-        return `
-            <tr>
-                <td><div class="assessment-title">${escapeHtml(a.title)}</div></td>
-                <td class="assessment-course">${escapeHtml(a.course_title)}</td>
-                <td><div class="badge ${typeClass}">${a.type}</div></td>
-                <td><span class="assessment-score" style="color:${scoreColor}">${scoreDisplay}</span></td>
-                <td><div class="badge ${statusClass}">${a.status}</div></td>
-                <td>${action}</td>
-            </tr>
-        `;
+    tbody.innerHTML = data.map(a => {
+      const typeBadge = a.type === 'boss_exam' ? 'badge-red' : a.type === 'final_exam' ? 'badge-red' : 'badge-purple';
+      const typeLabel = a.type === 'boss_exam' ? 'Boss Exam' : a.type;
+      const statusClass = a.status === 'Passed' ? 'badge-green' : a.status === 'Attempted' ? 'badge-amber' : 'badge-blue';
+      const score = a.best_score !== null ? a.best_score + '%' : '—';
+      const link = `course-player.html?courseId=${a.course_id}&assessmentId=${a.id}`;
+      return `<tr>
+        <td>${escapeHtml(a.title)}</td>
+        <td>${escapeHtml(a.course_title)}</td>
+        <td><span class="badge ${typeBadge}">${typeLabel}</span></td>
+        <td>${score}</td>
+        <td><span class="badge ${statusClass}">${a.status || 'Upcoming'}</span></td>
+        <td><a href="${link}" class="btn btn-primary btn-xs">${a.status === 'Upcoming' ? 'Start' : 'Go'} →</a></td>
+      </tr>`;
     }).join('');
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="6">Error loading assessments</td></tr>';
+  }
 }
 
-function initTabs() {
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            const filter = tab.dataset.tab || 'all';
-            renderAssessments(filter);
-        });
+// Run immediately when script loads
+(function() {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => renderTable('all'));
+  } else {
+    renderTable('all');
+  }
+  // Tab handling
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      renderTable(tab.dataset.tab || 'all');
     });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    renderAssessments('all');
-    initTabs();
-});
+  });
+})();

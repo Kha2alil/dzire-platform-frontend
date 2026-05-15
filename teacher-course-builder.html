@@ -143,6 +143,7 @@
         <select id="quiz_type_input" class="form-select">
           <option value="quiz">Quiz</option>
           <option value="final_exam">Final Exam</option>
+          <option value="boss_exam">Boss Exam</option>
         </select>
       </div>
       <div class="form-group">
@@ -154,6 +155,37 @@
         <select id="quiz_lesson_select" class="form-select">
           <option value="">-- None (Chapter level) --</option>
         </select>
+      </div>
+
+      <!-- ══════ Boss Exam Fields (hidden by default) ══════ -->
+      <div id="bossExamFields" style="display: none;">
+        <div class="form-group">
+          <label class="form-label">Problem Description</label>
+          <textarea class="form-textarea" id="boss_description" rows="5" placeholder="Describe the coding challenge…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Language</label>
+          <select class="form-select" id="boss_language">
+            <option value="javascript">JavaScript</option>
+            <option value="html">HTML</option>
+            <option value="css">CSS</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Starter Code (optional)</label>
+          <textarea class="form-textarea" id="boss_starter_code" rows="4" placeholder="// Initial code for the student…"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Test Cases</label>
+          <div id="bossTestCasesContainer">
+            <div class="test-case-row" style="display: flex; gap: 12px; margin-bottom: 8px;">
+              <input type="text" class="form-input test-input" placeholder="Input" style="flex: 1;" />
+              <input type="text" class="form-input test-expected" placeholder="Expected Output" style="flex: 1;" />
+              <button type="button" class="btn btn-ghost btn-sm remove-test-case" style="display: none;">✕</button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm" id="addTestCaseBtn" style="margin-top: 8px;">+ Add Test Case</button>
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -365,5 +397,30 @@
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="js/teacher-common.js"></script>
 <script src="js/teacher-course-builder.js"></script>
+<script>
+// Show/hide Boss Exam fields based on assessment type
+document.getElementById('quiz_type_input').addEventListener('change', function () {
+  const isBoss = this.value === 'boss_exam';
+  document.getElementById('bossExamFields').style.display = isBoss ? 'block' : 'none';
+});
+
+// Dynamically add test case rows
+document.getElementById('addTestCaseBtn').addEventListener('click', function () {
+  const container = document.getElementById('bossTestCasesContainer');
+  const row = document.createElement('div');
+  row.className = 'test-case-row';
+  row.style.cssText = 'display: flex; gap: 12px; margin-bottom: 8px;';
+  row.innerHTML = `
+    <input type="text" class="form-input test-input" placeholder="Input" style="flex: 1;" />
+    <input type="text" class="form-input test-expected" placeholder="Expected Output" style="flex: 1;" />
+    <button type="button" class="btn btn-ghost btn-sm remove-test-case">✕</button>
+  `;
+  container.appendChild(row);
+  // Remove button for this row
+  row.querySelector('.remove-test-case').addEventListener('click', function () {
+    row.remove();
+  });
+});
+</script>
 </body>
 </html>

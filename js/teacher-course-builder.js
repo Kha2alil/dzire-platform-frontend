@@ -801,30 +801,42 @@ async function saveQuizAssessment() {
   const xpReward = parseInt(document.getElementById('qb-xp-reward')?.value) || 0;
 
   if (!title) { showToast('Please enter an assessment title.', 'error'); return; }
-  if (_qbQuestionIds.length === 0) { showToast('Add at least one question before saving.', 'error'); return; }
-
-  const questions = [];
-  for (let i = 0; i < _qbQuestionIds.length; i++) {
-    const uid = _qbQuestionIds[i];
-    const result = _qbReadQuestion(uid, i + 1);
-    if (result.error) { showToast(result.error, 'error'); return; }
-    questions.push(result.data);
-  }
 
   const payload = {
     title,
     type,
     passing_score,
     xp_reward: xpReward,
-    questions,
   };
 
-  // Include lesson_id if selected
+  if (type === 'boss_exam') {
+    payload.description = document.getElementById('boss_description')?.value || '';
+    payload.language = document.getElementById('boss_language')?.value || 'javascript';
+    payload.starter_code = document.getElementById('boss_starter_code')?.value || '';
+    payload.test_cases = [];
+    document.querySelectorAll('#bossTestCasesContainer .test-case-row').forEach(row => {
+      const input = row.querySelector('.test-input').value.trim();
+      const expected = row.querySelector('.test-expected').value.trim();
+      if (input && expected) {
+        payload.test_cases.push({ input, expected });
+      }
+    });
+    payload.questions = []; // no multiple-choice questions
+  } else {
+    // existing question logic
+    if (_qbQuestionIds.length === 0) { showToast('Add at least one question before saving.', 'error'); return; }
+    const questions = [];
+    for (let i = 0; i < _qbQuestionIds.length; i++) {
+      const uid = _qbQuestionIds[i];
+      const result = _qbReadQuestion(uid, i + 1);
+      if (result.error) { showToast(result.error, 'error'); return; }
+      questions.push(result.data);
+    }
+    payload.questions = questions;
+  }
+
   if (currentLessonIdForQuiz) {
     payload.lesson_id = currentLessonIdForQuiz;
-    console.log('Saving assessment with lesson_id:', currentLessonIdForQuiz);
-  } else {
-    console.log('Saving assessment without lesson_id');
   }
 
   let method = 'POST';
@@ -835,10 +847,7 @@ async function saveQuizAssessment() {
   }
 
   try {
-    if (!currentBuilderCourseId || !currentChapterIdForQuiz) {
-      showToast("Missing Course or Chapter ID", "error");
-      return;
-    }
+    if (!currentBuilderCourseId || !currentChapterIdForQuiz) { showToast("Missing Course or Chapter ID", "error"); return; }
     const data = await apiCall(method, endpoint, payload);
     if (data && data.success) {
       closeModal('quizBuilder');
@@ -848,12 +857,8 @@ async function saveQuizAssessment() {
       currentLessonIdForQuiz = null;
       pendingEditAssessment = null;
       await openCourseBuilder(currentBuilderCourseId);
-    } else {
-      showToast(data?.message || 'Failed to save assessment', 'error');
-    }
-  } catch (err) {
-    showToast("Server communication error", "error");
-  }
+    } else showToast(data?.message || 'Failed to save assessment', 'error');
+  } catch (err) { showToast("Server communication error", "error"); }
 }
 
 function _qbResetBuilder() {
