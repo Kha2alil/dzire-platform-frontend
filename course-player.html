@@ -46,28 +46,18 @@
       <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">◀</button>
       <nav class="sidebar-nav">
         <div class="nav-section-label">Learn</div>
-        <a href="student-dashboard.html" class="nav-item"><span class="nav-icon">⊞</span><span
-            class="nav-label">Dashboard</span></a>
-        <a href="student-my-path.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-label">My
-            Learning Path</span></a>
-        <a href="student-courses.html" class="nav-item active"><span class="nav-icon">📚</span><span
-            class="nav-label">My Courses</span><span class="nav-badge blue">5</span></a>
-        <a href="student-quests.html" class="nav-item"><span class="nav-icon">⚔️</span><span
-            class="nav-label">Quests</span><span class="nav-badge">3</span></a>
-        <a href="student-skill-tree.html" class="nav-item"><span class="nav-icon">🌳</span><span class="nav-label">Skill
-            Tree</span></a>
+        <a href="student-dashboard.html" class="nav-item"><span class="nav-icon">⊞</span><span class="nav-label">Dashboard</span></a>
+        <a href="student-my-path.html" class="nav-item"><span class="nav-icon">🗺️</span><span class="nav-label">My Learning Path</span></a>
+        <a href="student-courses.html" class="nav-item active"><span class="nav-icon">📚</span><span class="nav-label">My Courses</span><span class="nav-badge blue">5</span></a>
+        <a href="student-quests.html" class="nav-item"><span class="nav-icon">⚔️</span><span class="nav-label">Quests</span><span class="nav-badge">3</span></a>
+        <a href="student-skill-tree.html" class="nav-item"><span class="nav-icon">🌳</span><span class="nav-label">Skill Tree</span></a>
         <div class="nav-section-label">Progress</div>
-        <a href="student-assessments.html" class="nav-item"><span class="nav-icon">📝</span><span
-            class="nav-label">Assessments</span></a>
-        <a href="student-leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span><span
-            class="nav-label">Leaderboard</span></a>
-        <a href="student-badges.html" class="nav-item"><span class="nav-icon">🎖️</span><span
-            class="nav-label">Badges</span></a>
+        <a href="student-assessments.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-label">Assessments</span></a>
+        <a href="student-leaderboard.html" class="nav-item"><span class="nav-icon">🏆</span><span class="nav-label">Leaderboard</span></a>
+        <a href="student-badges.html" class="nav-item"><span class="nav-icon">🎖️</span><span class="nav-label">Badges</span></a>
         <div class="nav-section-label">Account</div>
-        <a href="student-profile.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">My
-            Profile</span></a>
-        <a href="student-settings.html" class="nav-item"><span class="nav-icon">⚙️</span><span
-            class="nav-label">Settings</span></a>
+        <a href="student-profile.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">My Profile</span></a>
+        <a href="student-settings.html" class="nav-item"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a>
       </nav>
       <div class="sidebar-profile">
         <div class="profile-avatar">AM</div>
@@ -112,7 +102,7 @@
             <div class="study-mode-toggle">
               <button class="mode-btn active" id="modeVideoBtn"><i class="fa-solid fa-video"></i> Video Lesson</button>
               <button class="mode-btn" id="modePdfBtn"><i class="fa-solid fa-file-pdf"></i> PDF Material</button>
-              <button class="mode-btn" id="modeTextBtn" onclick="setActiveTab('text')">📝 Text</button>
+              <button class="mode-btn" id="modeTextBtn">📝 Text</button>
             </div>
 
             <div id="contentContainer">
@@ -140,7 +130,7 @@
 
               <!-- Assessment panel (inline) -->
               <div id="assessmentContent" style="display:none;">
-                <!-- Standard quiz content (unchanged) -->
+                <!-- Standard quiz content -->
                 <div id="quizContent">
                   <div class="quiz-wrapper">
                     <div class="quiz-header">
@@ -152,7 +142,7 @@
                   </div>
                 </div>
 
-                <!-- Boss Exam content (new) -->
+                <!-- Boss Exam content -->
                 <div id="bossExamContent" style="display:none;">
                   <div style="padding:20px;">
                     <h2 id="bossExamTitle">Boss Exam</h2>
@@ -162,7 +152,7 @@
                       <span class="badge badge-amber" id="bossPassingBadge"></span>
                     </div>
                     <div id="codeEditorContainer" style="border:1px solid var(--border); margin-top:16px; border-radius:8px; overflow:hidden;">
-                      <!-- CodeMirror will be attached here -->
+                      <!-- CodeMirror attaches here -->
                     </div>
                     <div style="display:flex; gap:12px; margin-top:16px;">
                       <button class="btn btn-ghost" id="runSampleBtn" onclick="runSampleTests()">▶ Run Sample Tests</button>
@@ -179,16 +169,12 @@
               <div class="xp-badge"><i class="fa-solid fa-bolt"></i> XP Reward <span id="xpReward">0</span></div>
             </div>
             <p class="lesson-description" id="lessonDesc"></p>
-            <button class="glow-button" id="completeLessonBtn"><i class="fa-solid fa-circle-check"></i> Mark as
-              Complete
-            </button>
+            <button class="glow-button" id="completeLessonBtn"><i class="fa-solid fa-circle-check"></i> Mark as Complete</button>
           </div>
         </section>
 
         <!-- RIGHT: Sidebar (curriculum + assessments under each lesson) -->
-        <aside class="player-sidebar" id="playerSidebar" aria-label="Course curriculum">
-          
-        </aside>
+        <aside class="player-sidebar" id="playerSidebar" aria-label="Course curriculum"></aside>
       </main>
     </div>
   </div>
@@ -219,5 +205,4 @@
     })();
   </script>
 </body>
-
 </html>

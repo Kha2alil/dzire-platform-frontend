@@ -16,7 +16,7 @@ let bossExamEditor = null;
 let currentBossExam = null;
 window.courseData = courseData;
 
-// ========== تحديث شريط XP العلوي ==========
+// ========== تحديث شريط XP ==========
 function updateTopbarUI(totalXP, level) {
   const xpLabel = document.querySelector('.xp-label strong');
   if (xpLabel) xpLabel.innerText = totalXP;
@@ -29,7 +29,6 @@ function updateTopbarUI(totalXP, level) {
   localStorage.setItem('currentLevel', level);
 }
 
-// ========== جلب أحدث إحصائيات XP ==========
 async function fetchAndUpdateGamificationStats() {
   try {
     const res = await axios.get(`${API_BASE}/gamification/me`);
@@ -37,11 +36,10 @@ async function fetchAndUpdateGamificationStats() {
       updateTopbarUI(res.data.stats.total_xp || 0, res.data.stats.current_level || 1);
       return true;
     }
-  } catch (err) { /* silent */ }
+  } catch (err) { }
   return false;
 }
 
-// ========== جلب subdomain_id ==========
 async function fetchCourseSubdomain() {
   try {
     const res = await axios.get(`${API_COURSES}/${courseId}/subdomain`);
@@ -49,11 +47,10 @@ async function fetchCourseSubdomain() {
       currentSubdomainId = res.data.data.id;
       return true;
     }
-  } catch (err) { /* silent */ }
+  } catch (err) { }
   return false;
 }
 
-// ========== إرسال XP ==========
 async function callUpdateProgress(xpGained) {
   if (!currentSubdomainId && !(await fetchCourseSubdomain())) return false;
   let studentId = localStorage.getItem('userId');
@@ -115,7 +112,6 @@ async function fetchCourseDetails(shouldLoadFirst = false) {
   }
 }
 
-// ========== جلب التقييمات ==========
 async function fetchAssessments() {
   try {
     const res = await axios.get(`${API_STUDENTS}/courses/${courseId}/assessments`);
@@ -123,7 +119,6 @@ async function fetchAssessments() {
   } catch (err) { assessmentsList = []; }
 }
 
-// ========== تحميل الدرس ==========
 async function loadLessonDetails(lessonId, chapterId) {
   try {
     const res = await axios.get(`${API_COURSES}/${courseId}/lessons/${lessonId}`);
@@ -139,37 +134,52 @@ function renderSidebar() {
   const sidebar = document.getElementById('playerSidebar');
   if (!sidebar) return;
   let html = '';
+  const maxProgress = Number(courseData.last_completed_order || 0);
 
   courseData.chapters.forEach(chapter => {
-    html += `<div class="chapter-block">`;
-    html += `<div class="chapter-title">${escapeHtml(chapter.title)}</div>`;
-    html += `<div class="lessons-list">`;
+    let chapterStatusClass = '';
+    const hasActiveLesson = chapter.lessons?.some(l => currentLesson && String(l.id) === String(currentLesson.id));
+    const allDone = chapter.lessons?.every(l => Number(l.order_index) <= maxProgress);
+    if (allDone && chapter.lessons?.length) chapterStatusClass = 'ch-done';
+    else if (hasActiveLesson) chapterStatusClass = 'ch-current';
+    html += `<div class="chapter-block ${chapterStatusClass}">`;
+    const completedCount = chapter.lessons?.filter(l => Number(l.order_index) <= maxProgress).length || 0;
+    const totalLessons = chapter.lessons?.length || 0;
+    html += `<div class="chapter-title">${escapeHtml(chapter.title)} <span style="font-size:9px;opacity:0.6;">${completedCount}/${totalLessons}</span></div>`;
+    html += `<div class="lessons-list ${completedCount > 0 ? 'has-done' : ''}">`;
 
-    chapter.lessons.forEach(lesson => {
-      const isActive = currentLesson && String(currentLesson.id) === String(lesson.id);
-      const statusClass = isActive ? 'active' : '';
+    if (chapter.lessons) {
+      chapter.lessons.forEach(lesson => {
+        const lessonOrder = Number(lesson.order_index || 0);
+        const isLocked = (lessonOrder > 1) && (lessonOrder > (maxProgress + 1));
+        const isDone = (lessonOrder <= maxProgress) && maxProgress > 0;
+        const isActive = (currentLesson && String(currentLesson.id) === String(lesson.id));
+        let statusClass = '';
+        if (isLocked) statusClass = 'locked';
+        else if (isDone) statusClass = 'done';
+        else if (isActive) statusClass = 'active';
+        html += `<div class="lesson-item ${statusClass}" onclick="${isLocked ? '' : `window.handleLessonClick('${lesson.id}', '${chapter.id}')`}" style="cursor: ${isLocked ? 'not-allowed' : 'pointer'};"><span class="lesson-label">${escapeHtml(lesson.title)}</span></div>`;
 
-      html += `<div class="lesson-item ${statusClass}" onclick="window.handleLessonClick('${lesson.id}', '${chapter.id}')" style="cursor:pointer;">
-                ${escapeHtml(lesson.title)}
-              </div>`;
-    });
-
-    // Assessments
-    const chapterAssessments = assessmentsList.filter(a => a.chapter_id === chapter.id);
-    chapterAssessments.forEach(ass => {
-      const icon = ass.type === 'boss_exam' ? '⚔️' : '📝';
-      const badgeClass = ass.type === 'boss_exam' ? 'badge-red' : 'badge-blue';
-      const badgeLabel = ass.type === 'boss_exam' ? 'Boss' : 'Quiz';
-      html += `<div class="assessment-item" onclick="window.loadAssessmentInline('${ass.id}')" style="cursor:pointer; padding:8px 20px; color:var(--text-2); display:flex; align-items:center; gap:8px;">
-                <span>${icon}</span>
-                <span>${escapeHtml(ass.title)}</span>
-                <span class="badge ${badgeClass}">${badgeLabel}</span>
-              </div>`;
-    });
-
+        // عرض التقييمات المرتبطة بهذا الدرس
+        const lessonAssessments = assessmentsList.filter(a => a.lesson_id === lesson.id);
+        if (lessonAssessments.length) {
+          html += `<div class="lesson-assessments">`;
+          lessonAssessments.forEach(ass => {
+            const icon = ass.type === 'boss_exam' ? '⚔️' : '📝';
+            const badgeClass = ass.type === 'boss_exam' ? 'badge-red' : 'badge-blue';
+            const badgeLabel = ass.type === 'boss_exam' ? 'Boss' : 'Quiz';
+            html += `<div class="assessment-under-lesson" onclick="event.stopPropagation(); window.loadAssessmentInline('${ass.id}')">
+                        <span class="ass-icon">${icon}</span>
+                        <span>${escapeHtml(ass.title)}</span>
+                        <span class="ass-badge ${badgeClass}">${badgeLabel}</span>
+                      </div>`;
+          });
+          html += `</div>`;
+        }
+      });
+    }
     html += `</div></div>`;
   });
-
   sidebar.innerHTML = html;
 }
 
@@ -177,48 +187,112 @@ window.handleLessonClick = async (lessonId, chapterId) => {
   await loadLessonDetails(lessonId, chapterId);
 };
 
+// ========== إدارة التبويبات ==========
 function setActiveTab(tab) {
   const videoContent = document.getElementById('videoContent');
   const pdfContent = document.getElementById('pdfContent');
   const textContent = document.getElementById('textContent');
+  const assessmentContent = document.getElementById('assessmentContent');
   const videoBtn = document.getElementById('modeVideoBtn');
   const pdfBtn = document.getElementById('modePdfBtn');
   const textBtn = document.getElementById('modeTextBtn');
 
-  // Hide all
   if (videoContent) videoContent.style.display = 'none';
   if (pdfContent) pdfContent.style.display = 'none';
   if (textContent) textContent.style.display = 'none';
+  if (assessmentContent) assessmentContent.style.display = 'none';
   if (videoBtn) videoBtn.classList.remove('active');
   if (pdfBtn) pdfBtn.classList.remove('active');
   if (textBtn) textBtn.classList.remove('active');
 
-  // Show selected
   if (tab === 'video') {
     if (videoContent) videoContent.style.display = 'block';
     if (videoBtn) videoBtn.classList.add('active');
   } else if (tab === 'pdf') {
     if (pdfContent) pdfContent.style.display = 'block';
     if (pdfBtn) pdfBtn.classList.add('active');
+    const pdfFrame = document.getElementById('mainPdfFrame');
+    if (pdfFrame && currentLesson && (currentLesson.content_type === 'pdf' || currentLesson.pdf)) {
+      let pdfUrl = currentLesson.content_url || currentLesson.pdf;
+      if (pdfUrl && pdfUrl.startsWith('/')) pdfUrl = `http://localhost:3000${pdfUrl}`;
+      if (pdfFrame.src !== pdfUrl) pdfFrame.src = pdfUrl;
+    }
   } else if (tab === 'text') {
     if (textContent) textContent.style.display = 'block';
     if (textBtn) textBtn.classList.add('active');
+  } else if (tab === 'assessment') {
+    if (assessmentContent) assessmentContent.style.display = 'block';
   }
 }
 
+document.getElementById('modeVideoBtn')?.addEventListener('click', () => setActiveTab('video'));
+document.getElementById('modePdfBtn')?.addEventListener('click', () => setActiveTab('pdf'));
+document.getElementById('modeTextBtn')?.addEventListener('click', () => setActiveTab('text'));
+
+// ========== عرض محتوى الدرس ==========
 function updateLessonDisplay() {
   if (!currentLesson) return;
   document.getElementById('lessonTitle').innerText = currentLesson.title || "";
   document.getElementById('lessonDesc').innerText = currentLesson.summary_text || currentLesson.description || "";
   document.getElementById('xpReward').innerText = currentLesson.xp || 0;
 
-  // Video / PDF / Text logic unchanged…
+  let contentType = currentLesson.content_type ||
+    (currentLesson.video ? 'video' : (currentLesson.pdf ? 'pdf' : (currentLesson.content_text ? 'text' : null)));
+
+  const videoSource = document.getElementById('videoSource');
+  const videoPlayer = document.getElementById('mainVideoPlayer');
+  if (contentType === 'video') {
+    let videoUrl = currentLesson.content_url || currentLesson.video;
+    if (videoUrl && videoUrl.startsWith('/')) videoUrl = `http://localhost:3000${videoUrl}`;
+    if (videoSource && videoUrl) {
+      videoSource.src = videoUrl;
+      videoPlayer.load();
+    }
+  } else {
+    if (videoSource) videoSource.src = '';
+    if (videoPlayer) videoPlayer.load();
+  }
+
+  const pdfFrame = document.getElementById('mainPdfFrame');
+  let isPdf = (contentType === 'pdf') || (currentLesson.pdf !== undefined && currentLesson.pdf !== null && currentLesson.pdf !== '');
+  if (isPdf) {
+    let pdfUrl = currentLesson.content_url || currentLesson.pdf;
+    if (pdfUrl && pdfUrl.startsWith('/')) pdfUrl = `http://localhost:3000${pdfUrl}`;
+    if (pdfFrame && pdfFrame.src !== pdfUrl) pdfFrame.src = pdfUrl;
+  } else {
+    if (pdfFrame && pdfFrame.src !== 'about:blank') pdfFrame.src = 'about:blank';
+  }
+
+  if (contentType === 'text') {
+    const text = currentLesson.content_text || currentLesson.summary_text || '';
+    const textBody = document.getElementById('textLessonBody');
+    if (textBody) textBody.innerText = text;
+  } else {
+    const textBody = document.getElementById('textLessonBody');
+    if (textBody) textBody.innerText = '';
+  }
+
+  if (contentType === 'video') {
+    setActiveTab('video');
+  } else if (contentType === 'pdf') {
+    setActiveTab('pdf');
+  } else if (contentType === 'text') {
+    setActiveTab('text');
+  } else {
+    setActiveTab('video');
+  }
+
+  const assessmentDiv = document.getElementById('assessmentContent');
+  if (assessmentDiv) assessmentDiv.style.display = 'none';
 
   const completeBtn = document.getElementById('completeLessonBtn');
   if (completeBtn) {
+    completeBtn.style.display = 'inline-flex';
     const isCompleted = checkIfLessonDone(currentLesson.id);
     completeBtn.innerText = isCompleted ? "COMPLETED" : "MARK AS COMPLETED";
     completeBtn.disabled = isCompleted;
+    if (isCompleted) completeBtn.style.background = "#10B981";
+    else completeBtn.style.background = "";
   }
 }
 
@@ -256,45 +330,40 @@ if (completeBtn) {
   };
 }
 
-// ========== عرض التقييمات داخل الصفحة ==========
+// ========== تقييمات (عادية و Boss Exam) ==========
 window.loadAssessmentInline = async function (assessmentId) {
-  // Hide lesson-related UI
+  // إخفاء عناصر الدرس
   document.getElementById('lessonTitle').innerText = '';
   document.getElementById('lessonDesc').innerText = '';
   document.getElementById('xpReward').innerText = '0';
-  const completeBtnEl = document.getElementById('completeLessonBtn');
-  if (completeBtnEl) completeBtnEl.style.display = 'none';
+  const completeLessonBtn = document.getElementById('completeLessonBtn');
+  if (completeLessonBtn) completeLessonBtn.style.display = 'none';
   const xpBadge = document.querySelector('.xp-badge');
   if (xpBadge) xpBadge.style.display = 'none';
 
-  // Hide lesson media containers and reset mode buttons
-  document.getElementById('videoContent').style.display = 'none';
-  document.getElementById('pdfContent').style.display = 'none';
-  document.getElementById('textContent').style.display = 'none';
-  document.getElementById('modeVideoBtn').classList.remove('active');
-  document.getElementById('modePdfBtn').classList.remove('active');
-  document.getElementById('modeTextBtn').classList.remove('active');
-
-  // Show assessment container
-  document.getElementById('assessmentContent').style.display = 'block';
+  setActiveTab('assessment');
 
   try {
     const res = await axios.get(`${API_STUDENTS}/${courseId}/assessments/${assessmentId}`);
     if (res.data.success) {
       const assessment = res.data.data;
+      // تعيين القيم الافتراضية في حال عدم وجودها من الخادم
+      assessment.alreadyPassed = assessment.already_passed || false;
+      assessment.hasAttempted = assessment.has_attempted || false;
 
       if (assessment.type === 'boss_exam') {
-        // Hide quiz, show boss exam
         document.getElementById('quizContent').style.display = 'none';
         document.getElementById('bossExamContent').style.display = 'block';
-        await window.loadBossExam(assessmentId);
-        return;
+        await loadBossExam(assessmentId);
+        if (assessment.alreadyPassed) {
+          showAlreadyPassedMessage('bossExamContent');
+          disableBossExamControls();
+        }
+      } else {
+        document.getElementById('quizContent').style.display = 'block';
+        document.getElementById('bossExamContent').style.display = 'none';
+        displayAssessmentInline(assessment);
       }
-
-      // Show quiz, hide boss exam
-      document.getElementById('quizContent').style.display = 'block';
-      document.getElementById('bossExamContent').style.display = 'none';
-      displayAssessmentInline(assessment);
     } else {
       showToast("Failed to load assessment", "error");
     }
@@ -304,16 +373,38 @@ window.loadAssessmentInline = async function (assessmentId) {
   }
 };
 
-// ========== عرض التقييم العادي ==========
 function displayAssessmentInline(assessment) {
   const container = document.getElementById('quizQuestions');
   const titleEl = document.getElementById('quizTitle');
   const passingEl = document.getElementById('quizPassing');
+  const submitBtn = document.getElementById('submitQuizBtn');
+
   if (!container || !titleEl) return;
 
   titleEl.innerText = assessment.title;
   if (passingEl) passingEl.innerHTML = `<i class="fa-solid fa-flag-checkered"></i> Passing Score: ${assessment.passing_score || 70}%`;
 
+  // حالة الاجتياز السابق (نجاح)
+  if (assessment.alreadyPassed) {
+    container.innerHTML = `<div style="padding: 20px; text-align: center; background: rgba(16,185,129,0.1); border-radius: 12px;">
+                              <i class="fa-solid fa-circle-check" style="color: #10B981; font-size: 2rem;"></i>
+                              <p style="margin-top: 10px;">You have already passed this assessment.</p>
+                            </div>`;
+    if (submitBtn) submitBtn.disabled = true;
+    return;
+  }
+
+  // محاولة سابقة فاشلة
+  let warningDiv = null;
+  if (assessment.hasAttempted && !assessment.alreadyPassed) {
+    warningDiv = document.createElement('div');
+    warningDiv.style.cssText = 'padding: 12px; background: rgba(245,158,11,0.1); border-radius: 8px; margin-bottom: 16px; text-align: center; color: #f59e0b;';
+    warningDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> You failed this assessment before. Try again!';
+    // إدراج الرسالة قبل الأسئلة
+    container.parentNode.insertBefore(warningDiv, container);
+  }
+
+  // عرض الأسئلة
   let html = '';
   assessment.questions.forEach((q, idx) => {
     const isMultiple = q.correct_answer && q.correct_answer.includes(',');
@@ -329,8 +420,8 @@ function displayAssessmentInline(assessment) {
   });
   container.innerHTML = html;
 
-  const submitBtn = document.getElementById('submitQuizBtn');
   if (submitBtn) {
+    submitBtn.disabled = false;
     submitBtn.onclick = () => submitAssessmentInline(assessment);
   }
 }
@@ -340,19 +431,15 @@ async function submitAssessmentInline(assessment) {
     showToast("No questions found in this assessment", "error");
     return;
   }
-
   const answers = [];
   let hasAnyAnswer = false;
-
   for (const q of assessment.questions) {
     const isMultiple = q.correct_answer && q.correct_answer.includes(',');
     let selectedValue = null;
-
     if (isMultiple) {
       const selected = Array.from(document.querySelectorAll(`input[name="q_${q.id}_multi"]:checked`)).map(cb => cb.value);
       if (selected.length > 0) {
-        const cleaned = selected.map(s => s.trim());
-        selectedValue = cleaned.join(',');
+        selectedValue = selected.map(s => s.trim()).join(',');
         hasAnyAnswer = true;
       }
     } else {
@@ -364,28 +451,43 @@ async function submitAssessmentInline(assessment) {
     }
     answers.push({ questionId: q.id, answer: selectedValue });
   }
-
   if (!hasAnyAnswer) {
     showToast("Please select at least one answer before submitting", "error");
     return;
   }
-
   try {
     const res = await axios.post(`${API_COURSES}/assessments/${assessment.id}/submit`, { answers });
     if (res.data.success) {
       showToast(`Score: ${res.data.score}% - ${res.data.passed ? 'Passed ✅' : 'Failed ❌'}`, res.data.passed ? 'success' : 'error');
-      if (res.data.passed) await fetchCourseDetails();
+      if (res.data.passed) await fetchCourseDetails(false);
     } else {
       showToast(res.data.message || 'Submission failed', 'error');
     }
   } catch (err) {
-    console.error("❌ Submission error:", err);
+    console.error("Submission error:", err);
     showToast('Error submitting assessment', 'error');
   }
 }
 
-// ========== BOSS EXAM ==========
-const codeContainer = document.getElementById('codeEditorContainer');
+// ========== دوال مساعدة لـ Boss Exam ==========
+function showAlreadyPassedMessage(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const existingMsg = container.querySelector('.already-passed-msg');
+  if (existingMsg) return;
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'already-passed-msg';
+  msgDiv.style.cssText = 'padding: 12px; background: rgba(16,185,129,0.1); border-radius: 8px; margin-bottom: 16px; text-align: center; color: #10B981;';
+  msgDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i> You have already passed this boss exam.';
+  container.prepend(msgDiv);
+}
+
+function disableBossExamControls() {
+  const runBtn = document.getElementById('runSampleBtn');
+  const submitBtn = document.getElementById('submitBossBtn');
+  if (runBtn) runBtn.disabled = true;
+  if (submitBtn) submitBtn.disabled = true;
+}
 
 window.loadBossExam = async function(assessmentId) {
   try {
@@ -393,10 +495,6 @@ window.loadBossExam = async function(assessmentId) {
     if (res.data.success) {
       const exam = res.data.data;
       currentBossExam = exam;
-
-      document.getElementById('bossExamContent').style.display = 'block';
-      document.getElementById('quizContent').style.display = 'none';
-      document.getElementById('assessmentContent').style.display = 'block';
 
       document.getElementById('bossExamTitle').innerText = exam.title;
       document.getElementById('bossExamDescription').innerText = exam.description || '';
@@ -433,45 +531,30 @@ window.loadBossExam = async function(assessmentId) {
             'Ctrl-Space': 'autocomplete',
             'Tab': 'emmetExpandAbbreviation'
           },
-          hintOptions: {
-            hint: hintFn,
-            completeSingle: false
-          }
+          hintOptions: { hint: hintFn, completeSingle: false }
         });
-
-        if (CodeMirror.emmet) {
-          CodeMirror.emmet.setOption('marker', false);
-        }
+        if (CodeMirror.emmet) CodeMirror.emmet.setOption('marker', false);
       }
 
-      // Smart autocomplete: trigger only in meaningful contexts
-      bossExamEditor.off('inputRead');   // remove any previous handler
+      bossExamEditor.off('inputRead');
       bossExamEditor.on('inputRead', function(cm, change) {
         if (!change.text[0] || change.text[0] === ' ' || change.text[0] === '\n') return;
-
-        // For HTML mode: show hints only when inside < > or after a space in a tag
         if (exam.language === 'html') {
           const cursor = cm.getCursor();
           const line = cm.getLine(cursor.line);
           const beforeCursor = line.substring(0, cursor.ch);
-          // Trigger if we are inside an HTML tag (e.g., "<di", "<div ")
           if (beforeCursor.lastIndexOf('<') > beforeCursor.lastIndexOf('>')) {
             CodeMirror.commands.autocomplete(cm);
           }
-        }
-        // For CSS: show hints after typing a letter at the beginning of a property
-        else if (exam.language === 'css') {
+        } else if (exam.language === 'css') {
           const cursor = cm.getCursor();
           const line = cm.getLine(cursor.line);
           const textBefore = line.substring(0, cursor.ch).trim();
-          // Trigger if the line is likely a property name (no colon yet)
           if (textBefore.length > 0 && !textBefore.includes(':') && !textBefore.includes('{') && !textBefore.includes('}')) {
             CodeMirror.commands.autocomplete(cm);
           }
         }
-        // For JavaScript, we leave it manual (Ctrl+Space) – keeping it clean
       });
-
       setActiveTab('assessment');
     }
   } catch (err) {
@@ -480,11 +563,11 @@ window.loadBossExam = async function(assessmentId) {
 };
 
 async function runSampleTests() {
+  if (!currentBossExam) return;
   const code = bossExamEditor.getValue();
   const testCases = currentBossExam.test_cases || [];
   const resultsDiv = document.getElementById('bossResults');
   resultsDiv.innerHTML = '<div class="spinner">Running...</div>';
-
   try {
     const res = await axios.post(`${API_COURSES}/assessments/${currentBossExam.id}/run-sample`, {
       code,
@@ -506,22 +589,16 @@ async function submitBossExam() {
     showToast("No boss exam loaded", "error");
     return;
   }
-
   const code = bossExamEditor ? bossExamEditor.getValue() : '';
   const resultsDiv = document.getElementById('bossResults');
   if (resultsDiv) resultsDiv.innerHTML = '<div class="spinner">Submitting...</div>';
-
   try {
-    const res = await axios.post(
-      `${API_COURSES}/assessments/${currentBossExam.id}/submit-code`,
-      { code, language: currentBossExam.language }
-    );
-
+    const res = await axios.post(`${API_COURSES}/assessments/${currentBossExam.id}/submit-code`, {
+      code,
+      language: currentBossExam.language
+    });
     if (res.data.success) {
-      // Render results
       renderTestResults(res.data.results, true, res.data.score, res.data.passed);
-
-      // Toast
       if (res.data.passed) {
         showToast(`🎉 Congratulations! You passed the Boss Exam. +${res.data.xp_gained || 0} XP`, 'success');
       } else {
@@ -529,8 +606,6 @@ async function submitBossExam() {
         const displayScore = (!isNaN(res.data.score) && res.data.score != null) ? res.data.score : 'N/A';
         showToast(`❌ You did not pass. Score: ${displayScore}%. Required: ${passingScore}%. Check the AI feedback below.`, 'error');
       }
-
-      // AI feedback
       if (res.data.ai_feedback && resultsDiv) {
         const aiDiv = document.createElement('div');
         aiDiv.style.cssText = 'margin-top:16px; padding:16px; background:rgba(59,130,246,0.06); border:1px solid var(--border); border-radius:8px;';
@@ -542,7 +617,7 @@ async function submitBossExam() {
     }
   } catch (err) {
     if (resultsDiv) resultsDiv.innerHTML = '<div class="empty-state">Submission error</div>';
-    console.error('❌ Boss exam submit error:', err);
+    console.error('Boss exam submit error:', err);
   }
 }
 
@@ -550,7 +625,6 @@ function renderTestResults(results, isFinal, score, passed) {
   const resultsDiv = document.getElementById('bossResults');
   if (!resultsDiv) return;
   let html = '';
-
   if (results && results.length > 0) {
     results.forEach((r, i) => {
       const icon = r.passed ? '✅' : '❌';
@@ -562,17 +636,14 @@ function renderTestResults(results, isFinal, score, passed) {
       </div>`;
     });
   }
-
   if (isFinal) {
     const displayScore = (score !== undefined && score !== null && !isNaN(score)) ? score : 'N/A';
     const badgeClass = passed ? 'badge-green' : 'badge-red';
     html = `<div class="badge ${badgeClass}" style="margin-bottom:16px;">Score: ${displayScore}%</div>` + html;
   }
-
   resultsDiv.innerHTML = html;
 }
 
-// ========== دوال مساعدة ==========
 function showToast(msg, type = 'success') {
   let container = document.getElementById('toastContainer');
   if (!container) {
@@ -585,11 +656,16 @@ function showToast(msg, type = 'success') {
   toast.className = `toast ${type}`;
   toast.innerHTML = `<span>${type === 'success' ? '✅' : '❌'}</span> ${msg}`;
   container.appendChild(toast);
-  setTimeout(() => { toast.remove(); }, 3000);
+  setTimeout(() => toast.remove(), 3000);
 }
 
-function escapeHtml(str) { return str ? str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])) : ''; }
-function escapeAttr(str) { return String(str).replace(/"/g, '&quot;'); }
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+}
+function escapeAttr(str) {
+  return String(str).replace(/"/g, '&quot;');
+}
 
 // ========== بدء التشغيل ==========
 fetchCourseDetails(true);
