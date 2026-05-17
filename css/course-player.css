@@ -658,7 +658,9 @@
   flex-shrink: 0;
 }
 
-.sidebar-progress-ring svg { transform: rotate(-90deg); }
+.sidebar-progress-ring svg {
+  transform: rotate(-90deg);
+}
 
 .ring-bg {
   fill: none;

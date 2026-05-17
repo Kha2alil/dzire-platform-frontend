@@ -321,6 +321,8 @@ if (completeBtn) {
       await callUpdateProgress(Number(currentLesson.xp || 0));
       await fetchAndUpdateGamificationStats();
       showToast("🎉 Lesson completed! XP added.", "success");
+      // 🔔 Check for newly earned badges immediately
+      window.checkForNewBadges();
       await fetchCourseDetails();
     } catch (err) {
       showToast("Failed to save progress", "error");
@@ -459,13 +461,17 @@ async function submitAssessmentInline(assessment) {
     const res = await axios.post(`${API_COURSES}/assessments/${assessment.id}/submit`, { answers });
     if (res.data.success) {
       showToast(`Score: ${res.data.score}% - ${res.data.passed ? 'Passed ✅' : 'Failed ❌'}`, res.data.passed ? 'success' : 'error');
-      if (res.data.passed) await fetchCourseDetails(false);
+      if (res.data.passed) {
+        // 🔔 Check for newly earned badges
+        window.checkForNewBadges();
+        await fetchCourseDetails(false);
+      }
     } else {
       showToast(res.data.message || 'Submission failed', 'error');
     }
-  } catch (err) {
-    console.error("Submission error:", err);
-    showToast('Error submitting assessment', 'error');
+  } catch (err) { 
+    showToast("Error submitting assessment", "error");
+    console.error(err);
   }
 }
 
@@ -515,7 +521,6 @@ window.loadBossExam = async function(assessmentId) {
       }
 
       const starterCode = exam.starter_code || '';
-
       if (bossExamEditor) {
         bossExamEditor.setOption('mode', mode);
         bossExamEditor.setOption('hintOptions', { hint: hintFn, completeSingle: false });
@@ -601,6 +606,8 @@ async function submitBossExam() {
       renderTestResults(res.data.results, true, res.data.score, res.data.passed);
       if (res.data.passed) {
         showToast(`🎉 Congratulations! You passed the Boss Exam. +${res.data.xp_gained || 0} XP`, 'success');
+        // 🔔 Check for newly earned badges immediately
+        window.checkForNewBadges();
       } else {
         const passingScore = currentBossExam.passing_score || 70;
         const displayScore = (!isNaN(res.data.score) && res.data.score != null) ? res.data.score : 'N/A';
