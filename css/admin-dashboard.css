@@ -666,6 +666,141 @@ tbody tr:hover td{background:rgba(124,58,237,0.03)}
     color: var(--text);
 }
 
+/* ============================
+   NOTIFICATION PANEL
+   ============================ */
+.notif-wrapper {
+  position: relative;
+}
+
+/* Badge on the bell */
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--red);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  line-height: 1;
+}
+
+/* Dropdown container */
+.notif-panel {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 360px;
+  max-height: 460px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.notif-panel.open {
+  display: flex;
+}
+
+/* Header inside panel */
+.notif-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.notif-panel-header strong {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* Scrollable list */
+.notif-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+/* Individual notification item */
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 18px;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.notif-item:hover {
+  background: var(--bg-hover);
+}
+
+.notif-item.unread {
+  background: rgba(124,58,237,0.04);
+}
+
+.notif-item.unread:hover {
+  background: rgba(124,58,237,0.08);
+}
+
+/* Small dot for unread indicator */
+.notif-dot-small {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+  background: var(--red); /* shown when unread, else transparent */
+}
+
+.notif-item:not(.unread) .notif-dot-small {
+  background: transparent;
+}
+
+/* Content area */
+.notif-content {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.45;
+}
+
+.notif-content strong {
+  font-weight: 600;
+  color: var(--text);
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* Timestamp */
+.notif-ts {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+
+/* Hide the old notif-dot (if still present) */
+.notif-dot {
+  display: none;
+}
+
 /* تنسيق المودال نفسه (لضمان التوسيط والظل) */
 #modal-courseStatus .modal {
     background: var(--bg-card);

@@ -1443,6 +1443,21 @@ tbody tr:hover td { background: rgba(59,130,246,0.04); }
 }
 .badge-celebrate-close:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
 
+.btn-amber {
+  background: var(--amber);
+  color: #000;
+  border: none;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.btn-amber:hover {
+  background: #D97706;
+  transform: translateY(-1px);
+}
+
 /* Animations */
 @keyframes popIn {
   from { opacity: 0; transform: scale(0.7) translateY(20px); }

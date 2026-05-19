@@ -1,4 +1,4 @@
-// js/student-dashboard.js – Dashboard with real badge & XP data
+// js/student-dashboard.js – Real recent activity (notifications + badges), courses & XP
 
 const API_BASE = 'http://localhost:3000';
 
@@ -26,16 +26,16 @@ function timeAgo(dateStr) {
     const diffMs = now - then;
     const diffMins = Math.floor(diffMs / 60000);
     if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffMins < 60) return `${diffMins}m ago`;
     const diffHrs = Math.floor(diffMins / 60);
-    if (diffHrs < 24) return `${diffHrs} hr ago`;
+    if (diffHrs < 24) return `${diffHrs}h ago`;
     const diffDays = Math.floor(diffHrs / 24);
     if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
     return then.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-// ─── STATIC DATA (fallback / merge) ────────────
+// ─── STATIC DATA (daily goals & upcoming) ───
 const dailyGoalsData = [
     { text: 'Watch 1 lesson video',  xp: '+10 XP', done: true  },
     { text: 'Complete a quiz',       xp: '+20 XP', done: true  },
@@ -48,23 +48,16 @@ const upcomingData = [
     { emoji: '📝', title: 'React Hooks Quiz',            course: 'React from Zero',      due: 'Mar 20', color: 'rgba(34,211,238,0.12)', urgency: 'badge-blue' },
 ];
 
-const staticActivity = [
-    { dot: 'var(--green)',    text: 'You earned the <strong>Quiz Champion</strong> badge 🏆',                       time: '2 hr ago',   ts: new Date(Date.now() - 2*3600000) },
-    { dot: 'var(--blue-400)', text: 'Completed lesson: <strong>Express Middleware Deep Dive</strong>',              time: '3 hr ago',   ts: new Date(Date.now() - 3*3600000) },
-    { dot: 'var(--amber)',    text: 'Gained <strong>+80 XP</strong> from JS Closures Challenge quest',              time: 'Yesterday',  ts: new Date(Date.now() - 86400000) },
-    { dot: 'var(--purple)',   text: 'Reached <strong>Level 8</strong> — Code Warrior rank unlocked!',               time: 'Yesterday',  ts: new Date(Date.now() - 86400000) },
-    { dot: 'var(--red)',      text: 'Failed the Async/Await quiz — remedial session started automatically',          time: '2 days ago', ts: new Date(Date.now() - 172800000) },
-];
-
 // ─── FETCH & UPDATE FUNCTIONS ──────────────────
 
-async function updateBadgesAndActivity() {
+// 1. Badges – update stat card and provide activity items
+async function updateBadgesStat() {
     try {
         const data = await fetchData('/api/badges/me');
         const badges = data.badges || [];
         const count = badges.length;
 
-        // Update stat card
+        // Update stat card (Badges Earned)
         const statCards = document.querySelectorAll('.stat-value');
         statCards.forEach(el => {
             const label = el.nextElementSibling?.textContent || '';
@@ -72,29 +65,93 @@ async function updateBadgesAndActivity() {
                 el.textContent = count;
             }
         });
-        // Also update subtitle
+
         const subtitle = document.querySelector('#page-dashboard .section-subtitle');
         if (subtitle) {
             subtitle.textContent = `${count} badges earned · Keep going!`;
         }
 
-        // Build badge activity items
-        const badgeActivity = badges.slice(0, 5).map(b => ({
-            dot: 'var(--purple)',
-            text: `You earned the <strong>${b.name}</strong> badge 🏅`,
-            time: timeAgo(b.earned_at),
-            ts: new Date(b.earned_at)
-        }));
-
-        // Merge with static activity, sort by timestamp descending
-        const merged = [...badgeActivity, ...staticActivity].sort((a, b) => b.ts - a.ts);
-        renderActivity(merged);
+        return badges; // return for activity merging
     } catch (e) {
-        console.warn('Could not load badges for dashboard:', e.message);
-        renderActivity(staticActivity); // fallback
+        console.warn('Could not load badges:', e.message);
+        return [];
     }
 }
 
+// 2. Notifications – activity feed
+async function loadNotificationsForActivity() {
+    try {
+        const token = getAuthToken();
+        const res = await fetch('http://localhost:3000/api/notifications?limit=5', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        return data.success ? data.notifications || [] : [];
+    } catch (err) {
+        console.error('Failed to load notifications:', err);
+        return [];
+    }
+}
+
+// 3. Build and render the merged activity feed
+async function loadRecentActivity() {
+    const container = document.getElementById('dashActivity');
+    if (!container) return;
+
+    // Fetch both sources in parallel
+    const [badges, notifications] = await Promise.all([
+        updateBadgesStat(),
+        loadNotificationsForActivity()
+    ]);
+
+    // Convert badge objects to activity items
+    const badgeItems = badges.slice(0, 5).map(b => ({
+        dot: 'var(--purple)',
+        text: `You earned the <strong>${escapeHtml(b.name)}</strong> badge 🏅`,
+        time: timeAgo(b.earned_at),
+        ts: new Date(b.earned_at).getTime()
+    }));
+
+    // Convert notification objects to activity items
+    const colorMap = {
+        enrollment: 'var(--blue-400)',
+        achievement: 'var(--purple)',
+        system: 'var(--amber)',
+        assignment: 'var(--green)',
+        announcement: 'var(--cyan)',
+    };
+    const notifItems = notifications.map(n => ({
+        dot: colorMap[n.type] || 'var(--text-3)',
+        text: `<strong>${escapeHtml(n.title)}</strong> ${escapeHtml(n.message)}`,
+        time: timeAgo(n.created_at),
+        ts: new Date(n.created_at).getTime()
+    }));
+
+    // Merge and sort by timestamp (newest first)
+    const merged = [...badgeItems, ...notifItems].sort((a, b) => b.ts - a.ts);
+
+    if (merged.length === 0) {
+        container.innerHTML = '<div class="activity-item"><div class="activity-body"><div class="activity-text">No recent activity</div></div></div>';
+        return;
+    }
+
+    container.innerHTML = merged.slice(0, 5).map(a => `
+        <div class="activity-item">
+            <div class="activity-dot" style="background:${a.dot}"></div>
+            <div class="activity-body">
+                <div class="activity-text">${a.text}</div>
+                <div class="activity-time">${a.time}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+}
+
+// ─── Other dashboard updates (unchanged) ───
 async function updateGamificationStats() {
     try {
         const res = await fetchData('/api/gamification/me');
@@ -107,7 +164,6 @@ async function updateGamificationStats() {
         const xpPercent = Math.min(100, Math.round((xp / xpForNext) * 100));
         const xpRemaining = xpForNext - xp;
 
-        // Update XP bar in topbar
         const xpStrong = document.querySelector('.xp-label strong');
         const xpFill = document.querySelector('.xp-fill');
         const xpLevel = document.querySelector('.xp-level');
@@ -115,7 +171,6 @@ async function updateGamificationStats() {
         if (xpFill) xpFill.style.width = `${xpPercent}%`;
         if (xpLevel) xpLevel.textContent = `Lv.${level}`;
 
-        // Update welcome banner level
         const levelNum = document.querySelector('.level-num');
         const levelXp = document.querySelector('.level-xp');
         const levelNext = document.querySelector('.level-next');
@@ -139,7 +194,6 @@ async function updateWelcomeName() {
             welcomeTitle.innerHTML = `Welcome back, <span>${firstName}</span> 👾`;
         }
 
-        // Update sidebar profile
         const avatar = document.querySelector('.profile-avatar');
         const profileName = document.querySelector('.profile-name');
         if (avatar) avatar.textContent = firstName.substring(0, 2).toUpperCase();
@@ -166,12 +220,9 @@ async function updateCoursesStat() {
             const label = el.nextElementSibling?.textContent || '';
             if (label.includes('Enrolled')) {
                 el.textContent = total;
-            } else if (label.includes('Avg Quiz')) {
-                // Could update with real quiz avg later
             }
         });
 
-        // Update active courses trend
         const activeTrend = document.querySelector('#stat-active-courses');
         if (activeTrend) activeTrend.textContent = `${active} active`;
     } catch (e) {
@@ -180,21 +231,6 @@ async function updateCoursesStat() {
 }
 
 // ─── RENDER FUNCTIONS ──────────────────────────
-
-function renderActivity(items) {
-    const container = document.getElementById('dashActivity');
-    if (!container) return;
-    container.innerHTML = items.map(a => `
-        <div class="activity-item">
-            <div class="activity-dot" style="background:${a.dot}"></div>
-            <div class="activity-body">
-                <div class="activity-text">${a.text}</div>
-                <div class="activity-time">${a.time}</div>
-            </div>
-        </div>
-    `).join('');
-}
-
 function renderDailyGoals() {
     const container = document.getElementById('dailyGoals');
     if (!container) return;
@@ -305,9 +341,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     renderDailyGoals();
     renderUpcoming();
 
-    // Run API fetches in parallel
+    // Dynamic recent activity (badges + notifications)
+    loadRecentActivity();
+
+    // Other API updates in parallel
     await Promise.allSettled([
-        updateBadgesAndActivity(),
         updateGamificationStats(),
         updateWelcomeName(),
         updateCoursesStat(),

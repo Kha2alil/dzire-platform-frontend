@@ -1,30 +1,24 @@
-// ====================== تكوين Axios ======================
+/* ═════════════════════════════════════════════════════════════════
+   admin-dashboard.js – Full Admin Panel with Real Notifications
+   + Skills Management
+   ═════════════════════════════════════════════════════════════════ */
+
+// ====================== Axios Config ======================
 axios.defaults.baseURL = 'http://localhost:3000/api/admin';
 const token = localStorage.getItem('token');
 if (token) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 }
 
-// ====================== المتغيرات العامة ======================
+// ====================== Global Variables ======================
 let allUsers = [];
 let allCourses = [];
-let allSkills = [];
+let allSkills = [];               // ← skills data
 let activeUserTab = 'all';
 let confirmCallback = null;
 let currentCourseIdForStatus = null;
 
-// بيانات وهمية للنشاطات
-const ACTIVITY_LOG = [
-    { dot: 'var(--green)', text: '<strong>Ahmed Mansouri</strong> enrolled in Full-Stack Web Development', time: '2 min ago' },
-    { dot: 'var(--blue-400)', text: '<strong>Khalil Khalfi</strong> added a new lesson to Node.js Mastery', time: '14 min ago' },
-    { dot: 'var(--amber)', text: '<strong>Nour Aissaoui</strong> completed JavaScript Advanced Concepts', time: '31 min ago' },
-    { dot: 'var(--admin-accent)', text: '<strong>Samira Ferhat</strong> published CSS & Tailwind Deep Dive', time: '1 hr ago' },
-    { dot: 'var(--red)', text: '<strong>Lina Khelifi</strong> was banned for policy violation', time: '2 hr ago' },
-    { dot: 'var(--cyan)', text: '<strong>Tarek Boumediene</strong> added Python for Data Science course', time: '5 hr ago' },
-    { dot: 'var(--purple)', text: 'New user <strong>Amira Saad</strong> registered and verified email', time: 'Yesterday' },
-];
-
-// ====================== دوال مساعدة ======================
+// ====================== Helper Functions ======================
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
@@ -77,10 +71,12 @@ function openConfirm(title, msg, icon, cb) {
     confirmCallback = cb;
     document.getElementById('confirmOverlay').classList.add('open');
 }
+
 function closeConfirm() {
     document.getElementById('confirmOverlay').classList.remove('open');
     confirmCallback = null;
 }
+
 document.getElementById('confirmBtn').onclick = function() {
     if (confirmCallback) confirmCallback();
     closeConfirm();
@@ -89,6 +85,7 @@ document.getElementById('confirmBtn').onclick = function() {
 // ====================== Modals ======================
 function openModal(id) { document.getElementById('modal-' + id).classList.add('open'); }
 function closeModal(id) { document.getElementById('modal-' + id).classList.remove('open'); }
+
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', e => {
         if (e.target === overlay) overlay.classList.remove('open');
@@ -102,6 +99,8 @@ function navigate(page) {
     const targetPage = document.getElementById('page-' + page);
     if (targetPage) targetPage.classList.add('active');
     document.querySelectorAll(`.nav-item[data-page="${page}"]`).forEach(n => n.classList.add('active'));
+
+    // Dynamic title
     let title = '';
     if (page === 'dashboard') title = 'Dashboard';
     else if (page === 'users') title = 'User Management';
@@ -109,11 +108,14 @@ function navigate(page) {
     else if (page === 'skills') title = 'Skill Management';
     else if (page === 'settings') title = 'Platform Settings';
     document.getElementById('pageTitle').textContent = title;
+
     if (page === 'users') fetchUsers();
     if (page === 'courses') fetchCourses();
     if (page === 'skills') fetchSkills();
+
     closeSidebar();
 }
+
 document.querySelectorAll('.nav-item[data-page]').forEach(item => {
     item.addEventListener('click', () => navigate(item.dataset.page));
 });
@@ -123,6 +125,7 @@ const sidebarEl = document.getElementById('sidebar');
 const mainEl = document.getElementById('main');
 const toggleBtn = document.getElementById('sidebarToggle');
 let collapsed = false;
+
 if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
         collapsed = !collapsed;
@@ -131,10 +134,19 @@ if (toggleBtn) {
         toggleBtn.textContent = collapsed ? '▶' : '◀';
     });
 }
-function openSidebar() { sidebarEl.classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
-function closeSidebar() { sidebarEl.classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
 
-// ====================== المستخدمون ======================
+function openSidebar() {
+    sidebarEl.classList.add('mobile-open');
+    document.getElementById('sidebarOverlay').classList.add('visible');
+}
+
+function closeSidebar() {
+    sidebarEl.classList.remove('mobile-open');
+    document.getElementById('sidebarOverlay').classList.remove('visible');
+}
+
+// ====================== Users ======================
+
 async function fetchUsers() {
     try {
         const response = await axios.get('/profiles');
@@ -144,15 +156,23 @@ async function fetchUsers() {
             renderUsersTable();
             updateStats();
             renderDashUsers();
-        } else { showToast('فشل تحميل المستخدمين', 'error'); }
+        } else {
+            showToast('فشل تحميل المستخدمين', 'error');
+        }
     } catch (err) {
-        console.error(err);
+        console.error('Fetch users error:', err);
         if (err.response && (err.response.status === 403 || err.response.status === 401)) {
             showToast('غير مصرح لك. سيتم إعادة التوجيه.', 'error');
-            setTimeout(() => { localStorage.removeItem('token'); window.location.href = 'login.html'; }, 2000);
-        } else { showToast('خطأ في تحميل المستخدمين', 'error'); }
+            setTimeout(() => {
+                localStorage.removeItem('token');
+                window.location.href = 'login.html';
+            }, 2000);
+        } else {
+            showToast('خطأ في تحميل المستخدمين', 'error');
+        }
     }
 }
+
 function roleBadge(role) {
     if (role === 'teacher') return `<div class="badge badge-admin">🎓 Teacher</div>`;
     if (role === 'admin') return `<div class="badge badge-danger">👑 Admin</div>`;
@@ -178,18 +198,37 @@ function renderUsersTable() {
     const users = getFilteredUsers();
     const tbody = document.getElementById('usersTable');
     if (!tbody) return;
-    if (!users.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">لا يوجد مستخدمون</div></td></tr>'; return; }
+    if (!users.length) {
+        tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">لا يوجد مستخدمون</div></td></tr>';
+        return;
+    }
     tbody.innerHTML = users.map(u => {
         const [bg, col] = getAvatarColor(u.full_name);
         const banLabel = u.status === 'banned' ? '✅ Unban' : '🚫 Ban';
         const joinedDate = u.created_at ? new Date(u.created_at).toLocaleDateString() : '—';
-        return `<tr>
-            <td><div class="user-cell"><div class="user-avatar" style="background:${bg}; color:${col}">${getInitials(u.full_name)}</div><div><div class="user-name">${escapeHtml(u.full_name)}</div><div class="user-email">${escapeHtml(u.email)}</div></div></div></td>
-            <td>${roleBadge(u.role)}</td>
-            <td>${statusBadge(u.status)}</td>
-            <td style="color:var(--text-3); font-size:12px">${joinedDate}</td>
-            <td><div style="display:flex; gap:6px"><button class="btn btn-ghost btn-xs" onclick="editUser('${u.id}')">✎ Edit</button><button class="btn btn-xs ${u.status === 'banned' ? 'btn-ghost' : 'btn-danger'}" onclick="toggleBan('${u.id}')">${banLabel}</button><button class="btn btn-danger btn-xs" onclick="deleteUser('${u.id}')">🗑️</button></div></td>
-        </tr>`;
+        return `
+            <tr>
+                <td>
+                    <div class="user-cell">
+                        <div class="user-avatar" style="background:${bg}; color:${col}">${getInitials(u.full_name)}</div>
+                        <div>
+                            <div class="user-name">${escapeHtml(u.full_name)}</div>
+                            <div class="user-email">${escapeHtml(u.email)}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>${roleBadge(u.role)}</td>
+                <td>${statusBadge(u.status)}</td>
+                <td style="color:var(--text-3); font-size:12px">${joinedDate}</td>
+                <td>
+                    <div style="display:flex; gap:6px">
+                        <button class="btn btn-ghost btn-xs" onclick="editUser('${u.id}')">✎ Edit</button>
+                        <button class="btn btn-xs ${u.status === 'banned' ? 'btn-ghost' : 'btn-danger'}" onclick="toggleBan('${u.id}')">${banLabel}</button>
+                        <button class="btn btn-danger btn-xs" onclick="deleteUser('${u.id}')">🗑️</button>
+                    </div>
+                </td>
+            </tr>
+        `;
     }).join('');
 }
 function filterUsers() { renderUsersTable(); }
@@ -202,6 +241,7 @@ function switchUserTab(el) {
     else roleFilter.value = activeUserTab;
     renderUsersTable();
 }
+
 function openAddUserModal() {
     document.getElementById('editUserId').value = '';
     document.getElementById('uFullName').value = '';
@@ -239,8 +279,10 @@ async function submitUserModal() {
     const role = document.getElementById('uRole').value;
     const status = document.getElementById('uStatus').value;
     const password = document.getElementById('uPassword')?.value.trim();
+
     if (!full_name || !email) { showToast('الاسم والبريد الإلكتروني مطلوبان', 'error'); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('البريد الإلكتروني غير صالح', 'error'); return; }
+
     try {
         if (userId) {
             await axios.put(`/edit-user/${userId}`, { full_name, username, email, role, status });
@@ -253,7 +295,10 @@ async function submitUserModal() {
         }
         closeModal('user');
         await fetchUsers();
-    } catch (err) { showToast(err.response?.data?.message || 'حدث خطأ أثناء العملية', 'error'); }
+    } catch (err) {
+        console.error(err);
+        showToast(err.response?.data?.message || 'حدث خطأ أثناء العملية', 'error');
+    }
 }
 async function toggleBan(userId) {
     const user = allUsers.find(u => u.id === userId);
@@ -272,12 +317,16 @@ async function deleteUser(userId) {
     const user = allUsers.find(u => u.id === userId);
     if (!user) return;
     openConfirm('حذف المستخدم', `هل أنت متأكد من حذف "${user.full_name}"؟ لا يمكن التراجع.`, '🗑️', async () => {
-        try { await axios.delete(`/delete-user/${userId}`); showToast(`تم حذف المستخدم ${user.full_name}`, 'error'); await fetchUsers(); }
-        catch (err) { showToast('فشل الحذف', 'error'); }
+        try {
+            await axios.delete(`/delete-user/${userId}`);
+            showToast(`تم حذف المستخدم ${user.full_name}`, 'error');
+            await fetchUsers();
+        } catch (err) { showToast('فشل الحذف', 'error'); }
     });
 }
 
-// ====================== الكورسات ======================
+// ====================== Courses ======================
+
 async function fetchCourses() {
     try {
         const response = await axios.get('/courses');
@@ -287,31 +336,58 @@ async function fetchCourses() {
             renderCoursesTable();
             renderDashCourses();
             updateStats();
-        } else { showToast('فشل تحميل الكورسات', 'error'); }
-    } catch (err) { showToast('خطأ في تحميل الكورسات', 'error'); }
+        } else {
+            showToast('فشل تحميل الكورسات', 'error');
+        }
+    } catch (err) {
+        console.error('Fetch courses error:', err);
+        showToast('خطأ في تحميل الكورسات', 'error');
+    }
 }
+
 async function updateCourseStatus(courseId, newStatus) {
     try {
         await axios.patch(`/courses/${courseId}/status`, { status: newStatus });
         showToast(`تم تحديث حالة الكورس إلى ${newStatus}`, 'success');
         await fetchCourses();
-    } catch (err) { showToast('فشل تحديث الحالة', 'error'); }
+    } catch (err) {
+        console.error('Update status error:', err);
+        showToast('فشل تحديث الحالة. تأكد من أن الـ API يعمل.', 'error');
+    }
 }
-function openCourseStatusModal(courseId) { currentCourseIdForStatus = courseId; openModal('courseStatus'); }
-async function setCourseStatus(newStatus) { if (!currentCourseIdForStatus) return; await updateCourseStatus(currentCourseIdForStatus, newStatus); closeModal('courseStatus'); currentCourseIdForStatus = null; }
+
+function openCourseStatusModal(courseId) {
+    currentCourseIdForStatus = courseId;
+    openModal('courseStatus');
+}
+
+async function setCourseStatus(newStatus) {
+    if (!currentCourseIdForStatus) return;
+    await updateCourseStatus(currentCourseIdForStatus, newStatus);
+    closeModal('courseStatus');
+    currentCourseIdForStatus = null;
+}
+
 async function deleteCourse(courseId) {
     const course = allCourses.find(c => c.id === courseId);
     if (!course) return;
     openConfirm('حذف الكورس', `هل أنت متأكد من حذف "${course.Course || course.title}"؟ لا يمكن التراجع.`, '🗑️', async () => {
-        try { await axios.delete(`/courses/${courseId}`); showToast(`تم حذف الكورس "${course.Course || course.title}"`, 'error'); await fetchCourses(); }
-        catch (err) { showToast('فشل الحذف', 'error'); }
+        try {
+            await axios.delete(`/courses/${courseId}`);
+            showToast(`تم حذف الكورس "${course.Course || course.title}"`, 'error');
+            await fetchCourses();
+        } catch (err) { showToast('فشل الحذف', 'error'); }
     });
 }
+
 function renderCoursesTable() {
     const courses = getFilteredCourses();
     const tbody = document.getElementById('coursesTable');
     if (!tbody) return;
-    if (!courses.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">لا توجد كورسات</div></td></table>'; return; }
+    if (!courses.length) {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">لا توجد كورسات</div></td></tr>';
+        return;
+    }
     const emojis = { 'Web Dev': '🌐', 'Frontend': '🎨', 'Backend': '⚙️', 'Data Science': '📊', 'DevOps': '☁️', 'Design': '🖌️' };
     tbody.innerHTML = courses.map(c => {
         const title = c.Course || c.title || 'بدون عنوان';
@@ -319,20 +395,39 @@ function renderCoursesTable() {
         let level = c.Level || c.difficulty_level || 'beginner';
         const students = c.Students !== undefined ? c.Students : (c.students_count || 0);
         let status = 'Draft';
-        if (c.is_published === 1 || c.is_published === true) status = 'Published';
-        else if (c.status) status = c.status;
+        if (c.is_published === 1 || c.is_published === true) {
+            status = 'Published';
+        } else if (c.status) {
+            status = c.status;
+        }
         const category = c.category || 'General';
         const ico = emojis[category] || '📚';
-        return `<tr>
-            <td><div style="display:flex;align-items:center;gap:10px"><div style="font-size:20px;width:32px;text-align:center">${ico}</div><div><div style="font-weight:500;font-size:13px">${escapeHtml(title)}</div><div style="font-size:11px;color:var(--text-3)">${escapeHtml(category)}</div></div></div></td>
-            <td style="color:var(--text-2);font-size:12px">${escapeHtml(instructor)}</td>
-            <td>${levelBadge(level)}</td>
-            <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--admin-accent)">${students}</span></td>
-            <td>${courseStatusBadge(status)}</td>
-            <td><div style="display:flex;gap:6px"><button class="btn btn-ghost btn-xs" onclick="openCourseStatusModal('${c.id}')">✎ Change Status</button><button class="btn btn-danger btn-xs" onclick="deleteCourse('${c.id}')">🗑️</button></div></td>
-        </tr>`;
+        return `
+            <tr>
+                <td>
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <div style="font-size:20px;width:32px;text-align:center">${ico}</div>
+                        <div>
+                            <div style="font-weight:500;font-size:13px">${escapeHtml(title)}</div>
+                            <div style="font-size:11px;color:var(--text-3)">${escapeHtml(category)}</div>
+                        </div>
+                    </div>
+                </td>
+                <td style="color:var(--text-2);font-size:12px">${escapeHtml(instructor)}</td>
+                <td>${levelBadge(level)}</td>
+                <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--admin-accent)">${students}</span></td>
+                <td>${courseStatusBadge(status)}</td>
+                <td>
+                    <div style="display:flex;gap:6px">
+                        <button class="btn btn-ghost btn-xs" onclick="openCourseStatusModal('${c.id}')">✎ Change Status</button>
+                        <button class="btn btn-danger btn-xs" onclick="deleteCourse('${c.id}')">🗑️</button>
+                    </div>
+                </td>
+            </tr>
+        `;
     }).join('');
 }
+
 function getFilteredCourses() {
     const search = (document.getElementById('courseSearch')?.value || '').toLowerCase();
     const levelF = document.getElementById('courseLevelFilter')?.value || '';
@@ -346,6 +441,7 @@ function getFilteredCourses() {
     });
 }
 function filterCourses() { renderCoursesTable(); }
+
 function levelBadge(level) {
     const l = level.toLowerCase();
     if (l === 'beginner') return `<div class="badge badge-green">Beginner</div>`;
@@ -357,23 +453,29 @@ function courseStatusBadge(status) {
     if (status === 'Draft') return `<div class="badge badge-neutral">${status}</div>`;
     return `<div class="badge badge-green">${status}</div>`;
 }
-function openAddCourseModal() { showToast('إضافة كورس جديدة غير متاحة حالياً عبر API، سيتم إضافتها محلياً فقط.', 'info'); }
-function submitCourseModal() { showToast('يرجى استخدام واجهة المدير المخصصة لإضافة كورسات.', 'error'); }
 
-// ====================== المهارات (Skills) ======================
+function openAddCourseModal() {
+    showToast('إضافة كورس جديدة غير متاحة حالياً عبر API، سيتم إضافتها محلياً فقط.', 'info');
+}
+function submitCourseModal() {
+    showToast('يرجى استخدام واجهة المدير المخصصة لإضافة كورسات.', 'error');
+}
+
+// ====================== Skills (NEW) ======================
+
 async function fetchSkills() {
-    console.log("🔍 Fetching skills...");
     try {
         const response = await axios.get('/skills');
-        console.log("✅ Skills API response:", response.data);
         if (response.data.success) {
             allSkills = response.data.data;
             const countSpan = document.getElementById('navSkillCount');
             if (countSpan) countSpan.textContent = allSkills.length;
             renderSkillsTable();
-        } else { showToast('Failed to load skills', 'error'); }
+        } else {
+            showToast('Failed to load skills', 'error');
+        }
     } catch (err) {
-        console.error("❌ Error fetching skills:", err);
+        console.error("Error fetching skills:", err);
         showToast('Error loading skills', 'error');
     }
 }
@@ -394,7 +496,12 @@ function renderSkillsTable() {
             <td>${escapeHtml(s.category || '—')}</td>
             <td style="text-align:center">${s.display_order || 0}</td>
             <td style="color:var(--text-3); font-size:12px">${created}</td>
-            <td><div style="display:flex; gap:6px"><button class="btn btn-ghost btn-xs" onclick="editSkill('${s.id}')">✎ Edit</button><button class="btn btn-danger btn-xs" onclick="deleteSkill('${s.id}')">🗑️</button></div></td>
+            <td>
+                <div style="display:flex; gap:6px">
+                    <button class="btn btn-ghost btn-xs" onclick="editSkill('${s.id}')">✎ Edit</button>
+                    <button class="btn btn-danger btn-xs" onclick="deleteSkill('${s.id}')">🗑️</button>
+                </div>
+            </td>
         </tr>`;
     }).join('');
 }
@@ -418,6 +525,7 @@ function openAddSkillModal() {
     document.getElementById('skillModalSubmitBtn').innerText = 'Create Skill';
     openModal('skill');
 }
+
 async function editSkill(skillId) {
     const skill = allSkills.find(s => s.id === skillId);
     if (!skill) return;
@@ -432,6 +540,7 @@ async function editSkill(skillId) {
     document.getElementById('skillModalSubmitBtn').innerText = 'Update Skill';
     openModal('skill');
 }
+
 async function submitSkillModal() {
     const skillId = document.getElementById('editSkillId').value;
     const code = document.getElementById('skillCode').value.trim();
@@ -440,9 +549,12 @@ async function submitSkillModal() {
     const category = document.getElementById('skillCategory').value.trim();
     const display_order = parseInt(document.getElementById('skillDisplayOrder').value) || 0;
     const icon_url = document.getElementById('skillIconUrl').value.trim();
+
     if (!code || !name) { showToast('Code and Name are required', 'error'); return; }
     if (/\s/.test(code)) { showToast('Code must not contain spaces', 'error'); return; }
+
     const payload = { code, name, description, category, display_order, icon_url };
+
     try {
         if (skillId) {
             await axios.put(`/skills/${skillId}`, payload);
@@ -458,6 +570,7 @@ async function submitSkillModal() {
         showToast(err.response?.data?.message || 'Operation failed', 'error');
     }
 }
+
 async function deleteSkill(skillId) {
     const skill = allSkills.find(s => s.id === skillId);
     if (!skill) return;
@@ -472,7 +585,7 @@ async function deleteSkill(skillId) {
     });
 }
 
-// ====================== الإحصائيات ======================
+// ====================== Statistics ======================
 function updateStats() {
     const students = allUsers.filter(u => u.role === 'student').length;
     const teachers = allUsers.filter(u => u.role === 'teacher').length;
@@ -501,12 +614,15 @@ function updateStats() {
     document.getElementById('settingsCourseCount').textContent = coursesCount;
 }
 
-// ====================== جداول Dashboard المصغرة ======================
+// ====================== Dashboard Mini Tables ======================
 function renderDashUsers() {
     const container = document.getElementById('dashUsersTable');
     if (!container) return;
     const recentUsers = [...allUsers].slice(-5).reverse();
-    if (!recentUsers.length) { container.innerHTML = '<td><td colspan="3">لا يوجد مستخدمون</td></tr>'; return; }
+    if (!recentUsers.length) {
+        container.innerHTML = '<tr><td colspan="3">لا يوجد مستخدمون</td>';
+        return;
+    }
     container.innerHTML = recentUsers.map(u => {
         const [bg, col] = getAvatarColor(u.full_name);
         return `<tr onclick="navigate('users')">
@@ -529,24 +645,175 @@ function renderDashCourses() {
             <td><div style="font-weight:500;font-size:13px">${escapeHtml(c.Course || c.title)}</div></td>
             <td style="color:var(--text-2);font-size:12px">${escapeHtml(c.Instructor || c.teacher_name)}</td>
             <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--admin-accent)">${c.Students !== undefined ? c.Students : (c.students_count || 0)}</span></td>
-        </tr>`;
+        </tr>
+    `}).join('');
+}
+
+// ====================== Real Recent Activity ======================
+async function loadRecentActivity() {
+    try {
+        const res = await fetch(`${ADMIN_NOTIF_API}?limit=20`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await res.json();
+        if (data.success && data.notifications) {
+            renderActivityItems(data.notifications);
+        } else {
+            renderActivityItems([]);
+        }
+    } catch (err) {
+        console.error('Recent activity fetch failed:', err);
+    }
+}
+
+function renderActivityItems(notifications) {
+    const container = document.getElementById('dashActivity');
+    if (!container) return;
+
+    if (!notifications.length) {
+        container.innerHTML = `<div class="activity-item">
+            <span style="color:var(--text-3)">No recent activity</span>
+        </div>`;
+        return;
+    }
+
+    container.innerHTML = notifications.map(n => {
+        const dotColor = getActivityDotColor(n.type);
+        const text = `<strong>${escapeHtml(n.title)}</strong> ${escapeHtml(n.message)}`;
+        const time = adminTimeAgo(n.created_at);
+        return `
+            <div class="activity-item">
+                <div class="act-dot" style="background:${dotColor}"></div>
+                <div class="act-body">
+                    <div class="act-text">${text}</div>
+                    <div class="act-time">${time}</div>
+                </div>
+            </div>
+        `;
     }).join('');
 }
 
-// ====================== النشاطات والرسوم البيانية ======================
-function renderActivity() {
-    const container = document.getElementById('dashActivity');
-    if (!container) return;
-    container.innerHTML = ACTIVITY_LOG.map(a => `
-        <div class="activity-item">
-            <div class="act-dot" style="background:${a.dot}"></div>
-            <div class="act-body">
-                <div class="act-text">${a.text}</div>
-                <div class="act-time">${a.time}</div>
+function getActivityDotColor(type) {
+    const map = {
+        'enrollment': 'var(--green)',
+        'achievement': 'var(--purple)',
+        'system': 'var(--blue-400)',
+        'announcement': 'var(--amber)',
+        'assignment': 'var(--cyan)',
+        'default': 'var(--admin-accent)'
+    };
+    return map[type] || map['default'];
+}
+
+// ====================== Notification Panel ======================
+const ADMIN_NOTIF_API = 'http://localhost:3000/api/notifications';
+
+async function loadAdminNotifications() {
+    try {
+        const res = await fetch(`${ADMIN_NOTIF_API}?limit=20`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            renderAdminNotifications(data.notifications || []);
+        }
+    } catch (err) {
+        console.error('Admin notifications fetch error:', err);
+    }
+}
+
+function renderAdminNotifications(notifications) {
+    const list = document.getElementById('notifList');
+    const badge = document.getElementById('notifBadge');
+    if (!list) return;
+
+    if (notifications.length === 0) {
+        list.innerHTML = '<div class="notif-item"><span style="color:var(--text-3)">No notifications</span></div>';
+        if (badge) badge.style.display = 'none';
+        return;
+    }
+
+    list.innerHTML = notifications.map(n => `
+        <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}">
+            <div class="notif-dot-small" style="background:${n.is_read ? 'transparent' : 'var(--red)'}"></div>
+            <div class="notif-content" onclick="markAdminNotifRead('${n.id}')">
+                <div class="notif-msg"><strong>${escapeHtml(n.title)}</strong> ${escapeHtml(n.message)}</div>
+                <div class="notif-ts">${adminTimeAgo(n.created_at)}</div>
             </div>
         </div>
     `).join('');
+
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+    if (badge) {
+        badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+    }
 }
+
+async function markAdminNotifRead(id) {
+    try {
+        await fetch(`${ADMIN_NOTIF_API}/${id}/read`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        loadAdminNotifications();
+    } catch (err) {
+        console.error('Mark read failed:', err);
+    }
+}
+
+async function clearAllAdminNotifs() {
+    try {
+        await fetch(`${ADMIN_NOTIF_API}/read-all`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        loadAdminNotifications();
+    } catch (err) {
+        console.error('Clear all failed:', err);
+    }
+}
+
+function adminTimeAgo(dateStr) {
+    if (!dateStr) return '';
+    const now = new Date();
+    const then = new Date(dateStr);
+    const diffMins = Math.floor((now - then) / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHrs = Math.floor(diffMins / 60);
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    const diffDays = Math.floor(diffHrs / 24);
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return then.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function initAdminNotificationPanel() {
+    const notifBtn = document.getElementById('notifBtn');
+    const notifPanel = document.getElementById('notifPanel');
+    const clearBtn = document.getElementById('clearNotif');
+
+    if (notifBtn && notifPanel) {
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifPanel.classList.toggle('open');
+            if (notifPanel.classList.contains('open')) loadAdminNotifications();
+        });
+        document.addEventListener('click', (e) => {
+            if (!notifBtn.contains(e.target)) notifPanel.classList.remove('open');
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearAllAdminNotifs);
+    }
+
+    loadAdminNotifications();
+    setInterval(loadAdminNotifications, 30000);
+}
+
+// ====================== Charts & Settings ======================
 function renderRegChart() {
     const vals = [24, 38, 31, 52, 45, 61];
     const max = Math.max(...vals);
@@ -561,7 +828,6 @@ function renderRegChart() {
     `).join('');
 }
 
-// ====================== الإعدادات ======================
 function saveSettings() {
     const name = document.getElementById('siteName').value.trim();
     const email = document.getElementById('contactEmail').value.trim();
@@ -570,7 +836,6 @@ function saveSettings() {
     showToast('Settings saved successfully 💾', 'success');
 }
 
-// ====================== البحث العام ======================
 function handleGlobalSearch(val) {
     const q = val.toLowerCase().trim();
     if (!q) return;
@@ -589,10 +854,7 @@ function handleGlobalSearch(val) {
     }
 }
 
-// ====================== زر الإشعارات ======================
-document.getElementById('notifBtn')?.addEventListener('click', () => { showToast('3 new notifications 🔔', 'info'); });
-
-// ====================== ربط الأحداث ======================
+// ====================== Event Binding ======================
 function bindUserEvents() {
     const search = document.getElementById('userSearch');
     const roleFilter = document.getElementById('userRoleFilter');
@@ -616,16 +878,19 @@ function bindSkillEvents() {
     if (search) search.addEventListener('input', filterSkills);
 }
 
-// ====================== التهيئة ======================
+// ====================== Initialisation ======================
 async function init() {
     await fetchUsers();
     await fetchCourses();
-    await fetchSkills();
+    await fetchSkills();               
+
     bindUserEvents();
     bindCourseEvents();
     bindSkillEvents();
-    renderActivity();
+
+    loadRecentActivity();              
     renderRegChart();
+    initAdminNotificationPanel();      
 }
 
 init();

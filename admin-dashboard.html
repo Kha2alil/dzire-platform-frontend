@@ -81,9 +81,22 @@
         <span style="color:var(--text-3);font-size:14px">🔍</span>
         <input type="text" id="globalSearch" placeholder="Search users, courses…" oninput="handleGlobalSearch(this.value)"/>
       </div>
-      <div class="icon-btn" id="notifBtn" title="Notifications">
-        🔔<div class="notif-dot"></div>
+
+      <div class="notif-wrapper" id="notifWrapper">
+        <div class="icon-btn" id="notifBtn" title="Notifications">
+          🔔
+          <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+        </div>
+        <!-- Dropdown panel -->
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-panel-header">
+            <strong>Notifications</strong>
+            <button class="btn btn-ghost btn-xs" id="clearNotif">Clear all</button>
+          </div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
       </div>
+
       <button class="btn btn-admin btn-sm" id="topbarActionBtn">＋ Add User</button>
     </div>
   </header>
