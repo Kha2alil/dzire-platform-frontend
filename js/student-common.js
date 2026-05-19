@@ -564,6 +564,66 @@ window.loadSharedUserData = async function () {
     }
 };
 
+// ==============================
+// IMMEDIATE BADGE CELEBRATION
+// ==============================
+window.checkForNewBadges = async function() {
+    try {
+        const token = localStorage.getItem('token') || '';
+        const res = await axios.get('http://localhost:3000/api/badges/me', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.data.success || !res.data.badges) return;
+
+        const badges = res.data.badges;
+        const lastCount = parseInt(localStorage.getItem('lastBadgeCount') || '0', 10);
+
+        if (badges.length > lastCount) {
+            // A new badge was earned – show the latest one
+            const latestBadge = badges[0]; // badges are ordered by earned_at DESC
+            const overlay = document.createElement('div');
+            overlay.className = 'badge-celebrate-overlay';
+            overlay.innerHTML = `
+                <div class="badge-celebrate-card">
+                    <div class="badge-celebrate-close" id="badgeCelebrateClose">✕</div>
+                    <div class="badge-celebrate-icon">🎖️</div>
+                    <div class="badge-celebrate-name">${escapeHtml(latestBadge.name)}</div>
+                    <div class="badge-celebrate-desc">${escapeHtml(latestBadge.description || 'New badge earned!')}</div>
+                    <button class="badge-celebrate-btn" onclick="location.href='student-badges.html'">View My Badges</button>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+
+            const closeBtn = overlay.querySelector('#badgeCelebrateClose');
+            closeBtn.addEventListener('click', () => overlay.remove());
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.remove();
+            });
+            setTimeout(() => {
+                if (document.body.contains(overlay)) overlay.remove();
+            }, 8000);
+
+            // Update stored count
+            localStorage.setItem('lastBadgeCount', badges.length);
+        }
+    } catch (err) {
+        // Silently ignore – the popup is optional
+    }
+};
+
+// Initialise the badge count on page load
+(async function initBadgeCount() {
+    try {
+        const token = localStorage.getItem('token') || '';
+        const res = await axios.get('http://localhost:3000/api/badges/me', {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data.success && res.data.badges) {
+            localStorage.setItem('lastBadgeCount', res.data.badges.length);
+        }
+    } catch (err) { /* ignore */ }
+})();
+
 // ─────────────────────────────────────────────────────────────
 // Initialisation
 window.initStudentCommon = async function() {
