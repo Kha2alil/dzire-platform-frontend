@@ -227,7 +227,6 @@ async function createChapter() {
     return;
   }
 
-  // ✅ No longer calculate or send order_index
   const data = await apiCall('POST', `/courses/${currentBuilderCourseId}/chapters`, { title });
   if (!data || !data.success) {
     showToast(data?.message || 'Failed to create chapter', 'error');
@@ -994,6 +993,57 @@ async function saveTextLesson() {
     await openCourseBuilder(currentBuilderCourseId);
   } else {
     showToast(data?.message || 'Failed to update text', 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  EDIT COURSE INFO (Title & Description)
+// ═══════════════════════════════════════════════════════
+
+async function openEditCourseInfoModal() {
+  if (!currentBuilderCourseId) {
+    showToast('No course loaded', 'error');
+    return;
+  }
+  try {
+    const data = await apiCall('GET', `/courses/${currentBuilderCourseId}`);
+    if (!data || !data.success) throw new Error('Failed to fetch course data');
+    const course = data.data.course || data.course;
+    document.getElementById('editCourseTitle').value = course.title || '';
+    document.getElementById('editCourseDescription').value = course.description || '';
+    openModal('editCourseInfo');
+  } catch (err) {
+    console.error(err);
+    showToast('Could not load current course info', 'error');
+  }
+}
+
+async function saveCourseInfo() {
+  const newTitle = document.getElementById('editCourseTitle').value.trim();
+  const newDescription = document.getElementById('editCourseDescription').value.trim();
+
+  if (!newTitle && !newDescription) {
+    showToast('At least title or description must be provided', 'error');
+    return;
+  }
+
+  try {
+    const response = await apiCall('PATCH', `/courses/${currentBuilderCourseId}/info`, {
+      title: newTitle || undefined,
+      description: newDescription || undefined
+    });
+
+    if (response && response.success) {
+      showToast('Course info updated successfully ✅', 'success');
+      closeModal('editCourseInfo');
+      // Refresh the displayed course info
+      await openCourseBuilder(currentBuilderCourseId);
+    } else {
+      showToast(response?.message || 'Update failed', 'error');
+    }
+  } catch (err) {
+    console.error('Update error:', err);
+    showToast(err.response?.data?.error || 'Server error', 'error');
   }
 }
 
