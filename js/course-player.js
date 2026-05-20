@@ -212,6 +212,12 @@ function setActiveTab(tab) {
   const pdfBtn = document.getElementById('modePdfBtn');
   const textBtn = document.getElementById('modeTextBtn');
 
+  // ✅ إظهار زر الإكمال إذا كنا نغادر تبويب التقييم ولدينا درس حالي
+  const completeBtn = document.getElementById('completeLessonBtn');
+  if (completeBtn && currentLesson && tab !== 'assessment') {
+    completeBtn.style.display = 'inline-flex';
+  }
+
   if (videoContent) videoContent.style.display = 'none';
   if (pdfContent) pdfContent.style.display = 'none';
   if (textContent) textContent.style.display = 'none';
@@ -302,12 +308,18 @@ function updateLessonDisplay() {
 
   const completeBtn = document.getElementById('completeLessonBtn');
   if (completeBtn) {
+    // ✅ إجبار الزر على الظهور (مسح أي display: none سابقة)
     completeBtn.style.display = 'inline-flex';
     const isCompleted = checkIfLessonDone(currentLesson.id);
     completeBtn.innerText = isCompleted ? "COMPLETED" : "MARK AS COMPLETED";
     completeBtn.disabled = isCompleted;
-    if (isCompleted) completeBtn.style.background = "#10B981";
-    else completeBtn.style.background = "";
+    if (isCompleted) {
+      completeBtn.style.background = "#10B981";
+      completeBtn.style.opacity = "0.7";
+    } else {
+      completeBtn.style.background = "";
+      completeBtn.style.opacity = "1";
+    }
   }
 }
 
@@ -523,7 +535,6 @@ window.loadBossExam = async function(assessmentId) {
       document.getElementById('bossPassingBadge').innerText = `Pass: ${exam.passing_score}%`;
 
       const codeContainer = document.getElementById('codeEditorContainer');
-      // Clear any old editor DOM
       codeContainer.innerHTML = '';
       codeContainer.style.cssText = 'border:1px solid var(--border); margin-top:16px; border-radius:8px; overflow:hidden; min-height:300px;';
 
@@ -539,9 +550,8 @@ window.loadBossExam = async function(assessmentId) {
 
       const starterCode = exam.starter_code || '';
 
-      // Always create a fresh editor instance to avoid stale state
       if (bossExamEditor) {
-        bossExamEditor.toTextArea(); // properly destroy old instance
+        bossExamEditor.toTextArea();
         bossExamEditor = null;
       }
 
@@ -565,7 +575,6 @@ window.loadBossExam = async function(assessmentId) {
         CodeMirror.emmet.setOption('marker', false);
       }
 
-      // Smart autocomplete – only in meaningful contexts
       bossExamEditor.on('inputRead', function(cm, change) {
         if (!change.text[0] || change.text[0] === ' ' || change.text[0] === '\n') return;
 
@@ -584,7 +593,6 @@ window.loadBossExam = async function(assessmentId) {
             CodeMirror.commands.autocomplete(cm);
           }
         }
-        // JavaScript stays manual (Ctrl+Space)
       });
 
       setActiveTab('assessment');
@@ -662,7 +670,6 @@ function renderTestResults(results, isFinal, score, passed) {
   if (!resultsDiv) return;
   let html = '';
 
-  // Individual test results
   if (results && results.length > 0) {
     results.forEach((r, i) => {
       const icon = r.passed ? '✅' : '❌';
@@ -675,7 +682,6 @@ function renderTestResults(results, isFinal, score, passed) {
     });
   }
 
-  // Final score badge
   if (isFinal) {
     const displayScore = (score !== undefined && score !== null && !isNaN(score)) ? score : 'N/A';
     const badgeClass = passed ? 'badge-green' : 'badge-red';

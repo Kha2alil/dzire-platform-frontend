@@ -1,9 +1,8 @@
 /* teacher-students.js – المسار الصحيح /api/courses/my-progress */
-
-let allStudents = [];
+let allStudents = [];         // البيانات الأصلية (غير مجمعة)
+let groupedStudents = [];     // البيانات بعد التجميع حسب الطالب
 let studentsCourses = [];
 
-// المسار الكامل للـ API
 const API_URL = 'http://localhost:3000/api/courses/my-progress';
 
 const token = localStorage.getItem('token');
@@ -29,7 +28,6 @@ function getField(obj, possibleKeys, defaultValue = '') {
     return defaultValue;
 }
 
-// تحويل نسبة التقدم من نص ("78%") إلى رقم (78)
 function parseProgress(value) {
     if (value === undefined || value === null) return 0;
     if (typeof value === 'number') return Math.min(100, Math.max(0, value));
@@ -38,6 +36,62 @@ function parseProgress(value) {
         if (match) return Math.min(100, Math.max(0, parseFloat(match[1])));
     }
     return 0;
+}
+
+// ====================== تجميع السجلات حسب الطالب ======================
+function groupStudentsByUniqueId(studentsArray) {
+    const map = new Map();
+    
+    for (const record of studentsArray) {
+        // محاولة الحصول على معرف الطالب
+        let studentId = getField(record, ['id', 'studentId', 'student_id', 'userId', 'user_id'], null);
+        if (!studentId) {
+            // إذا لم يكن هناك معرف، نستخدم الاسم + البريد (أو اسم فقط)
+            const name = getField(record, ['studentName', 'Student', 'student_name', 'name', 'full_name'], '');
+            const email = getField(record, ['email', 'student_email'], '');
+            studentId = `${name}|${email}`; // مفتاح مركب
+        }
+        
+        if (!map.has(studentId)) {
+            // نسخة جديدة من السجل (سنعدلها لتصبح مجمعة)
+            const groupedRecord = { ...record };
+            // نضيف مصفوفة للكورسات
+            groupedRecord.coursesList = [];
+            groupedRecord.totalProgress = 0;
+            groupedRecord.courseCount = 0;
+            map.set(studentId, groupedRecord);
+        }
+        
+        const grouped = map.get(studentId);
+        
+        // جمع الكورسات
+        let courseName = getField(record, ['courseTitle', 'Course', 'course', 'course_name', 'title'], '');
+        if (courseName && !grouped.coursesList.includes(courseName)) {
+            grouped.coursesList.push(courseName);
+        }
+        
+        // تجميع التقدم (سنحسب المتوسط لاحقاً)
+        let progress = parseProgress(getField(record, ['progress', 'Progress', 'progress_percentage'], 0));
+        grouped.totalProgress += progress;
+        grouped.courseCount++;
+    }
+    
+    // تحويل الخريطة إلى مصفوفة وحساب متوسط التقدم
+    const result = [];
+    for (let [_, grouped] of map.entries()) {
+        if (grouped.courseCount > 0) {
+            grouped.averageProgress = Math.round(grouped.totalProgress / grouped.courseCount);
+        } else {
+            grouped.averageProgress = 0;
+        }
+        // استبدال حقل progress المفرد بالمتوسط (أو يمكن الاحتفاظ بالأصل)
+        grouped.progress = grouped.averageProgress;
+        // دمج الكورسات في نص واحد
+        grouped.coursesCombined = grouped.coursesList.join(', ');
+        result.push(grouped);
+    }
+    
+    return result;
 }
 
 // ====================== جلب الطلاب ======================
@@ -49,18 +103,21 @@ async function fetchStudents() {
         
         if (response.data && response.data.success) {
             allStudents = response.data.data || [];
-            console.log(`✅ تم جلب ${allStudents.length} طالب`);
+            console.log(`✅ تم جلب ${allStudents.length} سجل (قبل التجميع)`);
             
-            if (allStudents.length) {
-                console.log('🔍 عينة من أول طالب:', allStudents[0]);
-                console.log('🔑 أسماء الحقول:', Object.keys(allStudents[0]));
+            // تجميع السجلات حسب الطالب
+            groupedStudents = groupStudentsByUniqueId(allStudents);
+            console.log(`✅ بعد التجميع: ${groupedStudents.length} طالب فريد`);
+            
+            if (groupedStudents.length) {
+                console.log('🔍 عينة من أول طالب بعد التجميع:', groupedStudents[0]);
             }
             
-            updateStudentCountBadge(allStudents.length);
+            updateStudentCountBadge(groupedStudents.length);
             extractCoursesList();
             populateCourseFilter();
-            renderStudentTable(allStudents);
-            return allStudents;
+            renderStudentTable(groupedStudents);
+            return groupedStudents;
         } else {
             console.error('فشل جلب الطلاب');
             showToast('Failed to load students', 'error');
@@ -85,20 +142,16 @@ async function fetchStudents() {
     }
 }
 
-// استخراج قائمة الكورسات
+// استخراج قائمة الكورسات (من البيانات المجمعة)
 function extractCoursesList() {
     const coursesSet = new Set();
-    allStudents.forEach(s => {
-        let course = getField(s, ['courseTitle', 'Course', 'course', 'course_name', 'title'], '');
-        if (!course) {
-            for (let key in s) {
-                if (key.toLowerCase().includes('course')) {
-                    course = s[key];
-                    break;
-                }
-            }
+    groupedStudents.forEach(s => {
+        if (s.coursesList && s.coursesList.length) {
+            s.coursesList.forEach(c => coursesSet.add(c));
+        } else {
+            let course = getField(s, ['courseTitle', 'Course', 'course', 'course_name', 'title'], '');
+            if (course) coursesSet.add(course);
         }
-        if (course) coursesSet.add(course);
     });
     studentsCourses = Array.from(coursesSet).sort();
 }
@@ -117,7 +170,7 @@ function populateCourseFilter() {
     });
 }
 
-// عرض الجدول (متوافق مع الأسماء الجديدة)
+// عرض الجدول (باستخدام البيانات المجمعة)
 function renderStudentTable(students) {
     const tbody = document.getElementById('studentTable');
     if (!tbody) return;
@@ -129,9 +182,12 @@ function renderStudentTable(students) {
     
     tbody.innerHTML = students.map(student => {
         let studentName = getField(student, ['studentName', 'Student', 'student_name', 'name', 'full_name'], 'Unknown');
-        let courseName = getField(student, ['courseTitle', 'Course', 'course', 'course_name'], '—');
-        let progressRaw = getField(student, ['progress', 'Progress', 'progress_percentage'], 0);
-        let progress = parseProgress(progressRaw);
+        // عرض الكورسات بشكل نصي (قائمة مفصولة بفواصل)
+        let coursesDisplay = student.coursesCombined || getField(student, ['courseTitle', 'Course', 'course', 'course_name'], '—');
+        if (coursesDisplay === '—' && student.coursesList && student.coursesList.length) {
+            coursesDisplay = student.coursesList.join(', ');
+        }
+        let progress = student.averageProgress !== undefined ? student.averageProgress : parseProgress(getField(student, ['progress', 'Progress'], 0));
         let xp = getField(student, ['xp', 'XP', 'total_xp'], 0);
         xp = Number(xp) || 0;
         let level = getField(student, ['level', 'Level', 'current_level'], 1);
@@ -172,8 +228,8 @@ function renderStudentTable(students) {
                             <div class="user-sub"></div>
                         </div>
                     </div>
-                </td>
-                <td style="color:var(--text-2)">${escapeHtml(courseName)}</td>
+                 </td>
+                <td style="color:var(--text-2)">${escapeHtml(coursesDisplay)}</td>
                 <td>
                     <div style="display:flex;align-items:center;gap:10px">
                         <div class="progress-bar" style="width:80px">
@@ -181,12 +237,12 @@ function renderStudentTable(students) {
                         </div>
                         <span style="font-size:12px;color:var(--text-3)">${progress}%</span>
                     </div>
-                 </td>
+                  </td>
                 <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--purple)">${xp.toLocaleString()}</span></td>
                 <td><span class="badge badge-blue">Lv. ${level}</span></td>
                 <td style="color:var(--text-3);font-size:12px">${escapeHtml(lastActive)}</td>
                 <td><div class="badge ${statusBadgeClass}">${statusText}</div></td>
-            </tr>
+            </table>
         `;
     }).join('');
 }
@@ -196,17 +252,18 @@ function updateStudentCountBadge(count) {
     if (badge) badge.textContent = count;
 }
 
+// وظيفة الفلترة تعتمد على البيانات المجمعة
 function filterStudents() {
     const searchTerm = document.getElementById('studentSearch')?.value.toLowerCase().trim() || '';
     const courseFilter = document.getElementById('studentCourseFilter')?.value || '';
     const progressFilter = document.getElementById('studentStatusFilter')?.value || '';
     
-    const filtered = allStudents.filter(student => {
+    const filtered = groupedStudents.filter(student => {
         let studentName = getField(student, ['studentName', 'Student', 'student_name', 'name'], '').toLowerCase();
         const matchSearch = !searchTerm || studentName.includes(searchTerm);
-        let course = getField(student, ['courseTitle', 'Course', 'course', 'course_name'], '');
-        const matchCourse = !courseFilter || course === courseFilter;
-        let progress = parseProgress(getField(student, ['progress', 'Progress'], 0));
+        let courses = student.coursesList || [];
+        let matchCourse = !courseFilter || courses.includes(courseFilter);
+        let progress = student.averageProgress !== undefined ? student.averageProgress : parseProgress(getField(student, ['progress', 'Progress'], 0));
         let matchProgress = true;
         if (progressFilter === 'high') matchProgress = progress >= 75;
         else if (progressFilter === 'mid') matchProgress = progress >= 40 && progress < 75;
@@ -226,15 +283,15 @@ function bindStudentEvents() {
 }
 
 function exportStudentsToCSV() {
-    if (!allStudents.length) {
+    if (!groupedStudents.length) {
         showToast('No data to export', 'error');
         return;
     }
-    const headers = ['Student', 'Course', 'Progress (%)', 'XP', 'Level', 'Last Active', 'Status'];
-    const rows = allStudents.map(s => [
+    const headers = ['Student', 'Courses', 'Average Progress (%)', 'XP', 'Level', 'Last Active', 'Status'];
+    const rows = groupedStudents.map(s => [
         getField(s, ['studentName', 'Student', 'name'], ''),
-        getField(s, ['courseTitle', 'Course', 'course'], ''),
-        parseProgress(getField(s, ['progress', 'Progress'], 0)),
+        s.coursesCombined || '',
+        s.averageProgress || parseProgress(getField(s, ['progress', 'Progress'], 0)),
         getField(s, ['xp', 'XP'], 0),
         getField(s, ['level', 'Level'], 1),
         getField(s, ['lastActive', 'Last_Active', 'last_active'], ''),
