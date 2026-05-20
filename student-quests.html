@@ -6,11 +6,41 @@
   <title>Dzire – Quests</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/student-style.css" />
+  <!-- CodeMirror -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css" />
+  <style>
+    /* Quest editor container – hidden by default */
+    .quest-editor-container {
+      display: none;
+      margin-top: 20px;
+    }
+    .quest-editor-container.active {
+      display: block;
+    }
+    .editor-wrapper {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .output-box {
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-top: 10px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+  </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- SIDEBAR (identical, active item = quests) -->
+  <!-- SIDEBAR – loaded by student-common.js -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="logo-icon">D</div>
@@ -23,9 +53,6 @@
       <a href="student-dashboard.html" class="nav-item" data-page="dashboard">
         <span class="nav-icon">⊞</span><span class="nav-label">Dashboard</span>
       </a>
-      <a href="student-my-path.html" class="nav-item" data-page="my-path">
-        <span class="nav-icon">🗺️</span><span class="nav-label">My Learning Path</span>
-      </a>
       <a href="student-explore.html" class="nav-item" data-page="explore">
         <span class="nav-icon">🌍</span><span class="nav-label">Explore Catalog</span>
         <span class="nav-badge blue">New</span>
@@ -36,7 +63,7 @@
       </a>
       <a href="student-quests.html" class="nav-item active" data-page="quests">
         <span class="nav-icon">⚔️</span><span class="nav-label">Quests</span>
-        <span class="nav-badge">3</span>
+        <span class="nav-badge" id="nav-quests-count">0</span>
       </a>
       <a href="student-skill-tree.html" class="nav-item" data-page="skill-tree">
         <span class="nav-icon">🌳</span><span class="nav-label">Skill Tree</span>
@@ -56,9 +83,6 @@
       <div class="nav-section-label">Account</div>
       <a href="student-profile.html" class="nav-item" data-page="profile">
         <span class="nav-icon">👤</span><span class="nav-label">My Profile</span>
-      </a>
-      <a href="student-settings.html" class="nav-item" data-page="settings">
-        <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
       </a>
     </nav>
 
@@ -82,9 +106,9 @@
       </div>
       <div class="topbar-right">
         <div class="xp-bar-wrap">
-          <div class="xp-label">XP <strong>2,840</strong> / 3,000</div>
-          <div class="xp-track"><div class="xp-fill" style="width:94%"></div></div>
-          <div class="xp-level">Lv.8</div>
+          <div class="xp-label">XP <strong id="xpCurrent">2,840</strong> / <span id="xpNext">3,000</span></div>
+          <div class="xp-track"><div class="xp-fill" id="xpFill" style="width:94%"></div></div>
+          <div class="xp-level" id="xpLevel">Lv.8</div>
         </div>
         <div class="search-box">
           <span style="color:var(--text-3);font-size:14px">🔍</span>
@@ -102,7 +126,7 @@
       </div>
     </header>
 
-    <!-- QUESTS CONTENT (extracted from original #page-quests) -->
+    <!-- QUESTS CONTENT -->
     <div class="page active" id="page-quests">
       <div class="section-header">
         <div>
@@ -110,8 +134,8 @@
           <div class="section-subtitle">Complete challenges to earn XP and unlock badges</div>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
-          <div class="badge badge-amber">⚡ 340 XP earned</div>
-          <div class="badge badge-blue">3 Active</div>
+          <div class="badge badge-amber" id="xpEarnedBadge">⚡ 0 XP earned</div>
+          <div class="badge badge-blue" id="activeCountBadge">0 Active</div>
         </div>
       </div>
 
@@ -123,6 +147,21 @@
       </div>
 
       <div class="quest-grid" id="questGrid"></div>
+
+      <!-- Quest editor (hidden by default) -->
+      <div class="quest-editor-container" id="questEditor">
+        <button class="btn btn-ghost" onclick="backToQuests()">← Back to quests</button>
+        <div class="quest-details" id="questDetails"></div>
+        <div class="editor-wrapper">
+          <textarea id="codeEditor"></textarea>
+        </div>
+        <div style="display:flex; gap:10px; margin-bottom:10px">
+          <button class="btn btn-primary" onclick="runQuestCode()">▶ Run</button>
+          <button class="btn btn-admin" id="submitQuestBtn" onclick="submitQuestCode()">✅ Submit for Grading</button>
+        </div>
+        <div class="output-box" id="outputBox"><em>Output will appear here...</em></div>
+        <div id="feedbackBox" style="margin-top:10px"></div>
+      </div>
     </div>
   </div><!-- /main -->
 </div><!-- /app -->
@@ -147,6 +186,12 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<!-- CodeMirror -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+
 <script src="js/student-common.js"></script>
 <script src="js/student-quests.js"></script>
 <link rel="stylesheet" href="css/chat-widget.css">

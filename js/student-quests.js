@@ -1,84 +1,312 @@
-// ==================== student-quests.js ====================
-// Renders the Quests page with filtering tabs
+// student-quests.js – Quests page with CodeMirror IDE
+const API_STUDENT = 'http://localhost:3000/api/student';
+const token = localStorage.getItem('token');
+axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
-// QUESTS data – copied exactly from original student-app.js
-const QUESTS = [
-    { id:1, emoji:'⚔️', title:'Build a REST API with Node.js',  desc:'Create a full CRUD API with Express and connect it to your PostgreSQL database.',       type:'Boss Quest', status:'active',    xp:150, tasks:5,  done:3  },
-    { id:2, emoji:'🧩', title:'JavaScript Closures Challenge',   desc:'Solve 5 advanced closure problems and explain your solutions.',                          type:'Challenge',  status:'active',    xp:80,  tasks:5,  done:5  },
-    { id:3, emoji:'🎨', title:'Responsive Landing Page',         desc:'Build a mobile-first landing page using CSS Grid and Flexbox only.',                     type:'Project',    status:'active',    xp:120, tasks:4,  done:1  },
-    { id:4, emoji:'🏆', title:'Full-Stack Boss Exam - Level 3',  desc:'Prove your full-stack skills in this timed comprehensive exam.',                         type:'Boss Exam',  status:'locked',    xp:300, tasks:1,  done:0  },
-    { id:5, emoji:'🔍', title:'Debug the Broken App',            desc:'Find and fix all 8 bugs in the provided Express application.',                           type:'Debug',      status:'completed', xp:100, tasks:8,  done:8  },
-    { id:6, emoji:'📦', title:'NPM Package Creator',             desc:'Publish your own utility npm package and write full documentation.',                     type:'Project',    status:'completed', xp:90,  tasks:3,  done:3  },
-    { id:7, emoji:'🌐', title:'Deploy to Production',            desc:'Deploy your Node.js app to a cloud provider with CI/CD pipeline.',                       type:'DevOps',     status:'locked',    xp:200, tasks:6,  done:0  },
-    { id:8, emoji:'🔐', title:'Secure the API',                  desc:'Add JWT authentication, rate limiting, and input validation to your API.',                type:'Security',   status:'locked',    xp:180, tasks:5,  done:0  },
-    { id:9, emoji:'⚡', title:'Async Mastery Sprint',            desc:'Complete 10 async/await exercises to master asynchronous JavaScript.',                    type:'Challenge',  status:'completed', xp:70,  tasks:10, done:10 },
-];
+let allQuests = [];
+let studentAttempts = {};
+let currentQuest = null;
+let editor = null;
+let activeTab = 'all';
 
-// Render function – identical to original renderQuests()
-function renderQuests(filterStatus = 'all') {
-    const container = document.getElementById('questGrid');
-    if (!container) return;
+const LANGUAGE_EMOJI = {
+  html: '🌐',
+  css: '🎨',
+  javascript: '⚡',
+};
 
-    const statusMap = {
-        active:    { cls:'q-active',    badge:'badge-blue',  label:'Active'      },
-        completed: { cls:'q-completed', badge:'badge-green', label:'Completed ✓' },
-        locked:    { cls:'q-locked',    badge:'badge-red',   label:'🔒 Locked'   },
-    };
+document.addEventListener('DOMContentLoaded', async () => {
+  // Initialize CodeMirror
+  editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+    mode: 'xml',
+    theme: 'dracula',
+    lineNumbers: true,
+    autoCloseTags: true,
+    extraKeys: { 'Ctrl-Space': 'autocomplete' },
+    tabSize: 2,
+    indentUnit: 2,
+    matchBrackets: true,
+  });
+  editor.setSize('100%', '300px');
 
-    let filteredQuests = QUESTS;
-    if (filterStatus !== 'all') {
-        filteredQuests = QUESTS.filter(q => q.status === filterStatus);
-    }
+  // Load data
+  await Promise.all([loadQuests(), loadAttempts()]);
+  renderQuests();
 
-    if (filteredQuests.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-icon">⚔️</div><div class="empty-title">No quests found in this category</div></div>';
-        return;
-    }
-
-    container.innerHTML = filteredQuests.map(q => {
-        const s      = statusMap[q.status];
-        const isBoss = q.type === 'Boss Exam' || q.type === 'Boss Quest';
-        const pct    = Math.round((q.done / q.tasks) * 100);
-        const progressHtml = q.status !== 'locked' ? `
-            <div class="quest-progress-wrap">
-                <div class="quest-progress-meta"><span>Progress</span><span>${q.done}/${q.tasks} tasks</span></div>
-                <div class="progress-bar"><div class="progress-fill ${q.status === 'completed' ? 'green' : ''}" style="width:${pct}%"></div></div>
-            </div>` : '';
-        return `
-            <div class="quest-card ${s.cls} ${isBoss ? 'q-boss' : ''}" ${q.status !== 'locked' ? 'onclick="showToast(\'Quest opened!\',\'success\')"' : ''}>
-                <div class="quest-card-top">
-                    <div class="quest-emoji">${q.emoji}</div>
-                    <div class="badge ${s.badge}">${s.label}</div>
-                </div>
-                <div class="quest-card-title">${q.title}</div>
-                <div class="quest-card-desc">${q.desc}</div>
-                ${progressHtml}
-                <div class="quest-card-footer">
-                    <span class="quest-type-label">${q.type}</span>
-                    <span class="quest-xp">⚡ +${q.xp} XP</span>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-// Tab switching
-function initTabs() {
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Update active tab UI
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            // Get filter value
-            const filter = tab.dataset.tab || 'all';
-            renderQuests(filter);
-        });
+  // Tab switching
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      activeTab = this.dataset.tab;
+      renderQuests();
     });
+  });
+});
+
+async function loadQuests() {
+  try {
+    const res = await axios.get(`${API_STUDENT}/quests`);
+    allQuests = res.data.data || [];
+    if (allQuests.length > 0) {
+      document.getElementById('nav-quests-count').textContent = allQuests.length;
+    }
+  } catch (err) {
+    console.error('Failed to load quests', err);
+    showMessage('Could not load quests', 'error');
+  }
 }
 
-// Initialisation
-document.addEventListener('DOMContentLoaded', () => {
-    renderQuests('all');
-    initTabs();
-});
+async function loadAttempts() {
+  try {
+    const res = await axios.get(`${API_STUDENT}/assessments/my-attempts`);
+    const attempts = res.data.data || [];
+    studentAttempts = {};
+    attempts.forEach(a => {
+      // a.passed is 0 or 1 from MySQL, convert to boolean
+      studentAttempts[a.assessment_id] = a.passed === 1 || a.passed === true;
+    });
+  } catch (err) {
+    // If route doesn't exist, build attempts from quest submissions directly
+    console.log('my-attempts route not available, checking quest submissions individually');
+    await loadAttemptsFallback();
+  }
+}
+
+// Fallback: check each quest's submission status directly
+async function loadAttemptsFallback() {
+  studentAttempts = {};
+  for (const quest of allQuests) {
+    try {
+      const res = await axios.get(`${API_STUDENT}/assessments/${quest.id}`);
+      const data = res.data.data;
+      if (data && data.already_passed === true) {
+        studentAttempts[quest.id] = true;
+      }
+    } catch (e) {
+      // ignore individual errors
+    }
+  }
+}
+
+function getQuestStatus(q) {
+  if (studentAttempts[q.id] === true) return 'completed';
+  return 'active';
+}
+
+function renderQuests() {
+  const grid = document.getElementById('questGrid');
+  if (!allQuests.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">⚔️</div><div class="empty-title">No quests available yet. Check back soon!</div></div>';
+    return;
+  }
+
+  let filtered = allQuests;
+  if (activeTab !== 'all') {
+    filtered = allQuests.filter(q => getQuestStatus(q) === activeTab);
+  }
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">⚔️</div><div class="empty-title">No ${activeTab} quests</div></div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(q => {
+    const status = getQuestStatus(q);
+    const statusMap = {
+      active:    { cls:'q-active',    badge:'badge-blue',  label:'Active'      },
+      completed: { cls:'q-completed', badge:'badge-green', label:'Completed ✓' },
+      locked:    { cls:'q-locked',    badge:'badge-red',   label:'🔒 Locked'   },
+    };
+    const s = statusMap[status] || statusMap.active;
+    const emoji = LANGUAGE_EMOJI[q.language] || '⚔️';
+    const pct = status === 'completed' ? 100 : 0;
+
+    return `
+      <div class="quest-card ${s.cls} q-boss" onclick="openQuest('${q.id}')">
+        <div class="quest-card-top">
+          <div class="quest-emoji">${emoji}</div>
+          <div class="badge ${s.badge}">${s.label}</div>
+        </div>
+        <div class="quest-card-title">${escapeHtml(q.title)}</div>
+        <div class="quest-card-desc">${escapeHtml(q.description)}</div>
+        <div class="quest-progress-wrap">
+          <div class="quest-progress-meta"><span>Progress</span><span>${status === 'completed' ? '1/1' : '0/1'} task</span></div>
+          <div class="progress-bar"><div class="progress-fill ${status === 'completed' ? 'green' : ''}" style="width:${pct}%"></div></div>
+        </div>
+        <div class="quest-card-footer">
+          <span class="quest-type-label">Coding Challenge</span>
+          <span class="quest-xp">⚡ +${q.xp_reward || 0} XP</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Update header badges
+  const completedCount = allQuests.filter(q => getQuestStatus(q) === 'completed').length;
+  const activeCount = allQuests.filter(q => getQuestStatus(q) === 'active').length;
+  const totalXP = allQuests.reduce((sum, q) => sum + (getQuestStatus(q) === 'completed' ? (q.xp_reward || 0) : 0), 0);
+  document.getElementById('xpEarnedBadge').innerHTML = `⚡ ${totalXP} XP earned`;
+  document.getElementById('activeCountBadge').textContent = `${activeCount} Active`;
+}
+
+async function openQuest(questId) {
+  const quest = allQuests.find(q => q.id === questId);
+  if (!quest) {
+    showMessage('Quest not found', 'error');
+    return;
+  }
+
+  currentQuest = quest;
+
+  // Hide the quest grid section
+  const questPage = document.getElementById('page-quests');
+  const questGrid = document.getElementById('questGrid');
+  const sectionHeader = questPage.querySelector('.section-header');
+  const tabs = questPage.querySelector('.tabs');
+  
+  if (questGrid) questGrid.style.display = 'none';
+  if (sectionHeader) sectionHeader.style.display = 'none';
+  if (tabs) tabs.style.display = 'none';
+
+  // Show editor
+  const questEditor = document.getElementById('questEditor');
+  questEditor.classList.add('active');
+  questEditor.style.display = 'block';
+
+  document.getElementById('questDetails').innerHTML = `
+    <h2>${escapeHtml(currentQuest.title)}</h2>
+    <p>${escapeHtml(currentQuest.description)}</p>
+    <p><strong>Language:</strong> ${currentQuest.language}</p>
+    <button class="btn btn-amber" onclick="getAIHint()" style="margin-top:10px">🤖 Get AI Hint</button>
+  `;
+
+  let mode = 'xml';
+  if (currentQuest.language === 'javascript') mode = 'javascript';
+  else if (currentQuest.language === 'css') mode = 'css';
+  editor.setOption('mode', mode);
+  editor.setValue(currentQuest.starter_code || '');
+  editor.refresh();
+
+  document.getElementById('outputBox').innerHTML = '<em>Output will appear here...</em>';
+  document.getElementById('feedbackBox').innerHTML = '';
+}
+
+function backToQuests() {
+  const questPage = document.getElementById('page-quests');
+  const questGrid = document.getElementById('questGrid');
+  const sectionHeader = questPage.querySelector('.section-header');
+  const tabs = questPage.querySelector('.tabs');
+  const questEditor = document.getElementById('questEditor');
+
+  if (questGrid) questGrid.style.display = 'grid';
+  if (sectionHeader) sectionHeader.style.display = 'flex';
+  if (tabs) tabs.style.display = 'flex';
+  questEditor.classList.remove('active');
+  questEditor.style.display = 'none';
+  currentQuest = null;
+
+  renderQuests();
+}
+
+async function runQuestCode() {
+  if (!currentQuest) return;
+  const code = editor.getValue();
+  const language = currentQuest.language;
+  const outputBox = document.getElementById('outputBox');
+
+  if (language === 'html' || language === 'css') {
+    const blob = new Blob([code], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    outputBox.innerHTML = `<iframe src="${url}" style="width:100%; height:150px; border:none"></iframe>`;
+  } else {
+    try {
+      const res = await axios.post('https://onecompiler.com/api/code/exec', {
+        language: 'javascript',
+        code: code,
+        stdin: ''
+      });
+      const output = res.data.stdout || res.data.output || 'No output';
+      outputBox.innerHTML = `<pre>${escapeHtml(output)}</pre>`;
+    } catch (e) {
+      outputBox.innerHTML = '<p style="color:red">Execution error — try Submit instead</p>';
+    }
+  }
+}
+
+async function submitQuestCode() {
+  if (!currentQuest) return;
+  const code = editor.getValue();
+  
+  const submitBtn = document.getElementById('submitQuestBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '⏳ Grading...';
+  
+  try {
+    const res = await axios.post(`${API_STUDENT}/quests/${currentQuest.id}/submit`, {
+      code,
+      language: currentQuest.language
+    });
+    const data = res.data.data;
+    let html = '';
+    if (data.passed) {
+      html = `<div style="background:rgba(16,185,129,0.08);border:1px solid var(--green);border-radius:var(--radius-sm);padding:14px;margin-top:10px">
+        <strong>🎉 Quest passed! Score: ${data.score} / 100</strong>
+        <p style="margin-top:6px">${escapeHtml(data.ai_feedback || '')}</p>
+        ${data.xp_gained > 0 ? `<p style="color:var(--amber);font-weight:600">+${data.xp_gained} XP!</p>` : ''}
+      </div>`;
+      // Mark as passed locally
+      studentAttempts[currentQuest.id] = true;
+      if (typeof updateXPBar === 'function') updateXPBar();
+    } else {
+      html = `<div style="background:rgba(245,158,11,0.08);border:1px solid var(--amber);border-radius:var(--radius-sm);padding:14px;margin-top:10px">
+        <strong>⏳ Score: ${data.score} / 100</strong>
+        <p style="margin-top:6px">${escapeHtml(data.ai_feedback || '')}</p>
+      </div>`;
+    }
+    document.getElementById('feedbackBox').innerHTML = html;
+  } catch (err) {
+    console.error(err);
+    showMessage('Submission failed', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = '✅ Submit for Grading';
+  }
+}
+
+async function getAIHint() {
+  if (!currentQuest) return;
+
+  const code = editor.getValue();
+  const language = currentQuest.language;
+
+  document.getElementById('feedbackBox').innerHTML = '<p style="color:var(--amber)">🤖 AI is thinking...</p>';
+
+  try {
+    const res = await axios.post(`${API_STUDENT}/quests/${currentQuest.id}/hint`, {
+      code,
+      language
+    });
+    const data = res.data.data;
+    document.getElementById('feedbackBox').innerHTML = `
+      <div style="background:rgba(245,158,11,0.08);border:1px solid var(--amber);border-radius:var(--radius-sm);padding:14px;margin-top:10px">
+        <strong>🤖 AI Hint:</strong>
+        <p style="margin-top:6px">${escapeHtml(data.hint)}</p>
+      </div>
+    `;
+  } catch (err) {
+    console.error('AI hint failed:', err);
+    document.getElementById('feedbackBox').innerHTML = '<p style="color:red">Could not get hint. Try again later.</p>';
+  }
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+  return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+function showMessage(msg, type) {
+  if (typeof showToast === 'function') showToast(msg, type);
+  else alert(msg);
+}

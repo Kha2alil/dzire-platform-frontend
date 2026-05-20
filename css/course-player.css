@@ -1426,13 +1426,102 @@
 }
 
 /* CodeMirror styling */
+/* ── VS Code Dark+ inspired editor colours ── */
 .CodeMirror {
-  height: 400px;
-  font-size: 14px;
-  border-radius: 0 0 8px 8px;
+  background: #1E1E1E !important;
+  color: #D4D4D4 !important;
+  font-family: 'JetBrains Mono', monospace !important;
 }
-.CodeMirror-hints {
-  z-index: 9999 !important;
+
+/* gutter (line numbers) */
+.CodeMirror-gutters {
+  background: #1E1E1E !important;
+  border-right: 1px solid #333 !important;
+}
+.CodeMirror-linenumber {
+  color: #858585 !important;
+}
+
+/* comments */
+.cm-comment { color: #6A9955 !important; }
+
+/* keywords (if, else, return, etc.) */
+.cm-keyword { color: #569CD6 !important; }
+
+/* strings */
+.cm-string { color: #CE9178 !important; }
+
+/* numbers */
+.cm-number { color: #B5CEA8 !important; }
+
+/* function names */
+.cm-def { color: #DCDCAA !important; }
+
+/* types / class names */
+.cm-type { color: #4EC9B0 !important; }
+
+/* variables / parameters */
+.cm-variable { color: #9CDCFE !important; }
+
+/* HTML / XML tags */
+.cm-tag { color: #569CD6 !important; }
+
+/* HTML / XML attributes */
+.cm-attribute { color: #9CDCFE !important; }
+
+/* CSS properties */
+.cm-property { color: #9CDCFE !important; }
+
+/* operators (=, +, -, etc.) */
+.cm-operator { color: #D4D4D4 !important; }
+
+/* active line highlight (optional) */
+.CodeMirror-activeline-background { background: #2A2A2A !important; }
+
+/* Boss exam problem description box */
+.boss-problem-box {
+  background: var(--bg-3);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* Boss exam problem description – coding challenge feel */
+.boss-problem-box p {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-2);
+  white-space: pre-wrap;
+}
+
+/* AI feedback box */
+.boss-ai-box {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 13px;
+  line-height: 1.8;
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(59,130,246,0.06);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-sm);
+}
+
+.boss-ai-box strong {
+  font-family: 'Syne', sans-serif;  /* keep the heading bold but use Syne for contrast */
+  font-size: 14px;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.boss-ai-box p {
+  font-family: 'JetBrains Mono', monospace;
+  white-space: pre-wrap;
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.8;
 }
 
 /* ═══════════════════════════════════════════

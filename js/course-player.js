@@ -318,7 +318,6 @@ if (completeBtn) {
         courseId, chapterId: currentLesson.chapterId, lessonId: currentLesson.id,
         xp_reward: Number(currentLesson.xp || 0)
       });
-      await callUpdateProgress(Number(currentLesson.xp || 0));
       await fetchAndUpdateGamificationStats();
       showToast("🎉 Lesson completed! XP added.", "success");
       // 🔔 Check for newly earned badges immediately
@@ -502,12 +501,18 @@ window.loadBossExam = async function(assessmentId) {
       const exam = res.data.data;
       currentBossExam = exam;
 
+      document.getElementById('bossExamContent').style.display = 'block';
+      document.getElementById('quizContent').style.display = 'none';
+      document.getElementById('assessmentContent').style.display = 'block';
+
       document.getElementById('bossExamTitle').innerText = exam.title;
       document.getElementById('bossExamDescription').innerText = exam.description || '';
       document.getElementById('bossLanguageBadge').innerText = exam.language || 'javascript';
       document.getElementById('bossPassingBadge').innerText = `Pass: ${exam.passing_score}%`;
 
       const codeContainer = document.getElementById('codeEditorContainer');
+      // Clear any old editor DOM
+      codeContainer.innerHTML = '';
       codeContainer.style.cssText = 'border:1px solid var(--border); margin-top:16px; border-radius:8px; overflow:hidden; min-height:300px;';
 
       let mode = 'javascript';
@@ -521,29 +526,37 @@ window.loadBossExam = async function(assessmentId) {
       }
 
       const starterCode = exam.starter_code || '';
+
+      // Always create a fresh editor instance to avoid stale state
       if (bossExamEditor) {
-        bossExamEditor.setOption('mode', mode);
-        bossExamEditor.setOption('hintOptions', { hint: hintFn, completeSingle: false });
-        bossExamEditor.setValue(starterCode);
-      } else {
-        bossExamEditor = CodeMirror(codeContainer, {
-          lineNumbers: true,
-          mode: mode,
-          theme: 'dracula',
-          value: starterCode,
-          autoCloseTags: true,
-          extraKeys: {
-            'Ctrl-Space': 'autocomplete',
-            'Tab': 'emmetExpandAbbreviation'
-          },
-          hintOptions: { hint: hintFn, completeSingle: false }
-        });
-        if (CodeMirror.emmet) CodeMirror.emmet.setOption('marker', false);
+        bossExamEditor.toTextArea(); // properly destroy old instance
+        bossExamEditor = null;
       }
 
-      bossExamEditor.off('inputRead');
+      bossExamEditor = CodeMirror(codeContainer, {
+        lineNumbers: true,
+        mode: mode,
+        theme: 'dracula',
+        value: starterCode,
+        autoCloseTags: true,
+        extraKeys: {
+          'Ctrl-Space': 'autocomplete',
+          'Tab': 'emmetExpandAbbreviation'
+        },
+        hintOptions: {
+          hint: hintFn,
+          completeSingle: false
+        }
+      });
+
+      if (CodeMirror.emmet) {
+        CodeMirror.emmet.setOption('marker', false);
+      }
+
+      // Smart autocomplete – only in meaningful contexts
       bossExamEditor.on('inputRead', function(cm, change) {
         if (!change.text[0] || change.text[0] === ' ' || change.text[0] === '\n') return;
+
         if (exam.language === 'html') {
           const cursor = cm.getCursor();
           const line = cm.getLine(cursor.line);
@@ -559,7 +572,9 @@ window.loadBossExam = async function(assessmentId) {
             CodeMirror.commands.autocomplete(cm);
           }
         }
+        // JavaScript stays manual (Ctrl+Space)
       });
+
       setActiveTab('assessment');
     }
   } catch (err) {
@@ -632,6 +647,8 @@ function renderTestResults(results, isFinal, score, passed) {
   const resultsDiv = document.getElementById('bossResults');
   if (!resultsDiv) return;
   let html = '';
+
+  // Individual test results
   if (results && results.length > 0) {
     results.forEach((r, i) => {
       const icon = r.passed ? '✅' : '❌';
@@ -643,11 +660,14 @@ function renderTestResults(results, isFinal, score, passed) {
       </div>`;
     });
   }
+
+  // Final score badge
   if (isFinal) {
     const displayScore = (score !== undefined && score !== null && !isNaN(score)) ? score : 'N/A';
     const badgeClass = passed ? 'badge-green' : 'badge-red';
     html = `<div class="badge ${badgeClass}" style="margin-bottom:16px;">Score: ${displayScore}%</div>` + html;
   }
+
   resultsDiv.innerHTML = html;
 }
 
