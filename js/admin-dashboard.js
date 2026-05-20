@@ -1,34 +1,24 @@
-/* ═══════════════════════════════════════════
-   ADMIN DASHBOARD – متكامل مع الـ Backend
-   (يدعم is_published لتغيير حالة الكورسات)
-   ═══════════════════════════════════════════ */
+/* ═════════════════════════════════════════════════════════════════
+   admin-dashboard.js – Full Admin Panel with Real Notifications
+   + Skills Management
+   ═════════════════════════════════════════════════════════════════ */
 
-// ====================== تكوين Axios ======================
+// ====================== Axios Config ======================
 axios.defaults.baseURL = 'http://localhost:3000/api/admin';
 const token = localStorage.getItem('token');
 if (token) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 }
 
-// ====================== المتغيرات العامة ======================
+// ====================== Global Variables ======================
 let allUsers = [];
 let allCourses = [];
+let allSkills = [];               // ← skills data
 let activeUserTab = 'all';
 let confirmCallback = null;
 let currentCourseIdForStatus = null;
 
-// بيانات وهمية للنشاطات (يمكن استبدالها بـ API لاحقاً)
-const ACTIVITY_LOG = [
-    { dot: 'var(--green)', text: '<strong>Ahmed Mansouri</strong> enrolled in Full-Stack Web Development', time: '2 min ago' },
-    { dot: 'var(--blue-400)', text: '<strong>Khalil Khalfi</strong> added a new lesson to Node.js Mastery', time: '14 min ago' },
-    { dot: 'var(--amber)', text: '<strong>Nour Aissaoui</strong> completed JavaScript Advanced Concepts', time: '31 min ago' },
-    { dot: 'var(--admin-accent)', text: '<strong>Samira Ferhat</strong> published CSS & Tailwind Deep Dive', time: '1 hr ago' },
-    { dot: 'var(--red)', text: '<strong>Lina Khelifi</strong> was banned for policy violation', time: '2 hr ago' },
-    { dot: 'var(--cyan)', text: '<strong>Tarek Boumediene</strong> added Python for Data Science course', time: '5 hr ago' },
-    { dot: 'var(--purple)', text: 'New user <strong>Amira Saad</strong> registered and verified email', time: 'Yesterday' },
-];
-
-// ====================== دوال مساعدة ======================
+// ====================== Helper Functions ======================
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
@@ -109,11 +99,20 @@ function navigate(page) {
     const targetPage = document.getElementById('page-' + page);
     if (targetPage) targetPage.classList.add('active');
     document.querySelectorAll(`.nav-item[data-page="${page}"]`).forEach(n => n.classList.add('active'));
-    document.getElementById('pageTitle').textContent = page === 'dashboard' ? 'Dashboard' : 
-                                                       page === 'users' ? 'User Management' :
-                                                       page === 'courses' ? 'Course Management' : 'Platform Settings';
+
+    // Dynamic title
+    let title = '';
+    if (page === 'dashboard') title = 'Dashboard';
+    else if (page === 'users') title = 'User Management';
+    else if (page === 'courses') title = 'Course Management';
+    else if (page === 'skills') title = 'Skill Management';
+    else if (page === 'settings') title = 'Platform Settings';
+    document.getElementById('pageTitle').textContent = title;
+
     if (page === 'users') fetchUsers();
     if (page === 'courses') fetchCourses();
+    if (page === 'skills') fetchSkills();
+
     closeSidebar();
 }
 
@@ -146,7 +145,7 @@ function closeSidebar() {
     document.getElementById('sidebarOverlay').classList.remove('visible');
 }
 
-// ====================== المستخدمون ======================
+// ====================== Users ======================
 
 async function fetchUsers() {
     try {
@@ -326,7 +325,7 @@ async function deleteUser(userId) {
     });
 }
 
-// ====================== الكورسات (مع دعم is_published) ======================
+// ====================== Courses ======================
 
 async function fetchCourses() {
     try {
@@ -346,12 +345,11 @@ async function fetchCourses() {
     }
 }
 
-// تحديث حالة الكورس (ترسل status نصي: "Published" أو "Draft")
 async function updateCourseStatus(courseId, newStatus) {
     try {
         await axios.patch(`/courses/${courseId}/status`, { status: newStatus });
         showToast(`تم تحديث حالة الكورس إلى ${newStatus}`, 'success');
-        await fetchCourses(); // إعادة تحميل القائمة
+        await fetchCourses();
     } catch (err) {
         console.error('Update status error:', err);
         showToast('فشل تحديث الحالة. تأكد من أن الـ API يعمل.', 'error');
@@ -382,7 +380,6 @@ async function deleteCourse(courseId) {
     });
 }
 
-// عرض جدول الكورسات (يدعم is_published)
 function renderCoursesTable() {
     const courses = getFilteredCourses();
     const tbody = document.getElementById('coursesTable');
@@ -397,16 +394,12 @@ function renderCoursesTable() {
         const instructor = c.Instructor || c.teacher_name || 'غير معروف';
         let level = c.Level || c.difficulty_level || 'beginner';
         const students = c.Students !== undefined ? c.Students : (c.students_count || 0);
-        
-        // تحويل is_published إلى نص لعرض الحالة
         let status = 'Draft';
         if (c.is_published === 1 || c.is_published === true) {
             status = 'Published';
         } else if (c.status) {
-            // في حالة أن الـ API يعيد status مباشرة (كحل احتياطي)
             status = c.status;
         }
-        
         const category = c.category || 'General';
         const ico = emojis[category] || '📚';
         return `
@@ -461,7 +454,6 @@ function courseStatusBadge(status) {
     return `<div class="badge badge-green">${status}</div>`;
 }
 
-// إضافة كورس جديد (غير مدعوم حالياً)
 function openAddCourseModal() {
     showToast('إضافة كورس جديدة غير متاحة حالياً عبر API، سيتم إضافتها محلياً فقط.', 'info');
 }
@@ -469,7 +461,131 @@ function submitCourseModal() {
     showToast('يرجى استخدام واجهة المدير المخصصة لإضافة كورسات.', 'error');
 }
 
-// ====================== الإحصائيات ======================
+// ====================== Skills (NEW) ======================
+
+async function fetchSkills() {
+    try {
+        const response = await axios.get('/skills');
+        if (response.data.success) {
+            allSkills = response.data.data;
+            const countSpan = document.getElementById('navSkillCount');
+            if (countSpan) countSpan.textContent = allSkills.length;
+            renderSkillsTable();
+        } else {
+            showToast('Failed to load skills', 'error');
+        }
+    } catch (err) {
+        console.error("Error fetching skills:", err);
+        showToast('Error loading skills', 'error');
+    }
+}
+
+function renderSkillsTable() {
+    const tbody = document.getElementById('skillsTable');
+    if (!tbody) return;
+    const skills = getFilteredSkills();
+    if (!skills.length) {
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No skills found</div></td></tr>';
+        return;
+    }
+    tbody.innerHTML = skills.map(s => {
+        const created = s.created_at ? new Date(s.created_at).toLocaleDateString() : '—';
+        return `<tr>
+            <td><code style="background:var(--bg-3); padding:2px 6px; border-radius:4px">${escapeHtml(s.code)}</code></td>
+            <td><strong>${escapeHtml(s.name)}</strong></td>
+            <td>${escapeHtml(s.category || '—')}</td>
+            <td style="text-align:center">${s.display_order || 0}</td>
+            <td style="color:var(--text-3); font-size:12px">${created}</td>
+            <td>
+                <div style="display:flex; gap:6px">
+                    <button class="btn btn-ghost btn-xs" onclick="editSkill('${s.id}')">✎ Edit</button>
+                    <button class="btn btn-danger btn-xs" onclick="deleteSkill('${s.id}')">🗑️</button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+function getFilteredSkills() {
+    const search = (document.getElementById('skillSearch')?.value || '').toLowerCase();
+    if (!search) return allSkills;
+    return allSkills.filter(s => s.name?.toLowerCase().includes(search) || s.code?.toLowerCase().includes(search));
+}
+function filterSkills() { renderSkillsTable(); }
+
+function openAddSkillModal() {
+    document.getElementById('editSkillId').value = '';
+    document.getElementById('skillCode').value = '';
+    document.getElementById('skillName').value = '';
+    document.getElementById('skillDescription').value = '';
+    document.getElementById('skillCategory').value = '';
+    document.getElementById('skillDisplayOrder').value = '0';
+    document.getElementById('skillIconUrl').value = '';
+    document.getElementById('skillModalTitle').innerText = 'Add New Skill';
+    document.getElementById('skillModalSubmitBtn').innerText = 'Create Skill';
+    openModal('skill');
+}
+
+async function editSkill(skillId) {
+    const skill = allSkills.find(s => s.id === skillId);
+    if (!skill) return;
+    document.getElementById('editSkillId').value = skill.id;
+    document.getElementById('skillCode').value = skill.code;
+    document.getElementById('skillName').value = skill.name;
+    document.getElementById('skillDescription').value = skill.description || '';
+    document.getElementById('skillCategory').value = skill.category || '';
+    document.getElementById('skillDisplayOrder').value = skill.display_order || 0;
+    document.getElementById('skillIconUrl').value = skill.icon_url || '';
+    document.getElementById('skillModalTitle').innerText = 'Edit Skill';
+    document.getElementById('skillModalSubmitBtn').innerText = 'Update Skill';
+    openModal('skill');
+}
+
+async function submitSkillModal() {
+    const skillId = document.getElementById('editSkillId').value;
+    const code = document.getElementById('skillCode').value.trim();
+    const name = document.getElementById('skillName').value.trim();
+    const description = document.getElementById('skillDescription').value.trim();
+    const category = document.getElementById('skillCategory').value.trim();
+    const display_order = parseInt(document.getElementById('skillDisplayOrder').value) || 0;
+    const icon_url = document.getElementById('skillIconUrl').value.trim();
+
+    if (!code || !name) { showToast('Code and Name are required', 'error'); return; }
+    if (/\s/.test(code)) { showToast('Code must not contain spaces', 'error'); return; }
+
+    const payload = { code, name, description, category, display_order, icon_url };
+
+    try {
+        if (skillId) {
+            await axios.put(`/skills/${skillId}`, payload);
+            showToast('Skill updated successfully', 'success');
+        } else {
+            await axios.post('/skills', payload);
+            showToast('Skill created successfully', 'success');
+        }
+        closeModal('skill');
+        await fetchSkills();
+    } catch (err) {
+        console.error(err);
+        showToast(err.response?.data?.message || 'Operation failed', 'error');
+    }
+}
+
+async function deleteSkill(skillId) {
+    const skill = allSkills.find(s => s.id === skillId);
+    if (!skill) return;
+    openConfirm('Delete Skill', `Are you sure you want to delete "${skill.name}"? This may affect courses that use this skill.`, '🗑️', async () => {
+        try {
+            await axios.delete(`/skills/${skillId}`);
+            showToast(`Skill "${skill.name}" deleted`, 'error');
+            await fetchSkills();
+        } catch (err) {
+            showToast(err.response?.data?.message || 'Delete failed', 'error');
+        }
+    });
+}
+
+// ====================== Statistics ======================
 function updateStats() {
     const students = allUsers.filter(u => u.role === 'student').length;
     const teachers = allUsers.filter(u => u.role === 'teacher').length;
@@ -498,7 +614,7 @@ function updateStats() {
     document.getElementById('settingsCourseCount').textContent = coursesCount;
 }
 
-// ====================== جداول Dashboard المصغرة ======================
+// ====================== Dashboard Mini Tables ======================
 function renderDashUsers() {
     const container = document.getElementById('dashUsersTable');
     if (!container) return;
@@ -533,20 +649,171 @@ function renderDashCourses() {
     `}).join('');
 }
 
-// ====================== النشاطات والرسوم البيانية ======================
-function renderActivity() {
+// ====================== Real Recent Activity ======================
+async function loadRecentActivity() {
+    try {
+        const res = await fetch(`${ADMIN_NOTIF_API}?limit=20`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await res.json();
+        if (data.success && data.notifications) {
+            renderActivityItems(data.notifications);
+        } else {
+            renderActivityItems([]);
+        }
+    } catch (err) {
+        console.error('Recent activity fetch failed:', err);
+    }
+}
+
+function renderActivityItems(notifications) {
     const container = document.getElementById('dashActivity');
     if (!container) return;
-    container.innerHTML = ACTIVITY_LOG.map(a => `
-        <div class="activity-item">
-            <div class="act-dot" style="background:${a.dot}"></div>
-            <div class="act-body">
-                <div class="act-text">${a.text}</div>
-                <div class="act-time">${a.time}</div>
+
+    if (!notifications.length) {
+        container.innerHTML = `<div class="activity-item">
+            <span style="color:var(--text-3)">No recent activity</span>
+        </div>`;
+        return;
+    }
+
+    container.innerHTML = notifications.map(n => {
+        const dotColor = getActivityDotColor(n.type);
+        const text = `<strong>${escapeHtml(n.title)}</strong> ${escapeHtml(n.message)}`;
+        const time = adminTimeAgo(n.created_at);
+        return `
+            <div class="activity-item">
+                <div class="act-dot" style="background:${dotColor}"></div>
+                <div class="act-body">
+                    <div class="act-text">${text}</div>
+                    <div class="act-time">${time}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function getActivityDotColor(type) {
+    const map = {
+        'enrollment': 'var(--green)',
+        'achievement': 'var(--purple)',
+        'system': 'var(--blue-400)',
+        'announcement': 'var(--amber)',
+        'assignment': 'var(--cyan)',
+        'default': 'var(--admin-accent)'
+    };
+    return map[type] || map['default'];
+}
+
+// ====================== Notification Panel ======================
+const ADMIN_NOTIF_API = 'http://localhost:3000/api/notifications';
+
+async function loadAdminNotifications() {
+    try {
+        const res = await fetch(`${ADMIN_NOTIF_API}?limit=20`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            renderAdminNotifications(data.notifications || []);
+        }
+    } catch (err) {
+        console.error('Admin notifications fetch error:', err);
+    }
+}
+
+function renderAdminNotifications(notifications) {
+    const list = document.getElementById('notifList');
+    const badge = document.getElementById('notifBadge');
+    if (!list) return;
+
+    if (notifications.length === 0) {
+        list.innerHTML = '<div class="notif-item"><span style="color:var(--text-3)">No notifications</span></div>';
+        if (badge) badge.style.display = 'none';
+        return;
+    }
+
+    list.innerHTML = notifications.map(n => `
+        <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}">
+            <div class="notif-dot-small" style="background:${n.is_read ? 'transparent' : 'var(--red)'}"></div>
+            <div class="notif-content" onclick="markAdminNotifRead('${n.id}')">
+                <div class="notif-msg"><strong>${escapeHtml(n.title)}</strong> ${escapeHtml(n.message)}</div>
+                <div class="notif-ts">${adminTimeAgo(n.created_at)}</div>
             </div>
         </div>
     `).join('');
+
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+    if (badge) {
+        badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+    }
 }
+
+async function markAdminNotifRead(id) {
+    try {
+        await fetch(`${ADMIN_NOTIF_API}/${id}/read`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        loadAdminNotifications();
+    } catch (err) {
+        console.error('Mark read failed:', err);
+    }
+}
+
+async function clearAllAdminNotifs() {
+    try {
+        await fetch(`${ADMIN_NOTIF_API}/read-all`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        loadAdminNotifications();
+    } catch (err) {
+        console.error('Clear all failed:', err);
+    }
+}
+
+function adminTimeAgo(dateStr) {
+    if (!dateStr) return '';
+    const now = new Date();
+    const then = new Date(dateStr);
+    const diffMins = Math.floor((now - then) / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHrs = Math.floor(diffMins / 60);
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    const diffDays = Math.floor(diffHrs / 24);
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return then.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function initAdminNotificationPanel() {
+    const notifBtn = document.getElementById('notifBtn');
+    const notifPanel = document.getElementById('notifPanel');
+    const clearBtn = document.getElementById('clearNotif');
+
+    if (notifBtn && notifPanel) {
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifPanel.classList.toggle('open');
+            if (notifPanel.classList.contains('open')) loadAdminNotifications();
+        });
+        document.addEventListener('click', (e) => {
+            if (!notifBtn.contains(e.target)) notifPanel.classList.remove('open');
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearAllAdminNotifs);
+    }
+
+    loadAdminNotifications();
+    setInterval(loadAdminNotifications, 30000);
+}
+
+// ====================== Charts & Settings ======================
 function renderRegChart() {
     const vals = [24, 38, 31, 52, 45, 61];
     const max = Math.max(...vals);
@@ -561,7 +828,6 @@ function renderRegChart() {
     `).join('');
 }
 
-// ====================== الإعدادات ======================
 function saveSettings() {
     const name = document.getElementById('siteName').value.trim();
     const email = document.getElementById('contactEmail').value.trim();
@@ -570,7 +836,6 @@ function saveSettings() {
     showToast('Settings saved successfully 💾', 'success');
 }
 
-// ====================== البحث العام ======================
 function handleGlobalSearch(val) {
     const q = val.toLowerCase().trim();
     if (!q) return;
@@ -589,12 +854,7 @@ function handleGlobalSearch(val) {
     }
 }
 
-// ====================== زر الإشعارات ======================
-document.getElementById('notifBtn').addEventListener('click', () => {
-    showToast('3 new notifications 🔔', 'info');
-});
-
-// ====================== ربط الأحداث ======================
+// ====================== Event Binding ======================
 function bindUserEvents() {
     const search = document.getElementById('userSearch');
     const roleFilter = document.getElementById('userRoleFilter');
@@ -613,15 +873,24 @@ function bindCourseEvents() {
     if (search) search.addEventListener('input', filterCourses);
     if (levelFilter) levelFilter.addEventListener('change', filterCourses);
 }
+function bindSkillEvents() {
+    const search = document.getElementById('skillSearch');
+    if (search) search.addEventListener('input', filterSkills);
+}
 
-// ====================== التهيئة ======================
+// ====================== Initialisation ======================
 async function init() {
     await fetchUsers();
     await fetchCourses();
+    await fetchSkills();               
+
     bindUserEvents();
     bindCourseEvents();
-    renderActivity();
+    bindSkillEvents();
+
+    loadRecentActivity();              
     renderRegChart();
+    initAdminNotificationPanel();      
 }
 
 init();

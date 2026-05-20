@@ -1,6 +1,6 @@
 /* ═════════════════════════════════════════════════════════════════
    teacher-common.js – Shared utilities for all teacher pages
-   (Fixed: sidebar toggle, notifications rendering)
+   (Real API notifications, sidebar toggle, charts, helpers)
 ═════════════════════════════════════════════════════════════════ */
 
 // ======================== MOBILE SIDEBAR TOGGLE ========================
@@ -93,43 +93,126 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
 });
 
-// ======================== NOTIFICATIONS ========================
-const NOTIFICATIONS = [
-  { dot: 'var(--green)', msg: '<strong>Ahmed M.</strong> passed the Full-Stack Boss Exam', time: '2 min ago', unread: true },
-  { dot: 'var(--red)', msg: '<strong>Lina K.</strong> has failed Async/Await 3 times — remedial needed', time: '14 min ago', unread: true },
-  { dot: 'var(--blue-400)', msg: 'Your course <strong>Node.js & PostgreSQL</strong> is awaiting approval', time: '1 hr ago', unread: true },
-  { dot: 'var(--amber)', msg: 'New enrollment in <strong>CSS & Tailwind Deep Dive</strong>', time: '3 hr ago', unread: false },
-  { dot: 'var(--purple)', msg: 'Weekly analytics report is ready to view', time: 'Yesterday', unread: false },
-];
+// ======================== NOTIFICATIONS (REAL API) ========================
+const NOTIF_API = 'http://localhost:3000/api/notifications';
 
-function renderNotifications() {
-  const list = document.getElementById('notifList');
-  if (!list) return;
-  list.innerHTML = NOTIFICATIONS.map(n => `
-    <div class="notif-item ${n.unread ? 'unread' : ''}" onclick="markRead(this)">
-      <div class="notif-dot-small" style="background:${n.dot}"></div>
-      <div class="notif-content">
-        <div class="notif-msg">${n.msg}</div>
-        <div class="notif-ts">${n.time}</div>
-      </div>
-    </div>
-  `).join('');
-  updateBadge();
+async function loadTeacherNotifications() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+        const res = await fetch(`${NOTIF_API}?limit=20`, {
+            headers: { Authorization: `Bearer ${token.replace(/['"]+/g, '')}` }
+        });
+        if (!res.ok) throw new Error('Failed to fetch notifications');
+        const data = await res.json();
+        if (data.success) {
+            renderTeacherNotifications(data.notifications || []);
+        }
+    } catch (err) {
+        console.error('Teacher notifications fetch error:', err);
+    }
 }
 
-function updateBadge() {
-  const badge = document.getElementById('notifBadge');
-  if (!badge) return;
-  const unread = NOTIFICATIONS.filter(n => n.unread).length;
-  badge.style.display = unread > 0 ? 'block' : 'none';
+function renderTeacherNotifications(notifications) {
+    const list = document.getElementById('notifList');
+    if (!list) return;
+
+    if (notifications.length === 0) {
+        list.innerHTML = '<div class="notif-item"><span style="color:var(--text-3)">No notifications</span></div>';
+        updateNotifBadge(0);
+        return;
+    }
+
+    list.innerHTML = notifications.map(n => `
+        <div class="notif-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}">
+            <div class="notif-dot-small" style="background:${n.is_read ? 'transparent' : 'var(--red)'}"></div>
+            <div class="notif-content" onclick="markTeacherNotifRead('${n.id}')">
+                <div class="notif-msg"><strong>${escapeHtml(n.title)}</strong> ${escapeHtml(n.message)}</div>
+                <div class="notif-ts">${timeAgo(n.created_at)}</div>
+            </div>
+        </div>
+    `).join('');
+
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+    updateNotifBadge(unreadCount);
 }
 
-window.markRead = function(el) {
-  el.classList.remove('unread');
-  const idx = [...document.getElementById('notifList').children].indexOf(el);
-  if (NOTIFICATIONS[idx]) NOTIFICATIONS[idx].unread = false;
-  updateBadge();
-};
+function updateNotifBadge(count) {
+    const badge = document.getElementById('notifBadge');
+    if (badge) {
+        badge.style.display = count > 0 ? 'block' : 'none';
+        badge.textContent = count > 99 ? '99+' : count;
+    }
+}
+
+async function markTeacherNotifRead(id) {
+    try {
+        const token = localStorage.getItem('token');
+        await fetch(`${NOTIF_API}/${id}/read`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token.replace(/['"]+/g, '')}` }
+        });
+        loadTeacherNotifications();
+    } catch (err) {
+        console.error('Mark read failed:', err);
+    }
+}
+
+async function clearAllTeacherNotifs() {
+    try {
+        const token = localStorage.getItem('token');
+        await fetch(`${NOTIF_API}/read-all`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token.replace(/['"]+/g, '')}` }
+        });
+        loadTeacherNotifications();
+    } catch (err) {
+        console.error('Clear all failed:', err);
+    }
+}
+
+function timeAgo(dateStr) {
+    if (!dateStr) return '';
+    const now = new Date();
+    const then = new Date(dateStr);
+    const diffMs = now - then;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHrs = Math.floor(diffMins / 60);
+    if (diffHrs < 24) return `${diffHrs}h ago`;
+    const diffDays = Math.floor(diffHrs / 24);
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return then.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+// ======================== NOTIFICATION PANEL BEHAVIOUR ========================
+function initNotificationPanel() {
+    const notifBtn = document.getElementById('notifBtn');
+    const notifPanel = document.getElementById('notifPanel');
+    const clearBtn = document.getElementById('clearNotif');
+
+    if (notifBtn && notifPanel) {
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifPanel.classList.toggle('open');
+            if (notifPanel.classList.contains('open')) loadTeacherNotifications();
+        });
+        document.addEventListener('click', (e) => {
+            if (!notifBtn.contains(e.target)) notifPanel.classList.remove('open');
+        });
+    }
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', clearAllTeacherNotifs);
+    }
+
+    // Poll every 30 seconds
+    setInterval(loadTeacherNotifications, 30000);
+    // Initial load
+    loadTeacherNotifications();
+}
 
 // ======================== SIDEBAR TOGGLE (Desktop) ========================
 function initSidebarToggle() {
@@ -144,29 +227,6 @@ function initSidebarToggle() {
     mainEl.classList.toggle('expanded', collapsed);
     toggleBtn.textContent = collapsed ? '▶' : '◀';
   });
-}
-
-// ======================== NOTIFICATION PANEL BEHAVIOUR ========================
-function initNotificationPanel() {
-  const notifBtn = document.getElementById('notifBtn');
-  const notifPanel = document.getElementById('notifPanel');
-  const clearBtn = document.getElementById('clearNotif');
-  if (notifBtn && notifPanel) {
-    notifBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      notifPanel.classList.toggle('open');
-    });
-    document.addEventListener('click', (e) => {
-      if (!notifBtn.contains(e.target)) notifPanel.classList.remove('open');
-    });
-  }
-  if (clearBtn) {
-    clearBtn.addEventListener('click', () => {
-      NOTIFICATIONS.forEach(n => n.unread = false);
-      document.querySelectorAll('.notif-item').forEach(el => el.classList.remove('unread'));
-      updateBadge();
-    });
-  }
 }
 
 // ======================== CHART HELPER ========================
@@ -206,7 +266,6 @@ function populateSubdomainDropdown() {
 }
 
 // ======================== OPEN COURSE BUILDER ========================
-// Registered here so it is available across all teacher pages
 async function openCourseBuilder(courseId) {
   if (!courseId) {
     showToast('Course ID is missing', 'error');
@@ -246,8 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
   // Desktop sidebar toggle
   initSidebarToggle();
 
-  // Notifications
-  renderNotifications();
+  // Notifications (real API)
   initNotificationPanel();
 
   // Subdomains dropdown (if modal exists)

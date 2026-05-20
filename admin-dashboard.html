@@ -40,6 +40,12 @@
       <span class="nav-label">Courses</span>
       <span class="nav-count" id="navCourseCount">0</span>
     </div>
+    <!-- NEW: Skills Management -->
+    <div class="nav-item" data-page="skills">
+      <span class="nav-icon">🏷️</span>
+      <span class="nav-label">Skills</span>
+      <span class="nav-count" id="navSkillCount">0</span>
+    </div>
 
     <div class="nav-section">System</div>
     <div class="nav-item" data-page="settings">
@@ -75,16 +81,28 @@
         <span style="color:var(--text-3);font-size:14px">🔍</span>
         <input type="text" id="globalSearch" placeholder="Search users, courses…" oninput="handleGlobalSearch(this.value)"/>
       </div>
-      <div class="icon-btn" id="notifBtn" title="Notifications">
-        🔔<div class="notif-dot"></div>
+
+      <div class="notif-wrapper" id="notifWrapper">
+        <div class="icon-btn" id="notifBtn" title="Notifications">
+          🔔
+          <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+        </div>
+        <!-- Dropdown panel -->
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-panel-header">
+            <strong>Notifications</strong>
+            <button class="btn btn-ghost btn-xs" id="clearNotif">Clear all</button>
+          </div>
+          <div class="notif-list" id="notifList"></div>
+        </div>
       </div>
+
       <button class="btn btn-admin btn-sm" id="topbarActionBtn">＋ Add User</button>
     </div>
   </header>
 
   <!-- ════ PAGE: DASHBOARD ════ -->
   <div class="page active" id="page-dashboard">
-
     <div class="dash-hero">
       <div>
         <div class="hero-title">Welcome back, <span>Super Admin</span> 👑</div>
@@ -98,7 +116,6 @@
       </div>
     </div>
 
-    <!-- Stats -->
     <div class="stats-grid">
       <div class="stat-card" style="--stat-glow:rgba(59,130,246,0.08);animation-delay:0.05s">
         <div class="stat-top">
@@ -135,7 +152,6 @@
     </div>
 
     <div class="grid-3" style="margin-bottom:16px">
-      <!-- Activity Feed -->
       <div class="card">
         <div class="card-header">
           <div class="card-title">Recent Activity</div>
@@ -143,10 +159,7 @@
         </div>
         <div class="activity-list" id="dashActivity"></div>
       </div>
-
-      <!-- Right column -->
       <div style="display:flex;flex-direction:column;gap:16px">
-        <!-- User Distribution -->
         <div class="card">
           <div class="card-header"><div class="card-title">User Distribution</div></div>
           <div class="donut-wrap">
@@ -175,8 +188,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Monthly Registrations -->
         <div class="card">
           <div class="card-header"><div class="card-title">Monthly Registrations</div></div>
           <div class="bar-chart" id="regChart"></div>
@@ -187,9 +198,7 @@
       </div>
     </div>
 
-    <!-- Quick access tables -->
     <div class="grid-2">
-      <!-- Recent Users -->
       <div class="card">
         <div class="card-header">
           <div class="card-title">Recent Users</div>
@@ -202,8 +211,6 @@
           </table>
         </div>
       </div>
-
-      <!-- Recent Courses -->
       <div class="card">
         <div class="card-header">
           <div class="card-title">Recent Courses</div>
@@ -229,7 +236,6 @@
       <button class="btn btn-admin" onclick="openAddUserModal()">＋ Add User</button>
     </div>
 
-    <!-- Filter bar -->
     <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
       <div class="search-wrap" style="flex:1;min-width:200px">
         <span style="color:var(--text-3)">🔍</span>
@@ -282,7 +288,6 @@
       <button class="btn btn-admin" onclick="openAddCourseModal()">＋ Add Course</button>
     </div>
 
-    <!-- Filter bar -->
     <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
       <div class="search-wrap" style="flex:1;min-width:200px">
         <span style="color:var(--text-3)">🔍</span>
@@ -310,6 +315,42 @@
             </tr>
           </thead>
           <tbody id="coursesTable"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ NEW PAGE: SKILLS ════ -->
+  <div class="page" id="page-skills">
+    <div class="section-header">
+      <div>
+        <div class="section-title">Skill Management</div>
+        <div class="section-sub">Manage platform skills (tags) used in courses and gamification</div>
+      </div>
+      <button class="btn btn-admin" onclick="openAddSkillModal()">＋ Add Skill</button>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap">
+      <div class="search-wrap" style="flex:1; min-width:200px">
+        <span style="color:var(--text-3)">🔍</span>
+        <input type="text" id="skillSearch" placeholder="Search by name or code…" oninput="filterSkills()"/>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Display Order</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="skillsTable"></tbody>
         </table>
       </div>
     </div>
@@ -484,7 +525,6 @@
         <label class="form-label">Email Address *</label>
         <input class="form-input" id="uEmail" type="email" placeholder="user@example.com"/>
       </div>
-      <!-- Password field – shown only when adding new user -->
       <div class="form-group" id="passwordFieldGroup" style="display: none;">
         <label class="form-label">Password * (for new user)</label>
         <input class="form-input" id="uPassword" type="password" placeholder="Enter a strong password"/>
@@ -515,59 +555,53 @@
   </div>
 </div>
 
-<!-- Add/Edit Course Modal (غير مدعوم حالياً) -->
-<div class="modal-overlay" id="modal-course">
-  <div class="modal">
+<!-- Add/Edit Skill Modal -->
+<div class="modal-overlay" id="modal-skill">
+  <div class="modal" style="max-width: 600px;">
     <div class="modal-header">
-      <div class="modal-title" id="courseModalTitle">Add New Course</div>
-      <div class="modal-close" onclick="closeModal('course')">✕</div>
+      <div class="modal-title" id="skillModalTitle">Add New Skill</div>
+      <div class="modal-close" onclick="closeModal('skill')">✕</div>
     </div>
     <div class="modal-body">
-      <input type="hidden" id="editCourseId"/>
-      <div class="form-group">
-        <label class="form-label">Course Title *</label>
-        <input class="form-input" id="cTitle" placeholder="e.g. Advanced JavaScript Concepts"/>
-      </div>
+      <input type="hidden" id="editSkillId"/>
       <div class="form-row">
         <div class="form-group">
-          <label class="form-label">Instructor *</label>
-          <input class="form-input" id="cInstructor" placeholder="e.g. Khalil Khalfi"/>
+          <label class="form-label">Code *</label>
+          <input class="form-input" id="skillCode" placeholder="e.g. html_basics, js_fundamentals"/>
+          <div style="font-size:11px; color:var(--text-3); margin-top:4px">Unique identifier (no spaces, use underscores)</div>
         </div>
         <div class="form-group">
-          <label class="form-label">Level</label>
-          <select class="form-select" id="cLevel">
-            <option value="Beginner">Beginner</option>
-            <option value="Intermediate">Intermediate</option>
-            <option value="Advanced">Advanced</option>
-          </select>
+          <label class="form-label">Name *</label>
+          <input class="form-input" id="skillName" placeholder="e.g. HTML Basics"/>
         </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-input" id="skillDescription" rows="3" placeholder="Brief description of the skill"></textarea>
       </div>
       <div class="form-row">
         <div class="form-group">
           <label class="form-label">Category</label>
-          <input class="form-input" id="cCategory" placeholder="e.g. Web Development"/>
+          <input class="form-input" id="skillCategory" placeholder="e.g. Frontend, Backend, Data Science"/>
         </div>
         <div class="form-group">
-          <label class="form-label">Enrolled Students</label>
-          <input class="form-input" id="cStudents" type="number" value="0" min="0"/>
+          <label class="form-label">Display Order</label>
+          <input class="form-input" id="skillDisplayOrder" type="number" value="0" placeholder="0"/>
         </div>
       </div>
       <div class="form-group">
-        <label class="form-label">Status</label>
-        <select class="form-select" id="cStatus">
-          <option value="Published">Published</option>
-          <option value="Draft">Draft</option>
-        </select>
+        <label class="form-label">Icon URL (optional)</label>
+        <input class="form-input" id="skillIconUrl" placeholder="https://... or /uploads/icons/..."/>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('course')">Cancel</button>
-      <button class="btn btn-admin" id="courseModalSubmitBtn" onclick="submitCourseModal()">Add Course</button>
+      <button class="btn btn-ghost" onclick="closeModal('skill')">Cancel</button>
+      <button class="btn btn-admin" id="skillModalSubmitBtn" onclick="submitSkillModal()">Save Skill</button>
     </div>
   </div>
 </div>
 
-<!-- Modal لتغيير حالة الكورس -->
+<!-- Modal for changing course status -->
 <div class="modal-overlay" id="modal-courseStatus">
   <div class="modal" style="max-width: 400px;">
     <div class="modal-header">

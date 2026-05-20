@@ -598,56 +598,50 @@
    PLAYER SIDEBAR – LEARNING FLOW ROADMAP
    ═══════════════════════════════════════════ */
 .player-sidebar {
-  --accent: var(--blue-500);
-  --accent-glow: rgba(59, 130, 246, 0.18);
-  --accent-done: var(--green);
+  --accent:           var(--blue-500);
+  --accent-glow:      rgba(59, 130, 246, 0.18);
+  --accent-done:      var(--green);
   --accent-done-glow: rgba(16, 185, 129, 0.10);
-  --dot-idle: rgba(255, 255, 255, 0.15);
-  --dot-locked: rgba(255, 255, 255, 0.08);
-  --chapter-label: rgba(255, 255, 255, 0.32);
-  --chapter-sep: rgba(255, 255, 255, 0.05);
-  --lesson-text: rgba(255, 255, 255, 0.52);
+  --dot-idle:         rgba(255, 255, 255, 0.15);
+  --dot-locked:       rgba(255, 255, 255, 0.08);
+  --lesson-text:      rgba(255, 255, 255, 0.52);
   --lesson-text-done: rgba(255, 255, 255, 0.30);
-  --line-color: rgba(255, 255, 255, 0.07);
-  --line-done-color: rgba(16, 185, 129, 0.30);
+  --line-color:       rgba(255, 255, 255, 0.07);
+  --line-done-color:  rgba(16, 185, 129, 0.30);
 
   width: 100%;
   background: var(--bg-card);
   border-left: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 14px;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
-  /* Firefox-only scrollbar styling is intentionally omitted for wider compatibility */
   box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
   position: sticky;
   top: calc(var(--topbar-h) + 24px);
   max-height: calc(100vh - var(--topbar-h) - 48px);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.player-sidebar {
-  -ms-overflow-style: auto;
-}
+.player-sidebar::-webkit-scrollbar        { width: 2px; }
+.player-sidebar::-webkit-scrollbar-thumb  { background: rgba(255, 255, 255, 0.07); border-radius: 9px; }
+.player-sidebar:hover                     { border-color: rgba(255, 255, 255, 0.08); }
 
-.player-sidebar::-webkit-scrollbar {
-  width: 2px;
-}
-
-.player-sidebar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.07);
-  border-radius: 9px;
-}
-
-.player-sidebar:hover {
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-/* optional header – remove if you don't want it */
-.player-sidebar::before {
-  content: 'Course Curriculum';
-  display: block;
+/* ── Sticky header ── */
+.sidebar-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 18px 20px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-header-label {
   font-family: 'Syne', sans-serif;
   font-size: 9.5px;
   font-weight: 700;
@@ -656,7 +650,48 @@
   color: rgba(255, 255, 255, 0.28);
 }
 
-/* ─── Chapter Block ─── */
+/* ── Progress ring ── */
+.sidebar-progress-ring {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.sidebar-progress-ring svg {
+  transform: rotate(-90deg);
+}
+
+.ring-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.06);
+  stroke-width: 2.5;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 88;
+  stroke-dashoffset: 44; /* adjust to reflect real progress: offset = 88 - (pct/100 * 88) */
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.ring-pct {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 8px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.02em;
+}
+
+/* ── Chapter block ── */
 .chapter-block {
   position: relative;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
@@ -666,23 +701,16 @@
 .chapter-block::before {
   content: '';
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  left: 0; top: 0; bottom: 0;
   width: 2px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 0 1px 1px 0;
 }
 
-.chapter-block.ch-done::before {
-  background: linear-gradient(to bottom, var(--green), rgba(16, 185, 129, 0.1));
-}
+.chapter-block.ch-done::before    { background: linear-gradient(to bottom, var(--green),      rgba(16, 185, 129, 0.1)); }
+.chapter-block.ch-current::before { background: linear-gradient(to bottom, var(--blue-500),   rgba(59, 130, 246, 0.1)); }
 
-.chapter-block.ch-current::before {
-  background: linear-gradient(to bottom, var(--blue-500), rgba(59, 130, 246, 0.1));
-}
-
-/* ─── Chapter Title ─── */
+/* ── Chapter title ── */
 .chapter-title {
   display: flex;
   align-items: center;
@@ -694,11 +722,12 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.30);
+  -webkit-user-select: none;
   cursor: default;
+  user-select: none;
 }
 
-.chapter-title::before {
-  content: '';
+.chapter-title-dash {
   display: inline-block;
   width: 12px;
   height: 1.5px;
@@ -707,28 +736,54 @@
   border-radius: 1px;
 }
 
-/* ─── Lessons List ─── */
+/* ── Chapter status badge ── */
+.chapter-badge {
+  margin-left: auto;
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+}
+
+.chapter-badge.done-badge    { background: rgba(16, 185, 129, 0.12); color: rgba(16, 185, 129, 0.75); }
+.chapter-badge.current-badge { background: rgba(59, 130, 246, 0.12); color: rgba(59, 130, 246, 0.75); }
+.chapter-badge.locked-badge  { background: rgba(255, 255, 255, 0.04); color: rgba(255, 255, 255, 0.22); }
+
+/* ── Lessons list ── */
 .lessons-list {
   position: relative;
   padding: 2px 0 10px;
+  list-style: none;
 }
 
 .lessons-list::before {
   content: '';
   position: absolute;
-  left: 33px;
-  top: 0;
-  bottom: 0;
+  left: 33px; top: 0; bottom: 0;
   width: 1px;
-  background: linear-gradient(to bottom, transparent 0%, var(--line-color) 10%, var(--line-color) 90%, transparent 100%);
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--line-color) 10%,
+    var(--line-color) 90%,
+    transparent 100%
+  );
   pointer-events: none;
 }
 
 .lessons-list.has-done::before {
-  background: linear-gradient(to bottom, var(--line-done-color) 0%, var(--line-color) 70%, transparent 100%);
+  background: linear-gradient(
+    to bottom,
+    var(--line-done-color) 0%,
+    var(--line-color) 70%,
+    transparent 100%
+  );
 }
 
-/* ─── Lesson Item ─── */
+/* ── Lesson item ── */
 .lesson-item {
   position: relative;
   display: flex;
@@ -745,14 +800,13 @@
   transition: background 200ms ease, color 200ms ease, transform 180ms ease;
 }
 
-/* dot */
-.lesson-item::before {
-  content: '';
-  display: block;
+/* dot — now a real child element (.lesson-dot) instead of ::before
+   so it survives alongside the existing ::before on .chapter-block */
+.lesson-dot {
   flex-shrink: 0;
   margin-top: 4px;
-  z-index: 1;
   position: relative;
+  z-index: 1;
   width: 7px;
   height: 7px;
   border-radius: 50%;
@@ -768,16 +822,14 @@
   transform: translateX(2px);
 }
 
-.lesson-item:not(.active):not(.locked):hover::before {
+.lesson-item:not(.active):not(.locked):hover .lesson-dot {
   background: rgba(255, 255, 255, 0.28);
 }
 
 /* done */
-.lesson-item.done {
-  color: var(--lesson-text-done) !important;
-}
+.lesson-item.done { color: var(--lesson-text-done) !important; }
 
-.lesson-item.done::before {
+.lesson-item.done .lesson-dot {
   background: var(--accent-done) !important;
   border-color: transparent !important;
   box-shadow: 0 0 0 3px var(--accent-done-glow) !important;
@@ -792,23 +844,179 @@
 /* active */
 .lesson-item.active {
   color: #fff !important;
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.14) 0%, rgba(59, 130, 246, 0.05) 70%, transparent 100%) !important;
+  background: linear-gradient(
+    90deg,
+    rgba(59, 130, 246, 0.14) 0%,
+    rgba(59, 130, 246, 0.05) 70%,
+    transparent 100%
+  ) !important;
   box-shadow: inset 3px 0 0 var(--accent);
   cursor: default;
 }
 
-.lesson-item.active::before {
+.lesson-item.active .lesson-dot {
   background: var(--accent) !important;
   border-color: transparent !important;
   width: 8px !important;
   height: 8px !important;
   margin-top: 3px !important;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18), 0 0 10px rgba(59, 130, 246, 0.35) !important;
+  box-shadow:
+    0 0 0 4px rgba(59, 130, 246, 0.18),
+    0 0 10px rgba(59, 130, 246, 0.35) !important;
   animation: pulse 2.4s ease-in-out infinite;
 }
 
-.lesson-item.active .lesson-label {
+.lesson-item.active .lesson-label { font-weight: 500; }
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.18), 0 0 10px rgba(59, 130, 246, 0.35); }
+  50%       { box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.09), 0 0 16px rgba(59, 130, 246, 0.22); }
+}
+
+/* locked */
+.lesson-item.locked {
+  opacity: 0.30 !important;
+  cursor: not-allowed !important;
+}
+
+.lesson-item.locked:hover {
+  background: transparent !important;
+  transform: none !important;
+}
+
+/* ── Lesson meta (type + duration) ── */
+.lesson-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.22);
+}
+
+.lesson-type-icon {
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   font-weight: 500;
+}
+
+.meta-sep { opacity: 0.4; }
+
+/* ── Assessments under each lesson ── */
+.lesson-assessments {
+  margin-left: 28px;
+  margin-bottom: 8px;
+  padding-left: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.assessment-under-lesson {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  margin: 4px 0;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.38);
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 7px;
+  transition: background 180ms ease, color 180ms ease, transform 160ms ease;
+}
+
+.assessment-under-lesson:hover {
+  background: rgba(59, 130, 246, 0.10);
+  color: rgba(255, 255, 255, 0.76);
+  transform: translateX(2px);
+}
+
+.assessment-under-lesson .ass-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-weight: 700;
+  font-family: 'Syne', sans-serif;
+}
+
+.assessment-under-lesson .ass-icon.quiz    { background: rgba(139, 92, 246, 0.18); color: rgba(167, 139, 250, 0.9); }
+.assessment-under-lesson .ass-icon.project { background: rgba(251, 146, 60, 0.14);  color: rgba(251, 146, 60, 0.80); }
+.assessment-under-lesson .ass-icon.done-a  { background: rgba(16, 185, 129, 0.14);  color: rgba(16, 185, 129, 0.85); }
+
+.assessment-under-lesson .ass-badge {
+  margin-left: auto;
+  font-size: 9px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  color: rgba(16, 185, 129, 0.65);
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+/* ── Sticky footer ── */
+.sidebar-footer {
+  position: sticky;
+  bottom: 0;
+  flex-shrink: 0;
+  background: var(--bg-card);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.footer-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.footer-stat-label {
+  font-size: 8.5px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.22);
+}
+
+.footer-stat-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.60);
+}
+
+.footer-stat-value span { color: rgba(16, 185, 129, 0.85); }
+
+.footer-cert-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 7px;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  background: rgba(59, 130, 246, 0.07);
+  color: rgba(59, 130, 246, 0.75);
+  font-size: 10px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 200ms ease, border-color 200ms ease;
+  white-space: nowrap;
+}
+
+.footer-cert-btn:hover {
+  background: rgba(59, 130, 246, 0.14);
+  border-color: rgba(59, 130, 246, 0.40);
 }
 
 @keyframes pulse {
@@ -1215,6 +1423,105 @@
   font-size: 18px;
   font-weight: 800;
   color: var(--amber);
+}
+
+/* CodeMirror styling */
+/* ── VS Code Dark+ inspired editor colours ── */
+.CodeMirror {
+  background: #1E1E1E !important;
+  color: #D4D4D4 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* gutter (line numbers) */
+.CodeMirror-gutters {
+  background: #1E1E1E !important;
+  border-right: 1px solid #333 !important;
+}
+.CodeMirror-linenumber {
+  color: #858585 !important;
+}
+
+/* comments */
+.cm-comment { color: #6A9955 !important; }
+
+/* keywords (if, else, return, etc.) */
+.cm-keyword { color: #569CD6 !important; }
+
+/* strings */
+.cm-string { color: #CE9178 !important; }
+
+/* numbers */
+.cm-number { color: #B5CEA8 !important; }
+
+/* function names */
+.cm-def { color: #DCDCAA !important; }
+
+/* types / class names */
+.cm-type { color: #4EC9B0 !important; }
+
+/* variables / parameters */
+.cm-variable { color: #9CDCFE !important; }
+
+/* HTML / XML tags */
+.cm-tag { color: #569CD6 !important; }
+
+/* HTML / XML attributes */
+.cm-attribute { color: #9CDCFE !important; }
+
+/* CSS properties */
+.cm-property { color: #9CDCFE !important; }
+
+/* operators (=, +, -, etc.) */
+.cm-operator { color: #D4D4D4 !important; }
+
+/* active line highlight (optional) */
+.CodeMirror-activeline-background { background: #2A2A2A !important; }
+
+/* Boss exam problem description box */
+.boss-problem-box {
+  background: var(--bg-3);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+/* Boss exam problem description – coding challenge feel */
+.boss-problem-box p {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--text-2);
+  white-space: pre-wrap;
+}
+
+/* AI feedback box */
+.boss-ai-box {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 13px;
+  line-height: 1.8;
+  margin-top: 16px;
+  padding: 16px;
+  background: rgba(59,130,246,0.06);
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-sm);
+}
+
+.boss-ai-box strong {
+  font-family: 'Syne', sans-serif;  /* keep the heading bold but use Syne for contrast */
+  font-size: 14px;
+  font-weight: 700;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.boss-ai-box p {
+  font-family: 'JetBrains Mono', monospace;
+  white-space: pre-wrap;
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 1.8;
 }
 
 /* ═══════════════════════════════════════════

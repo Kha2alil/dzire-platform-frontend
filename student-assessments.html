@@ -23,9 +23,6 @@
       <a href="student-dashboard.html" class="nav-item" data-page="dashboard">
         <span class="nav-icon">⊞</span><span class="nav-label">Dashboard</span>
       </a>
-      <a href="student-my-path.html" class="nav-item" data-page="my-path">
-        <span class="nav-icon">🗺️</span><span class="nav-label">My Learning Path</span>
-      </a>
       <a href="student-explore.html" class="nav-item" data-page="explore">
         <span class="nav-icon">🌍</span><span class="nav-label">Explore Catalog</span>
         <span class="nav-badge blue">New</span>
@@ -56,9 +53,6 @@
       <div class="nav-section-label">Account</div>
       <a href="student-profile.html" class="nav-item" data-page="profile">
         <span class="nav-icon">👤</span><span class="nav-label">My Profile</span>
-      </a>
-      <a href="student-settings.html" class="nav-item" data-page="settings">
-        <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
       </a>
     </nav>
 
@@ -129,6 +123,7 @@
       </div>
     </div>
   </div><!-- /main -->
+  
 </div><!-- /app -->
 
 <!-- MODALS & TOAST -->
@@ -152,8 +147,117 @@
 
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="js/student-common.js"></script>
-<script src="js/student-assessments.js"></script>
 <link rel="stylesheet" href="css/chat-widget.css">
 <script src="js/chat-widget.js"></script>
+<script>
+(function() {
+  // Wait for DOM to be fully ready
+  function onReady(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
+
+  onReady(async function() {
+    const API_BASE = 'http://localhost:3000/api';
+    const token = localStorage.getItem('token') || '';
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    // Fetch assessments
+    let assessments = [];
+    try {
+      const res = await axios.get(`${API_BASE}/students/assessments/overview`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) assessments = res.data.data || [];
+      console.log('✅ Assessments loaded:', assessments.length);
+    } catch (err) {
+      console.error('❌ Assessment fetch failed:', err);
+      return;
+    }
+
+    // Locate the page container
+    const page = document.getElementById('page-assessments');
+    if (!page) {
+      console.error('❌ #page-assessments not found');
+      return;
+    }
+
+    // Remove old card
+    const oldCard = page.querySelector('.card');
+    if (oldCard) oldCard.remove();
+
+    // Build new card with table
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    thead.innerHTML = `<tr>
+      <th>Assessment</th>
+      <th>Course</th>
+      <th>Type</th>
+      <th>Score</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>`;
+    const tbody = document.createElement('tbody');
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+    card.appendChild(wrap);
+    page.appendChild(card);
+
+    // Render function
+    function render(filter = 'all') {
+      let data = assessments;
+      if (filter === 'upcoming') data = assessments.filter(a => a.status === 'Upcoming');
+      else if (filter === 'completed') data = assessments.filter(a => a.status === 'Passed' || a.status === 'Attempted');
+
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">No assessments found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map(a => {
+        const typeBadge = a.type === 'boss_exam' ? 'badge-red' : a.type === 'final_exam' ? 'badge-red' : 'badge-purple';
+        const typeLabel = a.type === 'boss_exam' ? 'Boss Exam' : a.type;
+        const statusClass = a.status === 'Passed' ? 'badge-green' :
+                            a.status === 'Attempted' ? 'badge-amber' : 'badge-blue';
+        const score = a.best_score !== null ? a.best_score + '%' : '—';
+        const link = `course-player.html?courseId=${a.course_id}&assessmentId=${a.id}`;
+        return `<tr>
+          <td>${escapeHtml(a.title)}</td>
+          <td>${escapeHtml(a.course_title)}</td>
+          <td><span class="badge ${typeBadge}">${typeLabel}</span></td>
+          <td>${score}</td>
+          <td><span class="badge ${statusClass}">${a.status || 'Upcoming'}</span></td>
+          <td><a href="${link}" class="btn btn-primary btn-xs">${a.status === 'Upcoming' ? 'Start' : 'Go'} →</a></td>
+        </tr>`;
+      }).join('');
+    }
+
+    render('all');
+
+    // Tab handling
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        render(tab.dataset.tab || 'all');
+      });
+    });
+  });
+})();
+</script>
 </body>
 </html>
