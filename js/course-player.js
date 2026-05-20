@@ -40,6 +40,7 @@ async function fetchAndUpdateGamificationStats() {
   return false;
 }
 
+// ========== جلب subdomain_id (محاولة أكثر من مسار) ==========
 async function fetchCourseSubdomain() {
   try {
     const res = await axios.get(`${API_COURSES}/${courseId}/subdomain`);
@@ -48,9 +49,18 @@ async function fetchCourseSubdomain() {
       return true;
     }
   } catch (err) { }
+  // محاولة بديلة من تفاصيل الكورس
+  try {
+    const res = await axios.get(`${API_COURSES}/${courseId}`);
+    if (res.data && res.data.success && res.data.data.subdomain_id) {
+      currentSubdomainId = res.data.data.subdomain_id;
+      return true;
+    }
+  } catch (err) { }
   return false;
 }
 
+// ========== إرسال طلب إضافة XP ==========
 async function callUpdateProgress(xpGained) {
   if (!currentSubdomainId && !(await fetchCourseSubdomain())) return false;
   let studentId = localStorage.getItem('userId');
@@ -62,11 +72,16 @@ async function callUpdateProgress(xpGained) {
     } catch (e) { return false; }
   }
   if (!studentId) return false;
-  await axios.post(`${API_STUDENTS}/${studentId}/update`, {
-    subdomainId: currentSubdomainId,
-    xpGained: xpGained
-  });
-  return true;
+  try {
+    await axios.post(`${API_STUDENTS}/${studentId}/update`, {
+      subdomainId: currentSubdomainId,
+      xpGained: xpGained
+    });
+    return true;
+  } catch (err) {
+    console.error("Failed to update XP:", err);
+    return false;
+  }
 }
 
 // ========== تحميل تفاصيل الكورس ==========
@@ -320,8 +335,7 @@ if (completeBtn) {
       });
       await fetchAndUpdateGamificationStats();
       showToast("🎉 Lesson completed! XP added.", "success");
-      // 🔔 Check for newly earned badges immediately
-      window.checkForNewBadges();
+      window.checkForNewBadges?.();
       await fetchCourseDetails();
     } catch (err) {
       showToast("Failed to save progress", "error");
@@ -348,7 +362,6 @@ window.loadAssessmentInline = async function (assessmentId) {
     const res = await axios.get(`${API_STUDENTS}/${courseId}/assessments/${assessmentId}`);
     if (res.data.success) {
       const assessment = res.data.data;
-      // تعيين القيم الافتراضية في حال عدم وجودها من الخادم
       assessment.alreadyPassed = assessment.already_passed || false;
       assessment.hasAttempted = assessment.has_attempted || false;
 
@@ -385,7 +398,6 @@ function displayAssessmentInline(assessment) {
   titleEl.innerText = assessment.title;
   if (passingEl) passingEl.innerHTML = `<i class="fa-solid fa-flag-checkered"></i> Passing Score: ${assessment.passing_score || 70}%`;
 
-  // حالة الاجتياز السابق (نجاح)
   if (assessment.alreadyPassed) {
     container.innerHTML = `<div style="padding: 20px; text-align: center; background: rgba(16,185,129,0.1); border-radius: 12px;">
                               <i class="fa-solid fa-circle-check" style="color: #10B981; font-size: 2rem;"></i>
@@ -395,24 +407,22 @@ function displayAssessmentInline(assessment) {
     return;
   }
 
-  // محاولة سابقة فاشلة
   let warningDiv = null;
   if (assessment.hasAttempted && !assessment.alreadyPassed) {
     warningDiv = document.createElement('div');
     warningDiv.style.cssText = 'padding: 12px; background: rgba(245,158,11,0.1); border-radius: 8px; margin-bottom: 16px; text-align: center; color: #f59e0b;';
     warningDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> You failed this assessment before. Try again!';
-    // إدراج الرسالة قبل الأسئلة
     container.parentNode.insertBefore(warningDiv, container);
   }
 
-  // عرض الأسئلة
+  // عرض الأسئلة (بدون عرض نقاط السؤال)
   let html = '';
   assessment.questions.forEach((q, idx) => {
     const isMultiple = q.correct_answer && q.correct_answer.includes(',');
     const inputType = isMultiple ? 'checkbox' : 'radio';
     const nameAttr = isMultiple ? `q_${q.id}_multi` : `q_${q.id}`;
     html += `<div class="quiz-question">
-              <p><strong>${idx + 1}. ${escapeHtml(q.question_text)}</strong> <span class="points-badge">${q.points || 1} pts</span></p>
+              <p><strong>${idx + 1}. ${escapeHtml(q.question_text)}</strong></p>
               <div class="quiz-options">`;
     q.options.forEach(opt => {
       html += `<label><input type="${inputType}" name="${nameAttr}" value="${escapeAttr(opt)}"> ${escapeHtml(opt)}</label>`;
@@ -461,16 +471,18 @@ async function submitAssessmentInline(assessment) {
     if (res.data.success) {
       showToast(`Score: ${res.data.score}% - ${res.data.passed ? 'Passed ✅' : 'Failed ❌'}`, res.data.passed ? 'success' : 'error');
       if (res.data.passed) {
-        // 🔔 Check for newly earned badges
-        window.checkForNewBadges();
+        const assessmentXp = assessment.xp_reward || 50;
+        await callUpdateProgress(assessmentXp);
+        await fetchAndUpdateGamificationStats();
+        window.checkForNewBadges?.();
         await fetchCourseDetails(false);
       }
     } else {
       showToast(res.data.message || 'Submission failed', 'error');
     }
-  } catch (err) { 
-    showToast("Error submitting assessment", "error");
-    console.error(err);
+  } catch (err) {
+    console.error("Submission error:", err);
+    showToast('Error submitting assessment', 'error');
   }
 }
 
@@ -620,9 +632,11 @@ async function submitBossExam() {
     if (res.data.success) {
       renderTestResults(res.data.results, true, res.data.score, res.data.passed);
       if (res.data.passed) {
-        showToast(`🎉 Congratulations! You passed the Boss Exam. +${res.data.xp_gained || 0} XP`, 'success');
-        // 🔔 Check for newly earned badges immediately
-        window.checkForNewBadges();
+        const xpEarned = res.data.xp_gained || currentBossExam.xp_reward || 100;
+        await callUpdateProgress(xpEarned);
+        await fetchAndUpdateGamificationStats();
+        window.checkForNewBadges?.();
+        showToast(`🎉 Congratulations! You passed the Boss Exam. +${xpEarned} XP`, 'success');
       } else {
         const passingScore = currentBossExam.passing_score || 70;
         const displayScore = (!isNaN(res.data.score) && res.data.score != null) ? res.data.score : 'N/A';
