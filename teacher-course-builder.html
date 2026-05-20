@@ -1,47 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Dzire – Course Builder</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="css/teacher-style.css"/>
-<link rel="stylesheet" href="css/variables.css"/>
-<style>
-  .qb-modal { max-width: 800px; width: 100%; }
-  .qb-modal-icon { width: 38px; height: 38px; background: var(--purple-dim); border: 1px solid rgba(167,139,250,0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-  .qb-body { max-height: 70vh; overflow-y: auto; padding: 20px; }
-  .qb-section { margin-bottom: 24px; }
-  .qb-section-label { display: flex; align-items: center; gap: 8px; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-3); margin-bottom: 12px; }
-  .qb-section-dot { width: 6px; height: 6px; border-radius: 50%; }
-  .qb-add-btn { width: 100%; justify-content: center; gap: 8px; border-style: dashed; }
-  .qb-question-card { background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 16px; overflow: hidden; }
-  .qb-card-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 18px; background: rgba(59,130,246,0.05); border-bottom: 1px solid var(--border); }
-  .qb-card-header-left { display: flex; align-items: center; gap: 10px; }
-  .qb-q-number { font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 800; color: var(--blue-400); background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.2); border-radius: 6px; padding: 2px 9px; }
-  .qb-remove-btn { background: transparent; border: 1px solid var(--red-dim); border-radius: var(--radius-sm); color: var(--red); padding: 5px 11px; cursor: pointer; font-size: 13px; }
-  .qb-option-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; }
-  .qb-option-row.qb-selected { border-color: rgba(16,185,129,0.4); background: rgba(16,185,129,0.04); }
-  .qb-radio-wrap { position: relative; width: 18px; height: 18px; flex-shrink: 0; }
-  .qb-radio-wrap input[type="radio"] { position: absolute; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
-  .qb-radio-custom { position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--border-md); background: var(--bg-3); transition: all 0.15s; }
-  .qb-radio-custom::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: var(--green); opacity: 0; transform: scale(0.4); transition: all 0.15s; }
-  .qb-radio-wrap input[type="radio"]:checked ~ .qb-radio-custom { border-color: var(--green); background: rgba(16,185,129,0.1); }
-  .qb-radio-wrap input[type="radio"]:checked ~ .qb-radio-custom::after { opacity: 1; transform: scale(1); }
-  .qb-option-letter { width: 22px; height: 22px; border-radius: 6px; background: rgba(59,130,246,0.1); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 800; color: var(--blue-400); }
-  .qb-option-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 0; }
-  .qb-meta-row { display: grid; grid-template-columns: 1fr 1fr 100px; gap: 12px; margin-top: 12px; }
-  .btn-add-opt { background: none; border: 1px dashed var(--border); color: var(--blue-400); padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-  @media (max-width: 640px) { .qb-meta-row { grid-template-columns: 1fr 1fr; } }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dzire – Course Builder</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="css/teacher-style.css" />
+  <link rel="stylesheet" href="css/variables.css" />
+  <style>
+    /* Additional styles for Quiz Builder and Boss Exam */
+    .qb-modal {
+      max-width: 800px;
+      width: 100%;
+    }
+
+    .qb-modal-icon {
+      width: 38px;
+      height: 38px;
+      background: var(--purple-dim);
+      border: 1px solid rgba(167, 139, 250, 0.3);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .qb-body {
+      max-height: 70vh;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .qb-section {
+      margin-bottom: 24px;
+    }
+
+    .qb-section-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 12px;
+    }
+
+    .qb-section-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .qb-add-btn {
+      width: 100%;
+      justify-content: center;
+      gap: 8px;
+      border-style: dashed;
+    }
+
+    .qb-question-card {
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .qb-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: rgba(59, 130, 246, 0.05);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .qb-card-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .qb-q-number {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--blue-400);
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      border-radius: 6px;
+      padding: 2px 9px;
+    }
+
+    .qb-remove-btn {
+      background: transparent;
+      border: 1px solid var(--red-dim);
+      border-radius: var(--radius-sm);
+      color: var(--red);
+      padding: 5px 11px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .qb-option-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+    }
+
+    .qb-option-row.qb-selected {
+      border-color: rgba(16, 185, 129, 0.4);
+      background: rgba(16, 185, 129, 0.04);
+    }
+
+    .qb-radio-wrap {
+      position: relative;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    .qb-radio-wrap input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .qb-radio-custom {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid var(--border-md);
+      background: var(--bg-3);
+      transition: all 0.15s;
+    }
+
+    .qb-radio-custom::after {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      border-radius: 50%;
+      background: var(--green);
+      opacity: 0;
+      transform: scale(0.4);
+      transition: all 0.15s;
+    }
+
+    .qb-radio-wrap input[type="radio"]:checked~.qb-radio-custom {
+      border-color: var(--green);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .qb-radio-wrap input[type="radio"]:checked~.qb-radio-custom::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .qb-option-letter {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--blue-400);
+    }
+
+    .qb-option-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      padding: 0;
+    }
+
+    .qb-meta-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 100px;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .btn-add-opt {
+      background: none;
+      border: 1px dashed var(--border);
+      color: var(--blue-400);
+      padding: 5px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    @media (max-width: 640px) {
+      .qb-meta-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .test-case-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    .test-case-row input {
+      flex: 1;
+    }
+  </style>
 </head>
+
 <body>
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<div class="app">
-
-<!-- SIDEBAR -->
+  <div class="app">
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo"><div class="logo-icon">D</div><div class="logo-text">D<span>zire</span></div></div>
   <div class="sidebar-toggle" id="sidebarToggle">◀</div>
@@ -59,367 +254,434 @@
     </nav>
   <div class="sidebar-profile"><div class="profile-avatar">KK</div><div class="profile-info"><div class="profile-name">Khalil Khalfi</div><div class="profile-role">Teacher · Full-Stack</div></div></div>
 </aside>
+    <!-- MAIN -->
+    <div class="main" id="main">
+      <header class="topbar">
+        <button class="hamburger" id="hamburgerBtn">☰</button>
+        <div class="topbar-left">
+          <div class="page-breadcrumb"><span>Dzire</span><span>›</span><span class="current" id="pageTitle">Course
+              Builder</span></div>
+        </div>
+        <div class="topbar-right">
+          <div class="search-box"><span>🔍</span><input type="text" placeholder="Search..." /></div>
+          <div class="icon-btn" style="position:relative" id="notifBtn">🔔<div class="notif-badge" id="notifBadge">
+            </div>
+            <div class="notif-panel" id="notifPanel">...</div>
+          </div>
+          <button class="btn btn-ghost active" id="previewOffBtn" onclick="togglePreview(false)">✏️ Edit Mode</button>
+          <button class="btn btn-ghost" id="previewOnBtn" onclick="togglePreview(true)">👁️ Preview Mode</button>
+        </div>
+      </header>
 
-<!-- MAIN -->
-<div class="main" id="main">
-  <header class="topbar">
-    <button class="hamburger" id="hamburgerBtn">☰</button>
-    <div class="topbar-left"><div class="page-breadcrumb"><span>Dzire</span><span>›</span><span class="current" id="pageTitle">Course Builder</span></div></div>
-    <div class="topbar-right">
-      <div class="search-box"><span>🔍</span><input type="text" placeholder="Search..."/></div>
-      <div class="icon-btn" style="position:relative" id="notifBtn">🔔<div class="notif-badge" id="notifBadge"></div><div class="notif-panel" id="notifPanel">...</div></div>
-      <button class="btn btn-ghost active" id="previewOffBtn" onclick="togglePreview(false)">✏️ Edit Mode</button>
-      <button class="btn btn-ghost" id="previewOnBtn" onclick="togglePreview(true)">👁️ Preview Mode</button>
-    </div>
-  </header>
+      <div class="page active" id="page-courseContent">
+        <div class="section-header">
+          <div>
+            <div class="section-title" id="courseContentTitle">Loading...</div>
+            <div class="section-subtitle" id="courseContentSubtitle"></div>
+          </div>
+          <!-- Header actions removed -->
+        </div>
 
-  <div class="page active" id="page-courseContent">
-    <div class="section-header">
-      <div>
-        <div class="section-title" id="courseContentTitle">Loading...</div>
-        <div class="section-subtitle" id="courseContentSubtitle"></div>
-      </div>
-      <div class="header-actions">
-        <button class="btn btn-ghost" type="button" onclick="showToast('Course settings saved','success')">⚙️ Settings</button>
-        <button class="btn btn-primary" type="button" onclick="openModal('newChapter')">＋ New Chapter</button>
-      </div>
-    </div>
+        <div class="card" style="margin-bottom: 24px;">
+          <div class="card-header">
+            <div class="card-title">Course Description</div>
+            <div class="card-link" onclick="openEditCourseInfoModal()">✎ Edit Info</div>
+            <!-- Removed Legacy Edit -->
+          </div>
+          <p id="courseDescription" style="color: var(--text-2); line-height: 1.5; margin-bottom: 16px;"></p>
+          <div id="courseBadges" style="display: none;"></div>
+          <!-- Removed badges content completely -->
+        </div>
 
-    <div class="card" style="margin-bottom: 24px;">
-      <div class="card-header">
-        <div class="card-title">Course Description</div>
-        <div class="card-link" onclick="showToast('Edit description','info')">✎ Edit</div>
-      </div>
-      <p id="courseDescription" style="color: var(--text-2); line-height: 1.5; margin-bottom: 16px;"></p>
-      <div id="courseBadges" style="display: flex; gap: 16px; flex-wrap: wrap;"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title">Chapters & Lessons</div>
-        <div class="card-link" onclick="showToast('Reorder mode','info')">⇅ Reorder</div>
-      </div>
-      <div class="chapters-list" id="chaptersContainer">
-        <div class="empty-state">Loading course content...</div>
-      </div>
-      <div style="margin-top: 20px; text-align: center;">
-        <button class="btn btn-ghost" onclick="openModal('newChapter')">➕ Add New Chapter</button>
-      </div>
-    </div>
-
-    <div id="previewPanel" style="display: none;">
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Student Preview</div>
-          <div class="preview-nav">
-            <button class="icon-btn-sm" id="prevLessonBtn" disabled>← Previous</button>
-            <span id="previewIndex">0/0</span>
-            <button class="icon-btn-sm" id="nextLessonBtn">Next →</button>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Chapters & Lessons</div>
+            <!-- Removed Reorder link -->
+          </div>
+          <div class="chapters-list" id="chaptersContainer">
+            <div class="empty-state">Loading course content...</div>
+          </div>
+          <div style="margin-top: 20px; text-align: center;">
+            <button class="btn btn-ghost" onclick="openModal('newChapter')">➕ Add New Chapter</button>
           </div>
         </div>
-        <div id="previewContent" class="preview-content"></div>
+
+        <div id="previewPanel" style="display: none;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Student Preview</div>
+              <div class="preview-nav">
+                <button class="icon-btn-sm" id="prevLessonBtn" disabled>← Previous</button>
+                <span id="previewIndex">0/0</span>
+                <button class="icon-btn-sm" id="nextLessonBtn">Next →</button>
+              </div>
+            </div>
+            <div id="previewContent" class="preview-content"></div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- ========== MODALS ========== -->
+    <!-- ========== MODALS (unchanged) ========== -->
 
-<!-- Modal: New Quiz — Step 1 -->
-<div class="modal-overlay" id="modal-newQuiz">
-  <div class="modal" style="max-width: 450px;">
-    <div class="modal-header">
-      <div class="modal-title">📝 New Assessment</div>
-      <div class="modal-close" onclick="closeModal('newQuiz')">✕</div>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Assessment Title *</label>
-        <input type="text" id="quiz_title_input" class="form-input" placeholder="e.g. JavaScript Basics Quiz">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Type</label>
-        <select id="quiz_type_input" class="form-select">
-          <option value="quiz">Quiz</option>
-          <option value="final_exam">Final Exam</option>
-          <option value="boss_exam">Boss Exam</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Passing Score (%)</label>
-        <input type="number" id="quiz_passing_score_input" class="form-input" value="70" min="1" max="100">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Link to Lesson (optional)</label>
-        <select id="quiz_lesson_select" class="form-select">
-          <option value="">-- None (Chapter level) --</option>
-        </select>
-      </div>
-
-      <!-- ══════ Boss Exam Fields (hidden by default) ══════ -->
-      <div id="bossExamFields" style="display: none;">
-        <div class="form-group">
-          <label class="form-label">Problem Description</label>
-          <textarea class="form-textarea" id="boss_description" rows="5" placeholder="Describe the coding challenge…"></textarea>
+    <!-- Modal: New Assessment (Step 1) -->
+    <div class="modal-overlay" id="modal-newQuiz">
+      <div class="modal" style="max-width: 550px;">
+        <div class="modal-header">
+          <div class="modal-title">📝 New Assessment</div>
+          <div class="modal-close" onclick="closeModal('newQuiz')">✕</div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Language</label>
-          <select class="form-select" id="boss_language">
-            <option value="javascript">JavaScript</option>
-            <option value="html">HTML</option>
-            <option value="css">CSS</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Starter Code (optional)</label>
-          <textarea class="form-textarea" id="boss_starter_code" rows="4" placeholder="// Initial code for the student…"></textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Test Cases</label>
-          <div id="bossTestCasesContainer">
-            <div class="test-case-row" style="display: flex; gap: 12px; margin-bottom: 8px;">
-              <input type="text" class="form-input test-input" placeholder="Input" style="flex: 1;" />
-              <input type="text" class="form-input test-expected" placeholder="Expected Output" style="flex: 1;" />
-              <button type="button" class="btn btn-ghost btn-sm remove-test-case" style="display: none;">✕</button>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Assessment Title *</label>
+            <input type="text" id="quiz_title_input" class="form-input" placeholder="e.g. JavaScript Basics Quiz">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type</label>
+            <select id="quiz_type_input" class="form-select">
+              <option value="quiz">Quiz</option>
+              <option value="final_exam">Final Exam</option>
+              <option value="boss_exam">Boss Exam</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Passing Score (%)</label>
+            <input type="number" id="quiz_passing_score_input" class="form-input" value="70" min="1" max="100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">XP Reward</label>
+            <input type="number" id="quiz_xp_reward_input" class="form-input" value="100" min="0" step="10">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Link to Lesson (optional)</label>
+            <select id="quiz_lesson_select" class="form-select">
+              <option value="">-- None (Chapter level) --</option>
+            </select>
+          </div>
+          <div id="bossExamFields" style="display: none;">
+            <div class="form-group">
+              <label class="form-label">Problem Description</label>
+              <textarea class="form-textarea" id="boss_description" rows="4"
+                placeholder="Describe the coding challenge…"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Language</label>
+              <select class="form-select" id="boss_language">
+                <option value="javascript">JavaScript</option>
+                <option value="html">HTML</option>
+                <option value="css">CSS</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Starter Code (optional)</label>
+              <textarea class="form-textarea" id="boss_starter_code" rows="3"
+                placeholder="// Initial code for the student…"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Test Cases</label>
+              <div id="bossTestCasesContainer">
+                <div class="test-case-row">
+                  <input type="text" class="form-input test-input" placeholder="Input (e.g., 2, 3)" />
+                  <input type="text" class="form-input test-expected" placeholder="Expected Output" />
+                  <button type="button" class="btn btn-ghost btn-sm remove-test-case" style="display: none;">✕</button>
+                </div>
+              </div>
+              <button type="button" class="btn btn-ghost btn-sm" id="addTestCaseBtn" style="margin-top: 8px;">+ Add Test
+                Case</button>
             </div>
           </div>
-          <button type="button" class="btn btn-ghost btn-sm" id="addTestCaseBtn" style="margin-top: 8px;">+ Add Test Case</button>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeModal('newQuiz')">Cancel</button>
+          <button class="btn btn-primary" id="nextButton">Next: Add Questions</button>
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('newQuiz')">Cancel</button>
-      <button class="btn btn-primary" onclick="proceedToQuizBuilder()">Next: Add Questions</button>
-    </div>
-  </div>
-</div>
 
-<!-- Modal: Quiz Builder — Step 2 -->
-<div class="modal-overlay" id="modal-quizBuilder">
-  <div class="modal qb-modal">
-    <div class="modal-header">
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <div class="qb-modal-icon">📝</div>
-        <div>
-          <div class="modal-title">Quiz Builder</div>
-          <div style="font-size: 11px; color: var(--text-3);">Build a structured quiz with questions & answers</div>
+    <!-- Modal: Quiz Builder -->
+    <div class="modal-overlay" id="modal-quizBuilder">
+      <div class="modal qb-modal">
+        <div class="modal-header">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div class="qb-modal-icon">📝</div>
+            <div>
+              <div class="modal-title">Quiz Builder</div>
+              <div style="font-size: 11px; color: var(--text-3);">Build a structured quiz with questions & answers</div>
+            </div>
+          </div>
+          <div class="modal-close" onclick="closeModal('quizBuilder')">✕</div>
         </div>
-      </div>
-      <div class="modal-close" onclick="closeModal('quizBuilder')">✕</div>
-    </div>
-    <div class="modal-body qb-body">
-      <input type="hidden" id="qb-type" value="quiz">
-      <input type="hidden" id="qb-passing-score" value="70">
-
-      <div class="qb-section">
-        
-        <div class="qb-section-label">
-          <span class="qb-section-dot" style="background: var(--blue-500);"></span>
-          Assessment Details
+        <div class="modal-body qb-body">
+          <input type="hidden" id="qb-type" value="quiz">
+          <input type="hidden" id="qb-passing-score" value="70">
+          <div class="qb-section">
+            <div class="qb-section-label">
+              <span class="qb-section-dot" style="background: var(--blue-500);"></span>
+              Assessment Details
+            </div>
+            <div class="form-group">
+              <label class="form-label">Assessment Title *</label>
+              <input type="text" id="qb-title" class="form-input" placeholder="e.g. JavaScript Basics Quiz">
+            </div>
+            <div class="form-group">
+              <label class="form-label">XP Reward</label>
+              <input type="number" class="form-input" id="qb-xp-reward" value="0" min="0" step="10" />
+            </div>
+          </div>
+          <div class="qb-section">
+            <div class="qb-section-label">
+              <span class="qb-section-dot" style="background: var(--purple);"></span>
+              Questions
+              <span class="badge badge-purple" id="qb-q-count" style="margin-left: 6px;">1</span>
+            </div>
+            <div id="qb-questions-container" class="qb-questions-container"></div>
+            <button class="btn btn-ghost qb-add-btn" type="button" onclick="qbAddQuestion()">
+              <span style="font-size: 16px;">＋</span> Add Another Question
+            </button>
+          </div>
         </div>
-        
-        <div class="form-group">
-          <label class="form-label">Assessment Title *</label>
-          <input type="text" id="qb-title" class="form-input" placeholder="e.g. JavaScript Basics Quiz">
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">XP Reward</label>
-          <input type="number" class="form-input" id="qb-xp-reward" value="0" min="0" step="10" />
-          <div style="font-size:11px;color:var(--text-3);margin-top:6px">XP students earn upon passing this assessment</div>
-        </div>
-
-      </div>
-
-      <div class="qb-section">
-        <div class="qb-section-label">
-          <span class="qb-section-dot" style="background: var(--purple);"></span>
-          Questions
-          <span class="badge badge-purple" id="qb-q-count" style="margin-left: 6px;">1</span>
-        </div>
-        <div id="qb-questions-container" class="qb-questions-container"></div>
-        <button class="btn btn-ghost qb-add-btn" type="button" onclick="qbAddQuestion()">
-          <span style="font-size: 16px;">＋</span> Add Another Question
-        </button>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <div style="font-size: 11px; color: var(--text-3); flex:1;">💡 JSON payload is logged to console on save</div>
-      <button class="btn btn-ghost" onclick="closeModal('quizBuilder')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveQuizAssessment()">💾 Save Assessment</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: New Chapter -->
-<div class="modal-overlay" id="modal-newChapter">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Create New Chapter</div>
-      <div class="modal-close" onclick="closeModal('newChapter')">✕</div>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Chapter Title</label>
-        <input class="form-input" id="newChapterTitle" placeholder="e.g. Introduction to Variables"/>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('newChapter')">Cancel</button>
-      <button class="btn btn-primary" onclick="createChapter()">Create Chapter</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: New Lesson -->
-<div class="modal-overlay" id="modal-newLesson">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Add New Lesson</div>
-      <div class="modal-close" onclick="closeModal('newLesson')">✕</div>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Lesson Title</label>
-        <input class="form-input" id="newLessonTitle" placeholder="e.g. What is JavaScript?"/>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Content Type</label>
-          <select class="form-select" id="newLessonContentType">
-              <option value="video">🎥 Video</option>
-              <option value="pdf">📄 PDF Document</option>
-              <option value="text">📝 Text / Article</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Duration (minutes)</label>
-          <input class="form-input" type="number" id="newLessonDuration" placeholder="e.g. 15"/>
-        </div>
-      </div>
-      <!-- Text Content Area (shown only when text is selected) -->
-      <div class="form-group">
-        <label class="form-label">Lesson Summary / Text Content (optional)</label>
-        <textarea class="form-textarea" id="newLessonSummary" placeholder="Write the full lesson text here… (optional)" rows="8"></textarea>
-        <div style="font-size:11px;color:var(--text-3);margin-top:6px">This text will appear as a text tab in the course player. Leave blank if not needed.</div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">XP Reward</label>
-        <input class="form-input" type="number" id="newLessonXp" value="50" min="0" step="10"/>
-        <div style="font-size: 11px; color: var(--text-3); margin-top: 6px;">Points students earn upon completing this lesson</div>
-      </div>
-      <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="newLessonFreePreview" style="width: 16px; height: 16px;"/>
-        <label class="form-label" style="margin: 0;">Make this lesson a Free Preview</label>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('newLesson')">Cancel</button>
-      <button class="btn btn-primary" onclick="createLesson()">Create Lesson</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal: Upload Content -->
-<div class="modal-overlay" id="modal-uploadContent">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Upload Lesson Content</div>
-      <div class="modal-close" onclick="closeModal('uploadContent')">✕</div>
-    </div>
-    <div class="modal-body">
-      <input type="file" id="contentFileInput" accept="video/mp4,application/pdf"/>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('uploadContent')">Cancel</button>
-      <button class="btn btn-primary" onclick="submitContentUpload()">Upload</button>
-    </div>
-  </div>
-</div>
-
-<!-- New Assessment Modal (simple version, for direct chapter-level assessment) -->
-<div class="modal-overlay" id="modal-newAssessment">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Add Assessment to Chapter</div>
-      <div class="modal-close" onclick="closeModal('newAssessment')">✕</div>
-    </div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Title</label>
-        <input id="newAssessmentTitle" class="form-input"/>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Type</label>
-          <select id="newAssessmentType" class="form-select">
-            <option>quiz</option>
-            <option>assignment</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Passing Score</label>
-          <input id="newAssessmentPassingScore" class="form-input" value="70"/>
+        <div class="modal-footer">
+          <div style="font-size: 11px; color: var(--text-3); flex:1;">💡 JSON payload is logged to console on save</div>
+          <button class="btn btn-ghost" onclick="closeModal('quizBuilder')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveQuizAssessment()">💾 Save Assessment</button>
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('newAssessment')">Cancel</button>
-      <button class="btn btn-primary" onclick="createAssessment()">Create</button>
-    </div>
-  </div>
-</div>
 
-<!-- ========== NEW: Edit Text Lesson Modal ========== -->
-<div class="modal-overlay" id="modal-editTextLesson">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Edit Text Lesson</div>
-      <div class="modal-close" onclick="closeModal('editTextLesson')">✕</div>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="editTextLessonId" />
-      <div class="form-group">
-        <label class="form-label">Lesson Content (plain text)</label>
-        <textarea class="form-textarea" id="editTextContent" rows="10" placeholder="Write your lesson content…"></textarea>
+    <!-- Modal: New Chapter -->
+    <div class="modal-overlay" id="modal-newChapter">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">Create New Chapter</div>
+          <div class="modal-close" onclick="closeModal('newChapter')">✕</div>
+        </div>
+        <div class="modal-body">
+          <div class="form-group"><label class="form-label">Chapter Title</label><input class="form-input"
+              id="newChapterTitle" placeholder="e.g. Introduction to Variables" /></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-ghost"
+            onclick="closeModal('newChapter')">Cancel</button><button class="btn btn-primary"
+            onclick="createChapter()">Create Chapter</button></div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeModal('editTextLesson')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveTextLesson()">💾 Save</button>
+
+    <!-- Modal: New Lesson -->
+    <div class="modal-overlay" id="modal-newLesson">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">Add New Lesson</div>
+          <div class="modal-close" onclick="closeModal('newLesson')">✕</div>
+        </div>
+        <div class="modal-body">
+          <div class="form-group"><label class="form-label">Lesson Title</label><input class="form-input"
+              id="newLessonTitle" placeholder="e.g. What is JavaScript?" /></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Content Type</label><select class="form-select"
+                id="newLessonContentType">
+                <option value="video">🎥 Video</option>
+                <option value="pdf">📄 PDF Document</option>
+                <option value="text">📝 Text / Article</option>
+              </select></div>
+            <div class="form-group"><label class="form-label">Duration (minutes)</label><input class="form-input"
+                type="number" id="newLessonDuration" placeholder="e.g. 15" /></div>
+          </div>
+          <div class="form-group"><label class="form-label">Lesson Summary / Text Content (optional)</label><textarea
+              class="form-textarea" id="newLessonSummary" placeholder="Write the full lesson text here… (optional)"
+              rows="8"></textarea>
+            <div style="font-size:11px;color:var(--text-3);margin-top:6px">This text will appear as a text tab in the
+              course player. Leave blank if not needed.</div>
+          </div>
+          <div class="form-group"><label class="form-label">XP Reward</label><input class="form-input" type="number"
+              id="newLessonXp" value="50" min="0" step="10" />
+            <div style="font-size: 11px; color: var(--text-3); margin-top: 6px;">Points students earn upon completing
+              this lesson</div>
+          </div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('newLesson')">Cancel</button><button
+            class="btn btn-primary" onclick="createLesson()">Create Lesson</button></div>
+      </div>
     </div>
-  </div>
-</div>
 
-<div class="toast-container" id="toastContainer"></div>
+    <!-- Modal: Upload Content -->
+    <div class="modal-overlay" id="modal-uploadContent">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">Upload Lesson Content</div>
+          <div class="modal-close" onclick="closeModal('uploadContent')">✕</div>
+        </div>
+        <div class="modal-body"><input type="file" id="contentFileInput" accept="video/mp4,application/pdf" /></div>
+        <div class="modal-footer"><button class="btn btn-ghost"
+            onclick="closeModal('uploadContent')">Cancel</button><button class="btn btn-primary"
+            onclick="submitContentUpload()">Upload</button></div>
+      </div>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script src="js/teacher-common.js"></script>
-<script src="js/teacher-course-builder.js"></script>
-<script>
-// Show/hide Boss Exam fields based on assessment type
-document.getElementById('quiz_type_input').addEventListener('change', function () {
-  const isBoss = this.value === 'boss_exam';
-  document.getElementById('bossExamFields').style.display = isBoss ? 'block' : 'none';
-});
+    <!-- Modal: Simple Assessment (legacy) -->
+    <div class="modal-overlay" id="modal-newAssessment">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">Add Assessment to Chapter</div>
+          <div class="modal-close" onclick="closeModal('newAssessment')">✕</div>
+        </div>
+        <div class="modal-body">
+          <div class="form-group"><label class="form-label">Title</label><input id="newAssessmentTitle"
+              class="form-input" /></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Type</label><select id="newAssessmentType"
+                class="form-select">
+                <option>quiz</option>
+                <option>assignment</option>
+              </select></div>
+            <div class="form-group"><label class="form-label">Passing Score</label><input id="newAssessmentPassingScore"
+                class="form-input" value="70" /></div>
+          </div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-ghost"
+            onclick="closeModal('newAssessment')">Cancel</button><button class="btn btn-primary"
+            onclick="createAssessment()">Create</button></div>
+      </div>
+    </div>
 
-// Dynamically add test case rows
-document.getElementById('addTestCaseBtn').addEventListener('click', function () {
-  const container = document.getElementById('bossTestCasesContainer');
-  const row = document.createElement('div');
-  row.className = 'test-case-row';
-  row.style.cssText = 'display: flex; gap: 12px; margin-bottom: 8px;';
-  row.innerHTML = `
-    <input type="text" class="form-input test-input" placeholder="Input" style="flex: 1;" />
-    <input type="text" class="form-input test-expected" placeholder="Expected Output" style="flex: 1;" />
-    <button type="button" class="btn btn-ghost btn-sm remove-test-case">✕</button>
-  `;
-  container.appendChild(row);
-  // Remove button for this row
-  row.querySelector('.remove-test-case').addEventListener('click', function () {
-    row.remove();
-  });
-});
-</script>
+    <!-- Modal: Edit Text Lesson -->
+    <div class="modal-overlay" id="modal-editTextLesson">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">Edit Text Lesson</div>
+          <div class="modal-close" onclick="closeModal('editTextLesson')">✕</div>
+        </div>
+        <div class="modal-body"><input type="hidden" id="editTextLessonId" />
+          <div class="form-group"><label class="form-label">Lesson Content (plain text)</label><textarea
+              class="form-textarea" id="editTextContent" rows="10" placeholder="Write your lesson content…"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-ghost"
+            onclick="closeModal('editTextLesson')">Cancel</button><button class="btn btn-primary"
+            onclick="saveTextLesson()">💾 Save</button></div>
+      </div>
+    </div>
+
+    <!-- Modal: Edit Course Info -->
+    <div class="modal-overlay" id="modal-editCourseInfo">
+      <div class="modal" style="max-width: 500px;">
+        <div class="modal-header">
+          <div class="modal-title">✎ Edit Course Information</div>
+          <div class="modal-close" onclick="closeModal('editCourseInfo')">✕</div>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Course Title</label>
+            <input type="text" id="editCourseTitle" class="form-input" placeholder="e.g. Advanced JavaScript">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Course Description</label>
+            <textarea id="editCourseDescription" class="form-textarea" rows="4" placeholder="Describe the course..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeModal('editCourseInfo')">Cancel</button>
+          <button class="btn btn-primary" onclick="saveCourseInfo()">💾 Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="js/teacher-common.js"></script>
+    <script src="js/teacher-course-builder.js"></script>
+    <script>
+      // Boss Exam handling (unchanged)
+      document.addEventListener('DOMContentLoaded', function () {
+        const typeSelect = document.getElementById('quiz_type_input');
+        const bossFields = document.getElementById('bossExamFields');
+        const nextBtn = document.getElementById('nextButton');
+
+        function toggleBossFields() {
+          const isBoss = typeSelect.value === 'boss_exam';
+          bossFields.style.display = isBoss ? 'block' : 'none';
+          nextBtn.textContent = isBoss ? '💾 Save Boss Exam' : 'Next: Add Questions';
+        }
+
+        typeSelect.addEventListener('change', toggleBossFields);
+        toggleBossFields();
+
+        const addTestCaseBtn = document.getElementById('addTestCaseBtn');
+        function addTestCaseRow() {
+          const container = document.getElementById('bossTestCasesContainer');
+          const row = document.createElement('div');
+          row.className = 'test-case-row';
+          row.innerHTML = `
+            <input type="text" class="form-input test-input" placeholder="Input (e.g., 2, 3)" />
+            <input type="text" class="form-input test-expected" placeholder="Expected Output" />
+            <button type="button" class="btn btn-ghost btn-sm remove-test-case" style="display: inline-block;">✕</button>
+          `;
+          container.appendChild(row);
+          row.querySelector('.remove-test-case').addEventListener('click', () => row.remove());
+        }
+        addTestCaseBtn.addEventListener('click', addTestCaseRow);
+        document.querySelectorAll('.test-case-row .remove-test-case').forEach(btn => {
+          btn.style.display = 'inline-block';
+          btn.addEventListener('click', function () { this.closest('.test-case-row').remove(); });
+        });
+
+        nextBtn.addEventListener('click', async function () {
+          if (typeSelect.value === 'boss_exam') {
+            await saveBossExamDirectly();
+          } else {
+            if (typeof proceedToQuizBuilder === 'function') proceedToQuizBuilder();
+            else console.error('proceedToQuizBuilder not defined');
+          }
+        });
+
+        async function saveBossExamDirectly() {
+          const title = document.getElementById('quiz_title_input').value.trim();
+          const passingScore = parseInt(document.getElementById('quiz_passing_score_input').value, 10);
+          const xpReward = parseInt(document.getElementById('quiz_xp_reward_input').value, 10) || 0;
+          const lessonId = document.getElementById('quiz_lesson_select').value || null;
+          const description = document.getElementById('boss_description').value;
+          const language = document.getElementById('boss_language').value;
+          const starterCode = document.getElementById('boss_starter_code').value;
+          const testCases = [];
+          document.querySelectorAll('#bossTestCasesContainer .test-case-row').forEach(row => {
+            const input = row.querySelector('.test-input').value.trim();
+            const expected = row.querySelector('.test-expected').value.trim();
+            if (input && expected) testCases.push({ input, expected });
+          });
+
+          if (!title) { showToast('Assessment title is required', 'error'); return; }
+          if (isNaN(passingScore) || passingScore < 1 || passingScore > 100) { showToast('Passing score must be between 1 and 100', 'error'); return; }
+          if (testCases.length === 0) { showToast('Please add at least one test case', 'error'); return; }
+
+          const payload = {
+            title,
+            type: 'boss_exam',
+            passing_score: passingScore,
+            xp_reward: xpReward,
+            lesson_id: lessonId,
+            description,
+            language,
+            starter_code: starterCode,
+            test_cases: testCases,
+            questions: []
+          };
+
+          try {
+            const data = await apiCall('POST', `/courses/${window.currentBuilderCourseId}/chapters/${window.currentChapterIdForQuiz}/assessments`, payload);
+            if (data && data.success) {
+              closeModal('newQuiz');
+              showToast(`Boss Exam "${title}" created successfully! ✅`, 'success');
+              if (typeof openCourseBuilder === 'function') await openCourseBuilder(window.currentBuilderCourseId);
+              else location.reload();
+            } else {
+              showToast(data?.message || 'Failed to create Boss Exam', 'error');
+            }
+          } catch (err) {
+            console.error(err);
+            showToast('Server error while saving Boss Exam', 'error');
+          }
+        }
+      });
+    </script>
 </body>
+
 </html>

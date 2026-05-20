@@ -13,10 +13,9 @@
 </head>
 
 <body data-required-role="teacher">
-  <!-- Sidebar overlay (mobile) -->
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-<script src="js/teacher-common.js"></script>
-<script src="js/auth-guard.js"></script>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <script src="js/teacher-common.js"></script>
+  <script src="js/auth-guard.js"></script>
   <div class="app">
 
     <!-- SIDEBAR -->
@@ -78,7 +77,7 @@
         </div>
       </header>
 
-      <!-- PAGE: DASHBOARD (محتوى كامل من الملف الأصلي) -->
+      <!-- PAGE: DASHBOARD -->
       <div class="page active" id="page-dashboard">
         <div style="margin-bottom:22px">
           <div class="section-title">Good morning, Khalil 👋</div>
@@ -100,14 +99,6 @@
             </div>
             <div class="stat-value"></div>
             <div class="stat-label">Total Students</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-top">
-              <div class="stat-icon" style="background:var(--purple-dim)">⭐</div>
-              <div class="stat-trend trend-up">↑ </div>
-            </div>
-            <div class="stat-value"></div>
-            <div class="stat-label">Average Rating</div>
           </div>
           <div class="stat-card">
             <div class="stat-top">
@@ -139,32 +130,28 @@
                 <div class="card-title">Quick Actions</div>
               </div>
               <div class="qa-grid">
-                <div class="qa-btn" onclick="openModal('newCourse')">
-                  <div class="qa-icon">➕</div>
+                <!-- Manage Courses -->
+                <div class="qa-btn" onclick="window.location.href='teacher-courses.html'">
+                  <div class="qa-icon">📚</div>
                   <div>
-                    <div class="qa-title">New Course</div>
-                    <div class="qa-sub">Create & publish</div>
+                    <div class="qa-title">Manage Courses</div>
+                    <div class="qa-sub">Edit, publish, organize</div>
                   </div>
                 </div>
-                <div class="qa-btn" onclick="openModal('newQuiz')">
-                  <div class="qa-icon">📝</div>
-                  <div>
-                    <div class="qa-title">New Quiz</div>
-                    <div class="qa-sub">Add assessment</div>
-                  </div>
-                </div>
+                <!-- View Student Lists -->
                 <div class="qa-btn" onclick="window.location.href='teacher-students.html'">
-                  <div class="qa-icon">👁️</div>
+                  <div class="qa-icon">👥</div>
                   <div>
-                    <div class="qa-title">View Students</div>
-                    <div class="qa-sub">Check progress</div>
+                    <div class="qa-title">View Student Lists</div>
+                    <div class="qa-sub">Monitor progress</div>
                   </div>
                 </div>
-                <div class="qa-btn" onclick="showToast('Report exported!','success')">
-                  <div class="qa-icon">📤</div>
+                <!-- Update Profile -->
+                <div class="qa-btn" onclick="window.location.href='teacher-profile.html'">
+                  <div class="qa-icon">👤</div>
                   <div>
-                    <div class="qa-title">Export Report</div>
-                    <div class="qa-sub">Analytics CSV</div>
+                    <div class="qa-title">Update Profile</div>
+                    <div class="qa-sub">Edit your information</div>
                   </div>
                 </div>
               </div>
@@ -172,13 +159,6 @@
           </div>
         </div>
         <div class="grid-2">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">Weekly Submissions</div>
-              <div class="badge badge-blue">This Week</div>
-            </div>
-            <div class="bar-chart" id="weekChart"></div>
-          </div>
           <div class="card">
             <div class="card-header">
               <div class="card-title">Recent Activity</div>
@@ -190,7 +170,7 @@
       </div>
     </div>
 
-    <!-- MODALS (نفس الأصل) -->
+    <!-- MODALS (unchanged) -->
     <div class="modal-overlay" id="modal-newCourse">
       <div class="modal">
         <div class="modal-header">

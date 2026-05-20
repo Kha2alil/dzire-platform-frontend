@@ -13,10 +13,21 @@ if (token) {
 // ====================== Global Variables ======================
 let allUsers = [];
 let allCourses = [];
-let allSkills = [];               // ← skills data
+let allSkills = [];
 let activeUserTab = 'all';
 let confirmCallback = null;
 let currentCourseIdForStatus = null;
+
+// Dummy activity data (fallback)
+const ACTIVITY_LOG = [
+    { dot: 'var(--green)', text: '<strong>Ahmed Mansouri</strong> enrolled in Full-Stack Web Development', time: '2 min ago' },
+    { dot: 'var(--blue-400)', text: '<strong>Khalil Khalfi</strong> added a new lesson to Node.js Mastery', time: '14 min ago' },
+    { dot: 'var(--amber)', text: '<strong>Nour Aissaoui</strong> completed JavaScript Advanced Concepts', time: '31 min ago' },
+    { dot: 'var(--admin-accent)', text: '<strong>Samira Ferhat</strong> published CSS & Tailwind Deep Dive', time: '1 hr ago' },
+    { dot: 'var(--red)', text: '<strong>Lina Khelifi</strong> was banned for policy violation', time: '2 hr ago' },
+    { dot: 'var(--cyan)', text: '<strong>Tarek Boumediene</strong> added Python for Data Science course', time: '5 hr ago' },
+    { dot: 'var(--purple)', text: 'New user <strong>Amira Saad</strong> registered and verified email', time: 'Yesterday' },
+];
 
 // ====================== Helper Functions ======================
 function escapeHtml(str) {
@@ -100,7 +111,6 @@ function navigate(page) {
     if (targetPage) targetPage.classList.add('active');
     document.querySelectorAll(`.nav-item[data-page="${page}"]`).forEach(n => n.classList.add('active'));
 
-    // Dynamic title
     let title = '';
     if (page === 'dashboard') title = 'Dashboard';
     else if (page === 'users') title = 'User Management';
@@ -120,7 +130,7 @@ document.querySelectorAll('.nav-item[data-page]').forEach(item => {
     item.addEventListener('click', () => navigate(item.dataset.page));
 });
 
-// ====================== Sidebar Toggle ======================
+// ====================== Sidebar ======================
 const sidebarEl = document.getElementById('sidebar');
 const mainEl = document.getElementById('main');
 const toggleBtn = document.getElementById('sidebarToggle');
@@ -157,18 +167,15 @@ async function fetchUsers() {
             updateStats();
             renderDashUsers();
         } else {
-            showToast('فشل تحميل المستخدمين', 'error');
+            showToast('Failed to load users', 'error');
         }
     } catch (err) {
         console.error('Fetch users error:', err);
         if (err.response && (err.response.status === 403 || err.response.status === 401)) {
-            showToast('غير مصرح لك. سيتم إعادة التوجيه.', 'error');
-            setTimeout(() => {
-                localStorage.removeItem('token');
-                window.location.href = 'login.html';
-            }, 2000);
+            showToast('Unauthorized. Redirecting...', 'error');
+            setTimeout(() => { localStorage.removeItem('token'); window.location.href = 'login.html'; }, 2000);
         } else {
-            showToast('خطأ في تحميل المستخدمين', 'error');
+            showToast('Error loading users', 'error');
         }
     }
 }
@@ -199,36 +206,19 @@ function renderUsersTable() {
     const tbody = document.getElementById('usersTable');
     if (!tbody) return;
     if (!users.length) {
-        tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">لا يوجد مستخدمون</div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No users found</div></td></tr>';
         return;
     }
     tbody.innerHTML = users.map(u => {
         const [bg, col] = getAvatarColor(u.full_name);
-        const banLabel = u.status === 'banned' ? '✅ Unban' : '🚫 Ban';
         const joinedDate = u.created_at ? new Date(u.created_at).toLocaleDateString() : '—';
-        return `
-            <tr>
-                <td>
-                    <div class="user-cell">
-                        <div class="user-avatar" style="background:${bg}; color:${col}">${getInitials(u.full_name)}</div>
-                        <div>
-                            <div class="user-name">${escapeHtml(u.full_name)}</div>
-                            <div class="user-email">${escapeHtml(u.email)}</div>
-                        </div>
-                    </div>
-                </td>
-                <td>${roleBadge(u.role)}</td>
-                <td>${statusBadge(u.status)}</td>
-                <td style="color:var(--text-3); font-size:12px">${joinedDate}</td>
-                <td>
-                    <div style="display:flex; gap:6px">
-                        <button class="btn btn-ghost btn-xs" onclick="editUser('${u.id}')">✎ Edit</button>
-                        <button class="btn btn-xs ${u.status === 'banned' ? 'btn-ghost' : 'btn-danger'}" onclick="toggleBan('${u.id}')">${banLabel}</button>
-                        <button class="btn btn-danger btn-xs" onclick="deleteUser('${u.id}')">🗑️</button>
-                    </div>
-                </td>
-            </tr>
-        `;
+        return `<tr>
+            <td><div class="user-cell"><div class="user-avatar" style="background:${bg}; color:${col}">${getInitials(u.full_name)}</div><div><div class="user-name">${escapeHtml(u.full_name)}</div><div class="user-email">${escapeHtml(u.email)}</div></div></div></td>
+            <td>${roleBadge(u.role)}</td>
+            <td>${statusBadge(u.status)}</td>
+            <td style="color:var(--text-3); font-size:12px">${joinedDate}</td>
+            <td><div style="display:flex; gap:6px"><button class="btn btn-ghost btn-xs" onclick="editUser('${u.id}')">✎ Edit</button><button class="btn btn-danger btn-xs" onclick="deleteUser('${u.id}')">🗑️ Delete</button></div></td>
+        </tr>`;
     }).join('');
 }
 function filterUsers() { renderUsersTable(); }
@@ -250,8 +240,8 @@ function openAddUserModal() {
     document.getElementById('uPassword').value = '';
     document.getElementById('uRole').value = 'student';
     document.getElementById('uStatus').value = 'active';
-    document.getElementById('userModalTitle').textContent = 'إضافة مستخدم جديد';
-    document.getElementById('userModalSubmitBtn').textContent = 'إضافة';
+    document.getElementById('userModalTitle').textContent = 'Add New User';
+    document.getElementById('userModalSubmitBtn').textContent = 'Add User';
     const pwdGroup = document.getElementById('passwordFieldGroup');
     if (pwdGroup) pwdGroup.style.display = 'block';
     openModal('user');
@@ -265,8 +255,8 @@ async function editUser(userId) {
     document.getElementById('uEmail').value = user.email;
     document.getElementById('uRole').value = user.role;
     document.getElementById('uStatus').value = user.status;
-    document.getElementById('userModalTitle').textContent = 'تعديل المستخدم';
-    document.getElementById('userModalSubmitBtn').textContent = 'حفظ التغييرات';
+    document.getElementById('userModalTitle').textContent = 'Edit User';
+    document.getElementById('userModalSubmitBtn').textContent = 'Save Changes';
     const pwdGroup = document.getElementById('passwordFieldGroup');
     if (pwdGroup) pwdGroup.style.display = 'none';
     openModal('user');
@@ -280,48 +270,37 @@ async function submitUserModal() {
     const status = document.getElementById('uStatus').value;
     const password = document.getElementById('uPassword')?.value.trim();
 
-    if (!full_name || !email) { showToast('الاسم والبريد الإلكتروني مطلوبان', 'error'); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('البريد الإلكتروني غير صالح', 'error'); return; }
+    if (!full_name || !email) { showToast('Name and email are required', 'error'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Invalid email address', 'error'); return; }
 
     try {
         if (userId) {
             await axios.put(`/edit-user/${userId}`, { full_name, username, email, role, status });
-            showToast('تم تحديث المستخدم بنجاح', 'success');
+            showToast('User updated successfully', 'success');
         } else {
-            if (!password) { showToast('كلمة المرور مطلوبة للمستخدم الجديد', 'error'); return; }
-            if (password.length < 6) { showToast('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error'); return; }
+            if (!password) { showToast('Password is required for new user', 'error'); return; }
+            if (password.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
             await axios.post('/add-user', { full_name, username, email, role, status, password });
-            showToast('تم إضافة المستخدم بنجاح', 'success');
+            showToast('User added successfully', 'success');
         }
         closeModal('user');
         await fetchUsers();
     } catch (err) {
-        console.error(err);
-        showToast(err.response?.data?.message || 'حدث خطأ أثناء العملية', 'error');
+        showToast(err.response?.data?.message || 'Operation failed', 'error');
     }
 }
-async function toggleBan(userId) {
-    const user = allUsers.find(u => u.id === userId);
-    if (!user) return;
-    const newStatus = user.status === 'banned' ? 'active' : 'banned';
-    const action = newStatus === 'banned' ? 'حظر' : 'إلغاء الحظر';
-    openConfirm(`${action} المستخدم`, `هل أنت متأكد من ${action} "${user.full_name}"؟`, newStatus === 'banned' ? '🚫' : '✅', async () => {
-        try {
-            await axios.patch(`/ban-user/${userId}`, { status: newStatus });
-            showToast(`تم ${action} المستخدم بنجاح`, 'info');
-            await fetchUsers();
-        } catch (err) { showToast('فشل تغيير الحالة', 'error'); }
-    });
-}
+
 async function deleteUser(userId) {
     const user = allUsers.find(u => u.id === userId);
     if (!user) return;
-    openConfirm('حذف المستخدم', `هل أنت متأكد من حذف "${user.full_name}"؟ لا يمكن التراجع.`, '🗑️', async () => {
+    openConfirm('Delete User', `Are you sure you want to delete "${user.full_name}"? This cannot be undone.`, '🗑️', async () => {
         try {
             await axios.delete(`/delete-user/${userId}`);
-            showToast(`تم حذف المستخدم ${user.full_name}`, 'error');
+            showToast(`User ${user.full_name} deleted`, 'error');
             await fetchUsers();
-        } catch (err) { showToast('فشل الحذف', 'error'); }
+        } catch (err) {
+            showToast('Delete failed', 'error');
+        }
     });
 }
 
@@ -337,22 +316,20 @@ async function fetchCourses() {
             renderDashCourses();
             updateStats();
         } else {
-            showToast('فشل تحميل الكورسات', 'error');
+            showToast('Failed to load courses', 'error');
         }
     } catch (err) {
-        console.error('Fetch courses error:', err);
-        showToast('خطأ في تحميل الكورسات', 'error');
+        showToast('Error loading courses', 'error');
     }
 }
 
 async function updateCourseStatus(courseId, newStatus) {
     try {
         await axios.patch(`/courses/${courseId}/status`, { status: newStatus });
-        showToast(`تم تحديث حالة الكورس إلى ${newStatus}`, 'success');
+        showToast(`Course status updated to ${newStatus}`, 'success');
         await fetchCourses();
     } catch (err) {
-        console.error('Update status error:', err);
-        showToast('فشل تحديث الحالة. تأكد من أن الـ API يعمل.', 'error');
+        showToast('Status update failed', 'error');
     }
 }
 
@@ -371,12 +348,14 @@ async function setCourseStatus(newStatus) {
 async function deleteCourse(courseId) {
     const course = allCourses.find(c => c.id === courseId);
     if (!course) return;
-    openConfirm('حذف الكورس', `هل أنت متأكد من حذف "${course.Course || course.title}"؟ لا يمكن التراجع.`, '🗑️', async () => {
+    openConfirm('Delete Course', `Are you sure you want to delete "${course.Course || course.title}"? This cannot be undone.`, '🗑️', async () => {
         try {
             await axios.delete(`/courses/${courseId}`);
-            showToast(`تم حذف الكورس "${course.Course || course.title}"`, 'error');
+            showToast(`Course "${course.Course || course.title}" deleted`, 'error');
             await fetchCourses();
-        } catch (err) { showToast('فشل الحذف', 'error'); }
+        } catch (err) {
+            showToast('Delete failed', 'error');
+        }
     });
 }
 
@@ -385,13 +364,13 @@ function renderCoursesTable() {
     const tbody = document.getElementById('coursesTable');
     if (!tbody) return;
     if (!courses.length) {
-        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">لا توجد كورسات</div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No courses found</div></td></tr>';
         return;
     }
     const emojis = { 'Web Dev': '🌐', 'Frontend': '🎨', 'Backend': '⚙️', 'Data Science': '📊', 'DevOps': '☁️', 'Design': '🖌️' };
     tbody.innerHTML = courses.map(c => {
-        const title = c.Course || c.title || 'بدون عنوان';
-        const instructor = c.Instructor || c.teacher_name || 'غير معروف';
+        const title = c.Course || c.title || 'Untitled';
+        const instructor = c.Instructor || c.teacher_name || 'Unknown';
         let level = c.Level || c.difficulty_level || 'beginner';
         const students = c.Students !== undefined ? c.Students : (c.students_count || 0);
         let status = 'Draft';
@@ -402,29 +381,14 @@ function renderCoursesTable() {
         }
         const category = c.category || 'General';
         const ico = emojis[category] || '📚';
-        return `
-            <tr>
-                <td>
-                    <div style="display:flex;align-items:center;gap:10px">
-                        <div style="font-size:20px;width:32px;text-align:center">${ico}</div>
-                        <div>
-                            <div style="font-weight:500;font-size:13px">${escapeHtml(title)}</div>
-                            <div style="font-size:11px;color:var(--text-3)">${escapeHtml(category)}</div>
-                        </div>
-                    </div>
-                </td>
-                <td style="color:var(--text-2);font-size:12px">${escapeHtml(instructor)}</td>
-                <td>${levelBadge(level)}</td>
-                <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--admin-accent)">${students}</span></td>
-                <td>${courseStatusBadge(status)}</td>
-                <td>
-                    <div style="display:flex;gap:6px">
-                        <button class="btn btn-ghost btn-xs" onclick="openCourseStatusModal('${c.id}')">✎ Change Status</button>
-                        <button class="btn btn-danger btn-xs" onclick="deleteCourse('${c.id}')">🗑️</button>
-                    </div>
-                </td>
-            </tr>
-        `;
+        return `<tr>
+            <td><div style="display:flex;align-items:center;gap:10px"><div style="font-size:20px;width:32px;text-align:center">${ico}</div><div><div style="font-weight:500;font-size:13px">${escapeHtml(title)}</div><div style="font-size:11px;color:var(--text-3)">${escapeHtml(category)}</div></div></div></td>
+            <td style="color:var(--text-2);font-size:12px">${escapeHtml(instructor)}</td>
+            <td>${levelBadge(level)}</td>
+            <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--admin-accent)">${students}</span></td>
+            <td>${courseStatusBadge(status)}</td>
+            <td><div style="display:flex;gap:6px"><button class="btn btn-ghost btn-xs" onclick="openCourseStatusModal('${c.id}')">✎ Change Status</button><button class="btn btn-danger btn-xs" onclick="deleteCourse('${c.id}')">🗑️ Delete</button></div></td>
+        </tr>`;
     }).join('');
 }
 
@@ -455,31 +419,25 @@ function courseStatusBadge(status) {
 }
 
 function openAddCourseModal() {
-    showToast('إضافة كورس جديدة غير متاحة حالياً عبر API، سيتم إضافتها محلياً فقط.', 'info');
-}
-function submitCourseModal() {
-    showToast('يرجى استخدام واجهة المدير المخصصة لإضافة كورسات.', 'error');
+    showToast('Add course feature coming soon', 'info');
 }
 
-// ====================== Skills (NEW) ======================
+// ====================== Skills ======================
 
 async function fetchSkills() {
     try {
         const response = await axios.get('/skills');
         if (response.data.success) {
             allSkills = response.data.data;
-            const countSpan = document.getElementById('navSkillCount');
-            if (countSpan) countSpan.textContent = allSkills.length;
+            document.getElementById('navSkillCount').textContent = allSkills.length;
             renderSkillsTable();
         } else {
             showToast('Failed to load skills', 'error');
         }
     } catch (err) {
-        console.error("Error fetching skills:", err);
         showToast('Error loading skills', 'error');
     }
 }
-
 function renderSkillsTable() {
     const tbody = document.getElementById('skillsTable');
     if (!tbody) return;
@@ -496,23 +454,16 @@ function renderSkillsTable() {
             <td>${escapeHtml(s.category || '—')}</td>
             <td style="text-align:center">${s.display_order || 0}</td>
             <td style="color:var(--text-3); font-size:12px">${created}</td>
-            <td>
-                <div style="display:flex; gap:6px">
-                    <button class="btn btn-ghost btn-xs" onclick="editSkill('${s.id}')">✎ Edit</button>
-                    <button class="btn btn-danger btn-xs" onclick="deleteSkill('${s.id}')">🗑️</button>
-                </div>
-            </td>
+            <td><div style="display:flex; gap:6px"><button class="btn btn-ghost btn-xs" onclick="editSkill('${s.id}')">✎ Edit</button><button class="btn btn-danger btn-xs" onclick="deleteSkill('${s.id}')">🗑️ Delete</button></div></td>
         </tr>`;
     }).join('');
 }
-
 function getFilteredSkills() {
     const search = (document.getElementById('skillSearch')?.value || '').toLowerCase();
     if (!search) return allSkills;
     return allSkills.filter(s => s.name?.toLowerCase().includes(search) || s.code?.toLowerCase().includes(search));
 }
 function filterSkills() { renderSkillsTable(); }
-
 function openAddSkillModal() {
     document.getElementById('editSkillId').value = '';
     document.getElementById('skillCode').value = '';
@@ -550,7 +501,7 @@ async function submitSkillModal() {
     const display_order = parseInt(document.getElementById('skillDisplayOrder').value) || 0;
     const icon_url = document.getElementById('skillIconUrl').value.trim();
 
-    if (!code || !name) { showToast('Code and Name are required', 'error'); return; }
+    if (!code || !name) { showToast('Code and name are required', 'error'); return; }
     if (/\s/.test(code)) { showToast('Code must not contain spaces', 'error'); return; }
 
     const payload = { code, name, description, category, display_order, icon_url };
@@ -566,7 +517,6 @@ async function submitSkillModal() {
         closeModal('skill');
         await fetchSkills();
     } catch (err) {
-        console.error(err);
         showToast(err.response?.data?.message || 'Operation failed', 'error');
     }
 }
@@ -585,7 +535,7 @@ async function deleteSkill(skillId) {
     });
 }
 
-// ====================== Statistics ======================
+// ====================== Stats ======================
 function updateStats() {
     const students = allUsers.filter(u => u.role === 'student').length;
     const teachers = allUsers.filter(u => u.role === 'teacher').length;
@@ -620,7 +570,7 @@ function renderDashUsers() {
     if (!container) return;
     const recentUsers = [...allUsers].slice(-5).reverse();
     if (!recentUsers.length) {
-        container.innerHTML = '<tr><td colspan="3">لا يوجد مستخدمون</td>';
+        container.innerHTML = '<tr><td colspan="3">No users found</td></tr>';
         return;
     }
     container.innerHTML = recentUsers.map(u => {
@@ -636,17 +586,17 @@ function renderDashCourses() {
     const container = document.getElementById('dashCoursesTable');
     if (!container) return;
     const recentCourses = [...allCourses].slice(-4).reverse();
+    if (!recentCourses.length) {
+        container.innerHTML = '<tr><td colspan="3">No courses found</td></tr>';
+        return;
+    }
     container.innerHTML = recentCourses.map(c => {
-        let statusDisplay = 'Published';
-        if (c.is_published === 0 || c.is_published === false) statusDisplay = 'Draft';
-        else if (c.status) statusDisplay = c.status;
-        return `
-        <tr onclick="navigate('courses')">
+        return `<tr onclick="navigate('courses')">
             <td><div style="font-weight:500;font-size:13px">${escapeHtml(c.Course || c.title)}</div></td>
             <td style="color:var(--text-2);font-size:12px">${escapeHtml(c.Instructor || c.teacher_name)}</td>
-            <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--admin-accent)">${c.Students !== undefined ? c.Students : (c.students_count || 0)}</span></td>
-        </tr>
-    `}).join('');
+            <td><span style="font-weight:700;color:var(--admin-accent)">${c.Students !== undefined ? c.Students : (c.students_count || 0)}</span></td>
+        </tr>`;
+    }).join('');
 }
 
 // ====================== Real Recent Activity ======================
@@ -659,37 +609,33 @@ async function loadRecentActivity() {
         if (data.success && data.notifications) {
             renderActivityItems(data.notifications);
         } else {
-            renderActivityItems([]);
+            // Fallback to dummy data
+            renderActivity();
         }
     } catch (err) {
         console.error('Recent activity fetch failed:', err);
+        renderActivity(); // fallback
     }
 }
 
 function renderActivityItems(notifications) {
     const container = document.getElementById('dashActivity');
     if (!container) return;
-
     if (!notifications.length) {
-        container.innerHTML = `<div class="activity-item">
-            <span style="color:var(--text-3)">No recent activity</span>
-        </div>`;
+        container.innerHTML = `<div class="activity-item"><span style="color:var(--text-3)">No recent activity</span></div>`;
         return;
     }
-
     container.innerHTML = notifications.map(n => {
         const dotColor = getActivityDotColor(n.type);
         const text = `<strong>${escapeHtml(n.title)}</strong> ${escapeHtml(n.message)}`;
         const time = adminTimeAgo(n.created_at);
-        return `
-            <div class="activity-item">
-                <div class="act-dot" style="background:${dotColor}"></div>
-                <div class="act-body">
-                    <div class="act-text">${text}</div>
-                    <div class="act-time">${time}</div>
-                </div>
+        return `<div class="activity-item">
+            <div class="act-dot" style="background:${dotColor}"></div>
+            <div class="act-body">
+                <div class="act-text">${text}</div>
+                <div class="act-time">${time}</div>
             </div>
-        `;
+        </div>`;
     }).join('');
 }
 
@@ -703,6 +649,21 @@ function getActivityDotColor(type) {
         'default': 'var(--admin-accent)'
     };
     return map[type] || map['default'];
+}
+
+// Dummy activity render (fallback)
+function renderActivity() {
+    const container = document.getElementById('dashActivity');
+    if (!container) return;
+    container.innerHTML = ACTIVITY_LOG.map(a => `
+        <div class="activity-item">
+            <div class="act-dot" style="background:${a.dot}"></div>
+            <div class="act-body">
+                <div class="act-text">${a.text}</div>
+                <div class="act-time">${a.time}</div>
+            </div>
+        </div>
+    `).join('');
 }
 
 // ====================== Notification Panel ======================
@@ -854,7 +815,7 @@ function handleGlobalSearch(val) {
     }
 }
 
-// ====================== Event Binding ======================
+// ====================== Event Bindings ======================
 function bindUserEvents() {
     const search = document.getElementById('userSearch');
     const roleFilter = document.getElementById('userRoleFilter');
@@ -878,19 +839,19 @@ function bindSkillEvents() {
     if (search) search.addEventListener('input', filterSkills);
 }
 
-// ====================== Initialisation ======================
+// ====================== Initialization ======================
 async function init() {
     await fetchUsers();
     await fetchCourses();
-    await fetchSkills();               
+    await fetchSkills();
 
     bindUserEvents();
     bindCourseEvents();
     bindSkillEvents();
 
-    loadRecentActivity();              
+    loadRecentActivity();
     renderRegChart();
-    initAdminNotificationPanel();      
+    initAdminNotificationPanel();
 }
 
 init();

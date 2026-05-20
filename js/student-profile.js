@@ -1,13 +1,11 @@
 // ==================== student-profile.js ====================
 // Handles profile page: save profile, change password, upload avatar,
-// and display live stats (XP, level, badges, quests placeholder).
+// and display live stats (XP, level, quests, badges, leaderboard rank).
 
-// Helper: get input by data-field
 function profileInput(field) {
     return document.querySelector(`#page-profile input[data-field="${field}"]`);
 }
 
-// ── Save profile (full_name, username, bio) ────────────────
 async function saveProfile() {
     const full_name = profileInput('full_name')?.value?.trim();
     const username  = profileInput('username')?.value?.trim();
@@ -40,7 +38,6 @@ async function saveProfile() {
     }
 }
 
-// ── Change password ────────────────────────────────────────
 async function changePassword() {
     const current = document.getElementById('currentPassword')?.value.trim();
     const newPass = document.getElementById('newPassword')?.value.trim();
@@ -71,18 +68,18 @@ async function changePassword() {
     }
 }
 
-// ── Avatar upload ──────────────────────────────────────────
 async function uploadAvatar(file) {
     if (!file) return;
     const formData = new FormData();
     formData.append('avatar', file);
-    showToast('Uploading photo…', 'success');
+    showToast('Uploading photo…', 'info');
     const res = await apiUpload('/profile/avatar', formData);
     if (res && res.success) {
         showToast('Photo updated! 📷', 'success');
         if (res.profile?.avatar_url) {
             setAvatarImage(res.profile.avatar_url);
         }
+        setTimeout(loadProfileStats, 500);
     } else {
         showToast(res?.message || 'Upload failed', 'error');
     }
@@ -96,55 +93,128 @@ function triggerAvatarUpload() {
     input.click();
 }
 
-// ── Update track (domain/subdomain) – placeholder ──────────
 function updateTrack() {
     const domain    = document.getElementById('profileDomain')?.value;
     const subdomain = document.getElementById('profileSubdomain')?.value;
     showToast(`Track updated to ${domain} › ${subdomain}`, 'success');
 }
 
-// ── Fetch live profile statistics ──────────────────────────
-async function loadProfileStats() {
+async function fetchQuestsDone() {
     try {
-        const [gamifRes, badgesRes] = await Promise.all([
-            apiCall('GET', '/gamification/me'),
-            apiCall('GET', '/badges/me'),
-        ]);
-
-        // 1. Quests completed – not yet tracked, show placeholder
-        const questsEl = document.getElementById('statQuestsDone');
-        if (questsEl) questsEl.textContent = '—';
-
-        // 2. Badges earned count (all returned badges are earned)
-        const badgesCountEl = document.getElementById('statBadgesEarned');
-        if (badgesCountEl && badgesRes && badgesRes.success) {
-            const badgeCount = badgesRes.badges ? badgesRes.badges.length : 0;
-            badgesCountEl.textContent = badgeCount;
+        const res = await apiCall('GET', '/api/quests/me');
+        let count = 0;
+        if (res && res.success) {
+            count = res.completed_count ?? res.data?.completed_count ?? res.quests_completed ?? 0;
         }
-
-        // 3. Leaderboard rank – no dedicated endpoint yet
-        const rankEl = document.getElementById('statLeaderboardRank');
-        if (rankEl) rankEl.textContent = 'N/A';
-
-        // 4. Gamification stats (XP / Level) – already displayed by student-common.js,
-        //    but we also have profile page specific elements if they exist.
-        if (gamifRes && gamifRes.success) {
-            const stats = gamifRes.stats;
-            const levelEl = document.getElementById('statCurrentLevel');
-            if (levelEl) levelEl.textContent = stats.current_level;
-            const xpEl = document.getElementById('statTotalXp');
-            if (xpEl) xpEl.textContent = stats.total_xp.toLocaleString();
-            const streakEl = document.getElementById('statStreak');
-            if (streakEl) streakEl.textContent = stats.current_streak ?? '—';
-        }
+        document.getElementById('statQuestsDone').textContent = count;
     } catch (err) {
-        console.error('Failed to load profile stats:', err);
+        console.error('Failed to fetch quests count:', err);
+        document.getElementById('statQuestsDone').textContent = '—';
     }
 }
 
-// ── Initialisation ─────────────────────────────────────────
+async function fetchLeaderboardRank() {
+    const rankEl = document.getElementById('statLeaderboardRank');
+    if (!rankEl) return;
+    
+    try {
+        // Try dedicated rank endpoint
+        let res = await apiCall('GET', '/api/leaderboard/rank');
+        console.log('Leaderboard rank response:', res);
+        
+        if (res && res.success && typeof res.rank === 'number') {
+            rankEl.textContent = `#${res.rank}`;
+            return;
+        }
+        
+        // Fallback: fetch full leaderboard and find user
+        const boardRes = await apiCall('GET', '/api/leaderboard');
+        console.log('Leaderboard list response:', boardRes);
+        
+        if (boardRes && boardRes.success && Array.isArray(boardRes.leaderboard)) {
+            let userId = null;
+            try {
+                const userMe = await apiCall('GET', '/auth/me');
+                userId = userMe?.user?.id;
+                console.log('Current user ID from /auth/me:', userId);
+            } catch (e) {
+                console.warn('Could not fetch /auth/me', e);
+            }
+            
+            if (!userId) {
+                const storedUser = localStorage.getItem('user');
+                if (storedUser) {
+                    try {
+                        const parsed = JSON.parse(storedUser);
+                        userId = parsed.id;
+                        console.log('User ID from localStorage:', userId);
+                    } catch(e) {}
+                }
+            }
+            
+            if (userId) {
+                const index = boardRes.leaderboard.findIndex(entry => 
+                    entry.user_id === userId || entry.id === userId || entry.student_id === userId
+                );
+                if (index !== -1) {
+                    rankEl.textContent = `#${index + 1}`;
+                    return;
+                } else {
+                    console.warn('User not found in leaderboard list');
+                }
+            } else {
+                console.warn('No user ID available to find rank');
+            }
+        }
+        
+        rankEl.textContent = 'N/A';
+        console.error('Unable to determine leaderboard rank');
+        
+    } catch (err) {
+        console.error('Failed to fetch leaderboard rank:', err);
+        rankEl.textContent = 'N/A';
+    }
+}
+
+async function fetchBadgesCount() {
+    try {
+        const res = await apiCall('GET', '/badges/me');
+        let count = 0;
+        if (res && res.success) {
+            count = res.badges ? res.badges.length : 0;
+        }
+        document.getElementById('statBadgesEarned').textContent = count;
+    } catch (err) {
+        console.error('Failed to fetch badges:', err);
+        document.getElementById('statBadgesEarned').textContent = '0';
+    }
+}
+
+async function fetchGamificationStats() {
+    try {
+        const res = await apiCall('GET', '/gamification/me');
+        if (res && res.success) {
+            const stats = res.stats;
+            document.getElementById('statTotalXp').textContent = stats.total_xp?.toLocaleString() || '0';
+            document.getElementById('statCurrentLevel').textContent = stats.current_level || '1';
+            const xpLabel = document.querySelector('.xp-label strong');
+            if (xpLabel) xpLabel.textContent = stats.total_xp?.toLocaleString() || '0';
+        }
+    } catch (err) {
+        console.error('Failed to fetch gamification stats:', err);
+    }
+}
+
+async function loadProfileStats() {
+    await Promise.all([
+        fetchGamificationStats(),
+        fetchQuestsDone(),
+        fetchBadgesCount(),
+        fetchLeaderboardRank()
+    ]);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Wire up buttons (identical to original)
     const saveBtn = document.getElementById('saveProfileBtn');
     if (saveBtn) saveBtn.addEventListener('click', saveProfile);
 
@@ -157,6 +227,5 @@ document.addEventListener('DOMContentLoaded', () => {
     const trackBtn = document.getElementById('updateTrackBtn');
     if (trackBtn) trackBtn.addEventListener('click', updateTrack);
 
-    // Load profile stats after a short delay to ensure common data is ready
-    setTimeout(loadProfileStats, 300);
+    setTimeout(loadProfileStats, 500);
 });

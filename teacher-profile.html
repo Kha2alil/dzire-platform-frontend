@@ -51,6 +51,7 @@
       <button class="btn btn-primary" type="button" onclick="updateProfile()">💾 Save Changes</button>
     </div>
     <div class="grid-2">
+      <!-- Left column: Personal Information -->
       <div>
         <div class="card" style="margin-bottom:16px">
           <div class="card-header"><div class="card-title">Personal Information</div></div>
@@ -69,28 +70,20 @@
           </div>
         </div>
       </div>
+      <!-- Right column: Security card only (Teaching Stats removed) -->
       <div>
-        <div class="card" style="margin-bottom:16px">
-          <div class="card-header"><div class="card-title">Teaching Stats</div></div>
-          <div style="display:flex;flex-direction:column;gap:14px">
-            <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Courses Published</span><span style="font-weight:600">12</span></div><div class="progress-bar"><div class="progress-fill" style="width:80%"></div></div></div>
-            <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Student Satisfaction</span><span style="font-weight:600">96%</span></div><div class="progress-bar"><div class="progress-fill green" style="width:96%"></div></div></div>
-            <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Response Rate</span><span style="font-weight:600">88%</span></div><div class="progress-bar"><div class="progress-fill" style="width:88%"></div></div></div>
-            <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px"><span>Boss Exam Pass Rate</span><span style="font-weight:600">71%</span></div><div class="progress-bar"><div class="progress-fill amber" style="width:71%"></div></div></div>
-          </div>
-        </div>
         <div class="card">
           <div class="card-header"><div class="card-title">Security</div></div>
           <div class="form-group"><label class="form-label">Current Password</label><input class="form-input" type="password" placeholder="••••••••" /></div>
           <div class="form-row"><div class="form-group"><label class="form-label">New Password</label><input class="form-input" type="password" placeholder="••••••••" /></div><div class="form-group"><label class="form-label">Confirm Password</label><input class="form-input" type="password" placeholder="••••••••" /></div></div>
-          <button class="btn btn-ghost" type="button" onclick="showToast('Password updated!','success')">🔒 Update Password</button>
+          <button class="btn btn-ghost" type="button" onclick="changePassword()">🔒 Update Password</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- MODALS (نفس الأصل) -->
+<!-- MODALS (placeholders) -->
 <div class="modal-overlay" id="modal-newCourse">...</div>
 <div class="modal-overlay" id="modal-newQuiz">...</div>
 <div class="modal-overlay" id="modal-newChapter">...</div>
@@ -100,6 +93,7 @@
 <div class="modal-overlay" id="modal-quizBuilder">...</div>
 <div class="toast-container" id="toastContainer"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script src="js/teacher-common.js"></script>
 <script src="js/teacher-profile.js"></script>
 </body>
