@@ -426,10 +426,21 @@ async function populateLessonSelectWithCurrent(select, chapterId, currentLessonI
 
 // فتح مودال إضافة تقييم
 function openAddQuizModal(chapterId, lessonId = null) {
+    
     currentChapterIdForQuiz = chapterId;
     currentLessonIdForQuiz = lessonId;
     currentEditAssessmentId = null;
     pendingEditAssessment = null;
+
+    // ✅ أضف هذا الكتلة (إنشاء حقل مخفي لتخزين chapterId داخل المودال)
+    let hiddenChapter = document.getElementById('currentChapterIdHidden');
+    if (!hiddenChapter) {
+        hiddenChapter = document.createElement('input');
+        hiddenChapter.type = 'hidden';
+        hiddenChapter.id = 'currentChapterIdHidden';
+        document.getElementById('modal-newQuiz').appendChild(hiddenChapter);
+    }
+    hiddenChapter.value = chapterId;
 
     const lessonSelect = document.getElementById('quiz_lesson_select');
     if (lessonSelect) {

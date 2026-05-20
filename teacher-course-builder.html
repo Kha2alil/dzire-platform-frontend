@@ -237,23 +237,39 @@
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <div class="app">
-<aside class="sidebar" id="sidebar">
-  <div class="sidebar-logo"><div class="logo-icon">D</div><div class="logo-text">D<span>zire</span></div></div>
-  <div class="sidebar-toggle" id="sidebarToggle">◀</div>
-  <nav class="sidebar-nav">
-    <div class="nav-section-label">Main</div>
-    <a href="teacher-dashboard.html" class="nav-item"><span class="nav-icon">⊞</span><span class="nav-label">Dashboard</span></a>
-    <a href="teacher-courses.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-label">My Courses</span><span class="nav-badge blue">12</span></a>
-    <a href="teacher-assessments.html" class="nav-item"><span class="nav-icon">📝</span><span class="nav-label">Assessments</span></a>
-    <a href="teacher-students.html" class="nav-item"><span class="nav-icon">👥</span><span class="nav-label">Students</span><span class="nav-badge blue">348</span></a>
-    <div class="nav-section-label">Analytics</div>
-    <a href="teacher-analytics.html" class="nav-item"><span class="nav-icon">📊</span><span class="nav-label">Analytics</span></a>
-    <a href="teacher-failure.html" class="nav-item"><span class="nav-icon">⚠️</span><span class="nav-label">Failure Points</span><span class="nav-badge">5</span></a>
-    <div class="nav-section-label">Account</div>
-    <a href="teacher-profile.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">My Profile</span></a>
-    </nav>
-  <div class="sidebar-profile"><div class="profile-avatar">KK</div><div class="profile-info"><div class="profile-name">Khalil Khalfi</div><div class="profile-role">Teacher · Full-Stack</div></div></div>
-</aside>
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-icon">D</div>
+        <div class="logo-text">D<span>zire</span></div>
+      </div>
+      <div class="sidebar-toggle" id="sidebarToggle">◀</div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Main</div>
+        <a href="teacher-dashboard.html" class="nav-item"><span class="nav-icon">⊞</span><span
+            class="nav-label">Dashboard</span></a>
+        <a href="teacher-courses.html" class="nav-item"><span class="nav-icon">📚</span><span class="nav-label">My
+            Courses</span><span class="nav-badge blue">12</span></a>
+        <a href="teacher-assessments.html" class="nav-item"><span class="nav-icon">📝</span><span
+            class="nav-label">Assessments</span></a>
+        <a href="teacher-students.html" class="nav-item"><span class="nav-icon">👥</span><span
+            class="nav-label">Students</span><span class="nav-badge blue">348</span></a>
+        <div class="nav-section-label">Analytics</div>
+        <a href="teacher-analytics.html" class="nav-item"><span class="nav-icon">📊</span><span
+            class="nav-label">Analytics</span></a>
+        <a href="teacher-failure.html" class="nav-item"><span class="nav-icon">⚠️</span><span class="nav-label">Failure
+            Points</span><span class="nav-badge">5</span></a>
+        <div class="nav-section-label">Account</div>
+        <a href="teacher-profile.html" class="nav-item"><span class="nav-icon">👤</span><span class="nav-label">My
+            Profile</span></a>
+      </nav>
+      <div class="sidebar-profile">
+        <div class="profile-avatar">KK</div>
+        <div class="profile-info">
+          <div class="profile-name">Khalil Khalfi</div>
+          <div class="profile-role">Teacher · Full-Stack</div>
+        </div>
+      </div>
+    </aside>
     <!-- MAIN -->
     <div class="main" id="main">
       <header class="topbar">
@@ -574,7 +590,8 @@
           </div>
           <div class="form-group">
             <label class="form-label">Course Description</label>
-            <textarea id="editCourseDescription" class="form-textarea" rows="4" placeholder="Describe the course..."></textarea>
+            <textarea id="editCourseDescription" class="form-textarea" rows="4"
+              placeholder="Describe the course..."></textarea>
           </div>
         </div>
         <div class="modal-footer">
@@ -634,6 +651,30 @@
         });
 
         async function saveBossExamDirectly() {
+
+          let courseId = window.currentBuilderCourseId;
+          if (!courseId) {
+            const urlParams = new URLSearchParams(window.location.search);
+            courseId = urlParams.get('courseId');
+            if (!courseId) {
+              showToast('Course ID is missing. Please refresh the page.', 'error');
+              return;
+            }
+            window.currentBuilderCourseId = courseId;
+          }
+
+          // 🔹 التأكد من وجود chapterId
+          let chapterId = window.currentChapterIdForQuiz;
+          if (!chapterId) {
+            const hiddenChapter = document.getElementById('currentChapterIdHidden');
+            if (hiddenChapter && hiddenChapter.value) {
+              chapterId = hiddenChapter.value;
+              window.currentChapterIdForQuiz = chapterId;
+            } else {
+              showToast('Chapter ID is missing. Please select a chapter first.', 'error');
+              return;
+            }
+          }
           const title = document.getElementById('quiz_title_input').value.trim();
           const passingScore = parseInt(document.getElementById('quiz_passing_score_input').value, 10);
           const xpReward = parseInt(document.getElementById('quiz_xp_reward_input').value, 10) || 0;
