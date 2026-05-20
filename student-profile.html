@@ -10,7 +10,7 @@
 <body>
 <div class="app">
 
-  <!-- SIDEBAR (identical, active item = profile) -->
+  <!-- SIDEBAR -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="logo-icon">D</div>
@@ -73,7 +73,6 @@
 
   <!-- MAIN CONTENT -->
   <div class="main" id="main">
-    <!-- TOPBAR -->
     <header class="topbar">
       <div class="topbar-left">
         <div class="page-breadcrumb">
@@ -102,7 +101,7 @@
       </div>
     </header>
 
-    <!-- PROFILE CONTENT (extracted from original #page-profile) -->
+    <!-- PROFILE CONTENT (Stats card without streak) -->
     <div class="page active" id="page-profile">
       <div class="section-header">
         <div>
@@ -113,6 +112,7 @@
       </div>
 
       <div class="grid-2">
+        <!-- Left column: Personal Info + Security -->
         <div>
           <div class="card card-mb">
             <div class="card-header"><div class="card-title">Personal Info</div></div>
@@ -163,10 +163,11 @@
           </div>
         </div>
 
+        <!-- Right column: My Stats (5 stats, no streak) + My Track -->
         <div>
           <div class="card card-mb">
             <div class="card-header"><div class="card-title">⚡ My Stats</div></div>
-            <div class="profile-stats-grid">
+            <div class="profile-stats-grid" style="grid-template-columns: repeat(3, 1fr); gap: 16px;">
               <div class="profile-stat">
                 <div class="profile-stat-val stat-val-blue" id="statTotalXp">0</div>
                 <div class="profile-stat-lbl">Total XP</div>
@@ -184,23 +185,9 @@
                 <div class="profile-stat-lbl">Badges</div>
               </div>
               <div class="profile-stat">
-                <div class="profile-stat-val stat-val-red" id="statStreak">0</div>
-                <div class="profile-stat-lbl">Day Streak 🔥</div>
-              </div>
-              <div class="profile-stat">
                 <div class="profile-stat-val stat-val-cyan" id="statLeaderboardRank">#0</div>
                 <div class="profile-stat-lbl">Leaderboard</div>
               </div>
-            </div>
-          </div>
-
-          <div class="card card-mb">
-            <div class="card-header"><div class="card-title">🎯 Learning Progress</div></div>
-            <div class="learning-progress-list">
-              <div class="learning-progress-item"><div class="learning-progress-meta"><span>Full-Stack Dev</span><span class="learning-progress-pct">78%</span></div><div class="progress-bar"><div class="progress-fill" style="width:78%"></div></div></div>
-              <div class="learning-progress-item"><div class="learning-progress-meta"><span>JavaScript Mastery</span><span class="learning-progress-pct">65%</span></div><div class="progress-bar"><div class="progress-fill" style="width:65%"></div></div></div>
-              <div class="learning-progress-item"><div class="learning-progress-meta"><span>Node.js Backend</span><span class="learning-progress-pct">45%</span></div><div class="progress-bar"><div class="progress-fill amber" style="width:45%"></div></div></div>
-              <div class="learning-progress-item"><div class="learning-progress-meta"><span>Database Design</span><span class="learning-progress-pct">30%</span></div><div class="progress-bar"><div class="progress-fill amber" style="width:30%"></div></div></div>
             </div>
           </div>
 

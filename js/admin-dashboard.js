@@ -1,11 +1,11 @@
-// ====================== تكوين Axios ======================
+// ====================== Axios Setup ======================
 axios.defaults.baseURL = 'http://localhost:3000/api/admin';
 const token = localStorage.getItem('token');
 if (token) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 }
 
-// ====================== المتغيرات العامة ======================
+// ====================== Global Variables ======================
 let allUsers = [];
 let allCourses = [];
 let allSkills = [];
@@ -13,7 +13,7 @@ let activeUserTab = 'all';
 let confirmCallback = null;
 let currentCourseIdForStatus = null;
 
-// بيانات وهمية للنشاطات
+// Dummy activity data
 const ACTIVITY_LOG = [
     { dot: 'var(--green)', text: '<strong>Ahmed Mansouri</strong> enrolled in Full-Stack Web Development', time: '2 min ago' },
     { dot: 'var(--blue-400)', text: '<strong>Khalil Khalfi</strong> added a new lesson to Node.js Mastery', time: '14 min ago' },
@@ -24,7 +24,7 @@ const ACTIVITY_LOG = [
     { dot: 'var(--purple)', text: 'New user <strong>Amira Saad</strong> registered and verified email', time: 'Yesterday' },
 ];
 
-// ====================== دوال مساعدة ======================
+// ====================== Helper Functions ======================
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
@@ -118,7 +118,7 @@ document.querySelectorAll('.nav-item[data-page]').forEach(item => {
     item.addEventListener('click', () => navigate(item.dataset.page));
 });
 
-// ====================== Sidebar Toggle ======================
+// ====================== Sidebar ======================
 const sidebarEl = document.getElementById('sidebar');
 const mainEl = document.getElementById('main');
 const toggleBtn = document.getElementById('sidebarToggle');
@@ -134,7 +134,7 @@ if (toggleBtn) {
 function openSidebar() { sidebarEl.classList.add('mobile-open'); document.getElementById('sidebarOverlay').classList.add('visible'); }
 function closeSidebar() { sidebarEl.classList.remove('mobile-open'); document.getElementById('sidebarOverlay').classList.remove('visible'); }
 
-// ====================== المستخدمون ======================
+// ====================== Users (No Ban Button) ======================
 async function fetchUsers() {
     try {
         const response = await axios.get('/profiles');
@@ -144,13 +144,13 @@ async function fetchUsers() {
             renderUsersTable();
             updateStats();
             renderDashUsers();
-        } else { showToast('فشل تحميل المستخدمين', 'error'); }
+        } else { showToast('Failed to load users', 'error'); }
     } catch (err) {
         console.error(err);
         if (err.response && (err.response.status === 403 || err.response.status === 401)) {
-            showToast('غير مصرح لك. سيتم إعادة التوجيه.', 'error');
+            showToast('Unauthorized. Redirecting...', 'error');
             setTimeout(() => { localStorage.removeItem('token'); window.location.href = 'login.html'; }, 2000);
-        } else { showToast('خطأ في تحميل المستخدمين', 'error'); }
+        } else { showToast('Error loading users', 'error'); }
     }
 }
 function roleBadge(role) {
@@ -178,17 +178,16 @@ function renderUsersTable() {
     const users = getFilteredUsers();
     const tbody = document.getElementById('usersTable');
     if (!tbody) return;
-    if (!users.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">لا يوجد مستخدمون</div></td></tr>'; return; }
+    if (!users.length) { tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No users found</div></td></tr>'; return; }
     tbody.innerHTML = users.map(u => {
         const [bg, col] = getAvatarColor(u.full_name);
-        const banLabel = u.status === 'banned' ? '✅ Unban' : '🚫 Ban';
         const joinedDate = u.created_at ? new Date(u.created_at).toLocaleDateString() : '—';
         return `<tr>
             <td><div class="user-cell"><div class="user-avatar" style="background:${bg}; color:${col}">${getInitials(u.full_name)}</div><div><div class="user-name">${escapeHtml(u.full_name)}</div><div class="user-email">${escapeHtml(u.email)}</div></div></div></td>
             <td>${roleBadge(u.role)}</td>
             <td>${statusBadge(u.status)}</td>
             <td style="color:var(--text-3); font-size:12px">${joinedDate}</td>
-            <td><div style="display:flex; gap:6px"><button class="btn btn-ghost btn-xs" onclick="editUser('${u.id}')">✎ Edit</button><button class="btn btn-xs ${u.status === 'banned' ? 'btn-ghost' : 'btn-danger'}" onclick="toggleBan('${u.id}')">${banLabel}</button><button class="btn btn-danger btn-xs" onclick="deleteUser('${u.id}')">🗑️</button></div></td>
+            <td><div style="display:flex; gap:6px"><button class="btn btn-ghost btn-xs" onclick="editUser('${u.id}')">✎ Edit</button><button class="btn btn-danger btn-xs" onclick="deleteUser('${u.id}')">🗑️ Delete</button></div></td>
         </tr>`;
     }).join('');
 }
@@ -210,8 +209,8 @@ function openAddUserModal() {
     document.getElementById('uPassword').value = '';
     document.getElementById('uRole').value = 'student';
     document.getElementById('uStatus').value = 'active';
-    document.getElementById('userModalTitle').textContent = 'إضافة مستخدم جديد';
-    document.getElementById('userModalSubmitBtn').textContent = 'إضافة';
+    document.getElementById('userModalTitle').textContent = 'Add New User';
+    document.getElementById('userModalSubmitBtn').textContent = 'Add User';
     const pwdGroup = document.getElementById('passwordFieldGroup');
     if (pwdGroup) pwdGroup.style.display = 'block';
     openModal('user');
@@ -225,8 +224,8 @@ async function editUser(userId) {
     document.getElementById('uEmail').value = user.email;
     document.getElementById('uRole').value = user.role;
     document.getElementById('uStatus').value = user.status;
-    document.getElementById('userModalTitle').textContent = 'تعديل المستخدم';
-    document.getElementById('userModalSubmitBtn').textContent = 'حفظ التغييرات';
+    document.getElementById('userModalTitle').textContent = 'Edit User';
+    document.getElementById('userModalSubmitBtn').textContent = 'Save Changes';
     const pwdGroup = document.getElementById('passwordFieldGroup');
     if (pwdGroup) pwdGroup.style.display = 'none';
     openModal('user');
@@ -239,45 +238,32 @@ async function submitUserModal() {
     const role = document.getElementById('uRole').value;
     const status = document.getElementById('uStatus').value;
     const password = document.getElementById('uPassword')?.value.trim();
-    if (!full_name || !email) { showToast('الاسم والبريد الإلكتروني مطلوبان', 'error'); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('البريد الإلكتروني غير صالح', 'error'); return; }
+    if (!full_name || !email) { showToast('Name and email are required', 'error'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showToast('Invalid email address', 'error'); return; }
     try {
         if (userId) {
             await axios.put(`/edit-user/${userId}`, { full_name, username, email, role, status });
-            showToast('تم تحديث المستخدم بنجاح', 'success');
+            showToast('User updated successfully', 'success');
         } else {
-            if (!password) { showToast('كلمة المرور مطلوبة للمستخدم الجديد', 'error'); return; }
-            if (password.length < 6) { showToast('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error'); return; }
+            if (!password) { showToast('Password is required for new user', 'error'); return; }
+            if (password.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
             await axios.post('/add-user', { full_name, username, email, role, status, password });
-            showToast('تم إضافة المستخدم بنجاح', 'success');
+            showToast('User added successfully', 'success');
         }
         closeModal('user');
         await fetchUsers();
-    } catch (err) { showToast(err.response?.data?.message || 'حدث خطأ أثناء العملية', 'error'); }
-}
-async function toggleBan(userId) {
-    const user = allUsers.find(u => u.id === userId);
-    if (!user) return;
-    const newStatus = user.status === 'banned' ? 'active' : 'banned';
-    const action = newStatus === 'banned' ? 'حظر' : 'إلغاء الحظر';
-    openConfirm(`${action} المستخدم`, `هل أنت متأكد من ${action} "${user.full_name}"؟`, newStatus === 'banned' ? '🚫' : '✅', async () => {
-        try {
-            await axios.patch(`/ban-user/${userId}`, { status: newStatus });
-            showToast(`تم ${action} المستخدم بنجاح`, 'info');
-            await fetchUsers();
-        } catch (err) { showToast('فشل تغيير الحالة', 'error'); }
-    });
+    } catch (err) { showToast(err.response?.data?.message || 'Operation failed', 'error'); }
 }
 async function deleteUser(userId) {
     const user = allUsers.find(u => u.id === userId);
     if (!user) return;
-    openConfirm('حذف المستخدم', `هل أنت متأكد من حذف "${user.full_name}"؟ لا يمكن التراجع.`, '🗑️', async () => {
-        try { await axios.delete(`/delete-user/${userId}`); showToast(`تم حذف المستخدم ${user.full_name}`, 'error'); await fetchUsers(); }
-        catch (err) { showToast('فشل الحذف', 'error'); }
+    openConfirm('Delete User', `Are you sure you want to delete "${user.full_name}"? This cannot be undone.`, '🗑️', async () => {
+        try { await axios.delete(`/delete-user/${userId}`); showToast(`User ${user.full_name} deleted`, 'error'); await fetchUsers(); }
+        catch (err) { showToast('Delete failed', 'error'); }
     });
 }
 
-// ====================== الكورسات ======================
+// ====================== Courses ======================
 async function fetchCourses() {
     try {
         const response = await axios.get('/courses');
@@ -287,35 +273,35 @@ async function fetchCourses() {
             renderCoursesTable();
             renderDashCourses();
             updateStats();
-        } else { showToast('فشل تحميل الكورسات', 'error'); }
-    } catch (err) { showToast('خطأ في تحميل الكورسات', 'error'); }
+        } else { showToast('Failed to load courses', 'error'); }
+    } catch (err) { showToast('Error loading courses', 'error'); }
 }
 async function updateCourseStatus(courseId, newStatus) {
     try {
         await axios.patch(`/courses/${courseId}/status`, { status: newStatus });
-        showToast(`تم تحديث حالة الكورس إلى ${newStatus}`, 'success');
+        showToast(`Course status updated to ${newStatus}`, 'success');
         await fetchCourses();
-    } catch (err) { showToast('فشل تحديث الحالة', 'error'); }
+    } catch (err) { showToast('Status update failed', 'error'); }
 }
 function openCourseStatusModal(courseId) { currentCourseIdForStatus = courseId; openModal('courseStatus'); }
 async function setCourseStatus(newStatus) { if (!currentCourseIdForStatus) return; await updateCourseStatus(currentCourseIdForStatus, newStatus); closeModal('courseStatus'); currentCourseIdForStatus = null; }
 async function deleteCourse(courseId) {
     const course = allCourses.find(c => c.id === courseId);
     if (!course) return;
-    openConfirm('حذف الكورس', `هل أنت متأكد من حذف "${course.Course || course.title}"؟ لا يمكن التراجع.`, '🗑️', async () => {
-        try { await axios.delete(`/courses/${courseId}`); showToast(`تم حذف الكورس "${course.Course || course.title}"`, 'error'); await fetchCourses(); }
-        catch (err) { showToast('فشل الحذف', 'error'); }
+    openConfirm('Delete Course', `Are you sure you want to delete "${course.Course || course.title}"? This cannot be undone.`, '🗑️', async () => {
+        try { await axios.delete(`/courses/${courseId}`); showToast(`Course "${course.Course || course.title}" deleted`, 'error'); await fetchCourses(); }
+        catch (err) { showToast('Delete failed', 'error'); }
     });
 }
 function renderCoursesTable() {
     const courses = getFilteredCourses();
     const tbody = document.getElementById('coursesTable');
     if (!tbody) return;
-    if (!courses.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">لا توجد كورسات</div></td></table>'; return; }
+    if (!courses.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No courses found</div></td></tr>'; return; }
     const emojis = { 'Web Dev': '🌐', 'Frontend': '🎨', 'Backend': '⚙️', 'Data Science': '📊', 'DevOps': '☁️', 'Design': '🖌️' };
     tbody.innerHTML = courses.map(c => {
-        const title = c.Course || c.title || 'بدون عنوان';
-        const instructor = c.Instructor || c.teacher_name || 'غير معروف';
+        const title = c.Course || c.title || 'Untitled';
+        const instructor = c.Instructor || c.teacher_name || 'Unknown';
         let level = c.Level || c.difficulty_level || 'beginner';
         const students = c.Students !== undefined ? c.Students : (c.students_count || 0);
         let status = 'Draft';
@@ -329,7 +315,7 @@ function renderCoursesTable() {
             <td>${levelBadge(level)}</td>
             <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--admin-accent)">${students}</span></td>
             <td>${courseStatusBadge(status)}</td>
-            <td><div style="display:flex;gap:6px"><button class="btn btn-ghost btn-xs" onclick="openCourseStatusModal('${c.id}')">✎ Change Status</button><button class="btn btn-danger btn-xs" onclick="deleteCourse('${c.id}')">🗑️</button></div></td>
+            <td><div style="display:flex;gap:6px"><button class="btn btn-ghost btn-xs" onclick="openCourseStatusModal('${c.id}')">✎ Change Status</button><button class="btn btn-danger btn-xs" onclick="deleteCourse('${c.id}')">🗑️ Delete</button></div></td>
         </tr>`;
     }).join('');
 }
@@ -357,35 +343,24 @@ function courseStatusBadge(status) {
     if (status === 'Draft') return `<div class="badge badge-neutral">${status}</div>`;
     return `<div class="badge badge-green">${status}</div>`;
 }
-function openAddCourseModal() { showToast('إضافة كورس جديدة غير متاحة حالياً عبر API، سيتم إضافتها محلياً فقط.', 'info'); }
-function submitCourseModal() { showToast('يرجى استخدام واجهة المدير المخصصة لإضافة كورسات.', 'error'); }
+function openAddCourseModal() { showToast('Add course feature coming soon', 'info'); }
 
-// ====================== المهارات (Skills) ======================
+// ====================== Skills ======================
 async function fetchSkills() {
-    console.log("🔍 Fetching skills...");
     try {
         const response = await axios.get('/skills');
-        console.log("✅ Skills API response:", response.data);
         if (response.data.success) {
             allSkills = response.data.data;
-            const countSpan = document.getElementById('navSkillCount');
-            if (countSpan) countSpan.textContent = allSkills.length;
+            document.getElementById('navSkillCount').textContent = allSkills.length;
             renderSkillsTable();
         } else { showToast('Failed to load skills', 'error'); }
-    } catch (err) {
-        console.error("❌ Error fetching skills:", err);
-        showToast('Error loading skills', 'error');
-    }
+    } catch (err) { showToast('Error loading skills', 'error'); }
 }
-
 function renderSkillsTable() {
     const tbody = document.getElementById('skillsTable');
     if (!tbody) return;
     const skills = getFilteredSkills();
-    if (!skills.length) {
-        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No skills found</div></td></tr>';
-        return;
-    }
+    if (!skills.length) { tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No skills found</div></td></tr>'; return; }
     tbody.innerHTML = skills.map(s => {
         const created = s.created_at ? new Date(s.created_at).toLocaleDateString() : '—';
         return `<tr>
@@ -394,18 +369,16 @@ function renderSkillsTable() {
             <td>${escapeHtml(s.category || '—')}</td>
             <td style="text-align:center">${s.display_order || 0}</td>
             <td style="color:var(--text-3); font-size:12px">${created}</td>
-            <td><div style="display:flex; gap:6px"><button class="btn btn-ghost btn-xs" onclick="editSkill('${s.id}')">✎ Edit</button><button class="btn btn-danger btn-xs" onclick="deleteSkill('${s.id}')">🗑️</button></div></td>
+            <td><div style="display:flex; gap:6px"><button class="btn btn-ghost btn-xs" onclick="editSkill('${s.id}')">✎ Edit</button><button class="btn btn-danger btn-xs" onclick="deleteSkill('${s.id}')">🗑️ Delete</button></div></td>
         </tr>`;
     }).join('');
 }
-
 function getFilteredSkills() {
     const search = (document.getElementById('skillSearch')?.value || '').toLowerCase();
     if (!search) return allSkills;
     return allSkills.filter(s => s.name?.toLowerCase().includes(search) || s.code?.toLowerCase().includes(search));
 }
 function filterSkills() { renderSkillsTable(); }
-
 function openAddSkillModal() {
     document.getElementById('editSkillId').value = '';
     document.getElementById('skillCode').value = '';
@@ -440,7 +413,7 @@ async function submitSkillModal() {
     const category = document.getElementById('skillCategory').value.trim();
     const display_order = parseInt(document.getElementById('skillDisplayOrder').value) || 0;
     const icon_url = document.getElementById('skillIconUrl').value.trim();
-    if (!code || !name) { showToast('Code and Name are required', 'error'); return; }
+    if (!code || !name) { showToast('Code and name are required', 'error'); return; }
     if (/\s/.test(code)) { showToast('Code must not contain spaces', 'error'); return; }
     const payload = { code, name, description, category, display_order, icon_url };
     try {
@@ -454,7 +427,6 @@ async function submitSkillModal() {
         closeModal('skill');
         await fetchSkills();
     } catch (err) {
-        console.error(err);
         showToast(err.response?.data?.message || 'Operation failed', 'error');
     }
 }
@@ -472,7 +444,7 @@ async function deleteSkill(skillId) {
     });
 }
 
-// ====================== الإحصائيات ======================
+// ====================== Stats ======================
 function updateStats() {
     const students = allUsers.filter(u => u.role === 'student').length;
     const teachers = allUsers.filter(u => u.role === 'teacher').length;
@@ -501,12 +473,12 @@ function updateStats() {
     document.getElementById('settingsCourseCount').textContent = coursesCount;
 }
 
-// ====================== جداول Dashboard المصغرة ======================
+// ====================== Dashboard Mini Tables ======================
 function renderDashUsers() {
     const container = document.getElementById('dashUsersTable');
     if (!container) return;
     const recentUsers = [...allUsers].slice(-5).reverse();
-    if (!recentUsers.length) { container.innerHTML = '<td><td colspan="3">لا يوجد مستخدمون</td></tr>'; return; }
+    if (!recentUsers.length) { container.innerHTML = '<tr><td colspan="3">No users found</td></tr>'; return; }
     container.innerHTML = recentUsers.map(u => {
         const [bg, col] = getAvatarColor(u.full_name);
         return `<tr onclick="navigate('users')">
@@ -520,20 +492,17 @@ function renderDashCourses() {
     const container = document.getElementById('dashCoursesTable');
     if (!container) return;
     const recentCourses = [...allCourses].slice(-4).reverse();
+    if (!recentCourses.length) { container.innerHTML = '<tr><td colspan="3">No courses found</td></tr>'; return; }
     container.innerHTML = recentCourses.map(c => {
-        let statusDisplay = 'Published';
-        if (c.is_published === 0 || c.is_published === false) statusDisplay = 'Draft';
-        else if (c.status) statusDisplay = c.status;
-        return `
-        <tr onclick="navigate('courses')">
+        return `<tr onclick="navigate('courses')">
             <td><div style="font-weight:500;font-size:13px">${escapeHtml(c.Course || c.title)}</div></td>
             <td style="color:var(--text-2);font-size:12px">${escapeHtml(c.Instructor || c.teacher_name)}</td>
-            <td><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--admin-accent)">${c.Students !== undefined ? c.Students : (c.students_count || 0)}</span></td>
+            <td><span style="font-weight:700;color:var(--admin-accent)">${c.Students !== undefined ? c.Students : (c.students_count || 0)}</span></td>
         </tr>`;
     }).join('');
 }
 
-// ====================== النشاطات والرسوم البيانية ======================
+// ====================== Activity and Charts ======================
 function renderActivity() {
     const container = document.getElementById('dashActivity');
     if (!container) return;
@@ -561,7 +530,7 @@ function renderRegChart() {
     `).join('');
 }
 
-// ====================== الإعدادات ======================
+// ====================== Settings ======================
 function saveSettings() {
     const name = document.getElementById('siteName').value.trim();
     const email = document.getElementById('contactEmail').value.trim();
@@ -570,7 +539,7 @@ function saveSettings() {
     showToast('Settings saved successfully 💾', 'success');
 }
 
-// ====================== البحث العام ======================
+// ====================== Global Search ======================
 function handleGlobalSearch(val) {
     const q = val.toLowerCase().trim();
     if (!q) return;
@@ -589,10 +558,9 @@ function handleGlobalSearch(val) {
     }
 }
 
-// ====================== زر الإشعارات ======================
+// ====================== Event Bindings ======================
 document.getElementById('notifBtn')?.addEventListener('click', () => { showToast('3 new notifications 🔔', 'info'); });
 
-// ====================== ربط الأحداث ======================
 function bindUserEvents() {
     const search = document.getElementById('userSearch');
     const roleFilter = document.getElementById('userRoleFilter');
@@ -616,7 +584,7 @@ function bindSkillEvents() {
     if (search) search.addEventListener('input', filterSkills);
 }
 
-// ====================== التهيئة ======================
+// ====================== Initialization ======================
 async function init() {
     await fetchUsers();
     await fetchCourses();
